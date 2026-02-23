@@ -1,0 +1,75 @@
+{
+  "summary": {
+    "claimant_first_name": "{**************}",
+    "claimant_middle_name": "{***************}",
+    "claimant_last_name": "{*************}",
+    "case_id": "{***************}",
+    "authorization_number": "{************************}",
+    "request_id": "{**************}",
+    "date_of_issue": "A****t 1*, 2**4",
+    "dob": "A****t 1, 2**5",
+    "applicant_name": "{******************}",
+    "appointment_date": "T******y S*******r 5**, 2**4",
+    "appointment_time": "1***0 AM",
+    "street_address": null,
+    "city": null,
+    "state": null,
+    "zip_code": null,
+    "phone": null,
+    "services": [
+      {
+        "cpt_code": "{******************************}",
+        "procedure_type_code": "E",
+        "description": "{******************************}"
+      },
+      {
+        "cpt_code": "9***********H",
+        "procedure_type_code": "E",
+        "description": "C***d M****l S****s E********n",
+        "fee": "2****0"
+      }
+    ],
+    "federal_tax_id": "9*******0",
+    "vendor_number": null
+  },
+  "all_fields": {
+    "federal_tax_id": "9*******0",
+    "pay_to": "S***H & C*******E A*********S L*C 4*8 C***N H*Y S",
+    "scheduled_date": "S*******r 5**, 2**4",
+    "scheduled_time": "1***0 AM E*T",
+    "request_id": "{**************}",
+    "claimant_info_raw": "C******t I*********n {**************} {***************} {*************} {******************} {*********, {***********************} {****************}",
+    "appointment_raw": "D**e a*d T**e T******y S*******r 5**, 2**4 1***0 A*******n D******t T**e",
+    "appointment_date": "T******y S*******r 5**, 2**4",
+    "appointment_time": "1***0 AM",
+    "appointment_timezone": "E*****n D******t T**e",
+    "services_raw": "S******s A********d C***: {******************************} P*******e T**e C***: E D***: {******************************} F**: $ C***: 9***********H P*******e T**e C***: E D***: C***d M****l S****s E********n F**: $*****0",
+    "services": [
+      {
+        "cpt_code": "{******************************}",
+        "procedure_type_code": "E",
+        "description": "{******************************}"
+      },
+      {
+        "cpt_code": "9***********H",
+        "procedure_type_code": "E",
+        "description": "C***d M****l S****s E********n",
+        "fee": "2****0"
+      }
+    ],
+    "date_of_issue": "A****t 1*, 2**4",
+    "case_id": "{***************}",
+    "first_name": "{**************}",
+    "middle_name": "{***************}",
+    "last_name": "{*************}",
+    "dob": "A****t 1, 2**5",
+    "applicant_name": "{******************}",
+    "authorization_number": "{************************}",
+    "case_number_full_footer": "{***************}",
+    "assigned_code": "9**6",
+    "dcc_number": "{**************}"
+  },
+  "source_file": "REQUEST_S23_20240813132232_348145129_0.pdf",
+  "extracted_at": "2026-02-19T14:20:29.966802",
+  "masked": true
+}

@@ -1,0 +1,52 @@
+# Kotlin/JVM
+build/
+.gradle/
+*.class
+*.jar
+*.war
+*.aar
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Compose Desktop
+compose-desktop-build/
+
+# jpackage output
+jpackage/
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# PHI — NEVER commit real patient data
+*.pdf
+!docs/**/*.pdf
+*.phi
+*.phi.*
+
+# Python (reference scripts — not production, but just in case)
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Environment / secrets
+.env
+.env.*
+*.key
+*.pem
+credentials.*

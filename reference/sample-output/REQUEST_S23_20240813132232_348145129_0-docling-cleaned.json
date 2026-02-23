@@ -1,0 +1,3549 @@
+{
+  "source_file": "REQUEST_S23_20240813132232_348145129_0.pdf",
+  "dump_created": "2026-02-17T18:26:32.499999",
+  "tool": "docling",
+  "conversion_time_seconds": 172.74,
+  "pages_extracted": [
+    3,
+    4
+  ],
+  "document": {
+    "schema_name": "DoclingDocument",
+    "version": "1.9.0",
+    "name": "REQUEST_S23_20240813132232_348145129_0",
+    "origin": {
+      "mimetype": "application/pdf",
+      "binary_hash": 17875213673024047352,
+      "filename": "REQUEST_S23_20240813132232_348145129_0.pdf"
+    },
+    "furniture": {
+      "self_ref": "#/furniture",
+      "children": [],
+      "content_layer": "furniture",
+      "name": "_root_",
+      "label": "unspecified"
+    },
+    "body": {
+      "self_ref": "#/body",
+      "children": [
+        {
+          "$ref": "#/texts/0"
+        },
+        {
+          "$ref": "#/texts/1"
+        },
+        {
+          "$ref": "#/texts/2"
+        },
+        {
+          "$ref": "#/texts/3"
+        },
+        {
+          "$ref": "#/texts/4"
+        },
+        {
+          "$ref": "#/texts/5"
+        },
+        {
+          "$ref": "#/texts/6"
+        },
+        {
+          "$ref": "#/texts/7"
+        },
+        {
+          "$ref": "#/groups/0"
+        },
+        {
+          "$ref": "#/texts/10"
+        },
+        {
+          "$ref": "#/texts/11"
+        },
+        {
+          "$ref": "#/groups/1"
+        },
+        {
+          "$ref": "#/texts/13"
+        },
+        {
+          "$ref": "#/texts/14"
+        },
+        {
+          "$ref": "#/groups/2"
+        },
+        {
+          "$ref": "#/texts/18"
+        },
+        {
+          "$ref": "#/texts/19"
+        },
+        {
+          "$ref": "#/texts/20"
+        },
+        {
+          "$ref": "#/groups/3"
+        },
+        {
+          "$ref": "#/groups/4"
+        },
+        {
+          "$ref": "#/texts/29"
+        },
+        {
+          "$ref": "#/texts/30"
+        },
+        {
+          "$ref": "#/texts/31"
+        },
+        {
+          "$ref": "#/texts/32"
+        },
+        {
+          "$ref": "#/texts/33"
+        },
+        {
+          "$ref": "#/texts/34"
+        },
+        {
+          "$ref": "#/groups/5"
+        },
+        {
+          "$ref": "#/groups/6"
+        },
+        {
+          "$ref": "#/texts/64"
+        },
+        {
+          "$ref": "#/groups/7"
+        },
+        {
+          "$ref": "#/texts/71"
+        },
+        {
+          "$ref": "#/texts/72"
+        },
+        {
+          "$ref": "#/texts/73"
+        },
+        {
+          "$ref": "#/texts/74"
+        },
+        {
+          "$ref": "#/texts/75"
+        },
+        {
+          "$ref": "#/texts/76"
+        },
+        {
+          "$ref": "#/texts/77"
+        },
+        {
+          "$ref": "#/texts/78"
+        },
+        {
+          "$ref": "#/texts/79"
+        },
+        {
+          "$ref": "#/tables/0"
+        },
+        {
+          "$ref": "#/texts/80"
+        },
+        {
+          "$ref": "#/texts/81"
+        },
+        {
+          "$ref": "#/groups/8"
+        },
+        {
+          "$ref": "#/texts/83"
+        },
+        {
+          "$ref": "#/texts/84"
+        },
+        {
+          "$ref": "#/texts/85"
+        },
+        {
+          "$ref": "#/texts/86"
+        },
+        {
+          "$ref": "#/texts/87"
+        },
+        {
+          "$ref": "#/groups/9"
+        },
+        {
+          "$ref": "#/groups/10"
+        },
+        {
+          "$ref": "#/groups/11"
+        },
+        {
+          "$ref": "#/groups/32"
+        },
+        {
+          "$ref": "#/groups/33"
+        },
+        {
+          "$ref": "#/groups/38"
+        },
+        {
+          "$ref": "#/groups/39"
+        },
+        {
+          "$ref": "#/groups/41"
+        },
+        {
+          "$ref": "#/groups/42"
+        },
+        {
+          "$ref": "#/groups/43"
+        },
+        {
+          "$ref": "#/groups/44"
+        },
+        {
+          "$ref": "#/groups/45"
+        },
+        {
+          "$ref": "#/groups/46"
+        },
+        {
+          "$ref": "#/groups/47"
+        }
+      ],
+      "content_layer": "body",
+      "name": "_root_",
+      "label": "unspecified"
+    },
+    "groups": [
+      {
+        "self_ref": "#/groups/0",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/8"
+          },
+          {
+            "$ref": "#/texts/9"
+          }
+        ],
+        "content_layer": "body",
+        "name": "list",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/1",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/12"
+          }
+        ],
+        "content_layer": "body",
+        "name": "list",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/2",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/15"
+          },
+          {
+            "$ref": "#/texts/16"
+          },
+          {
+            "$ref": "#/texts/17"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "key_value_area"
+      },
+      {
+        "self_ref": "#/groups/3",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/21"
+          },
+          {
+            "$ref": "#/texts/22"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "key_value_area"
+      },
+      {
+        "self_ref": "#/groups/4",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/23"
+          },
+          {
+            "$ref": "#/texts/24"
+          },
+          {
+            "$ref": "#/texts/25"
+          },
+          {
+            "$ref": "#/texts/26"
+          },
+          {
+            "$ref": "#/texts/27"
+          },
+          {
+            "$ref": "#/texts/28"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "key_value_area"
+      },
+      {
+        "self_ref": "#/groups/5",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/35"
+          },
+          {
+            "$ref": "#/texts/36"
+          },
+          {
+            "$ref": "#/texts/37"
+          },
+          {
+            "$ref": "#/texts/38"
+          },
+          {
+            "$ref": "#/texts/39"
+          },
+          {
+            "$ref": "#/texts/40"
+          },
+          {
+            "$ref": "#/texts/41"
+          },
+          {
+            "$ref": "#/texts/42"
+          },
+          {
+            "$ref": "#/texts/43"
+          },
+          {
+            "$ref": "#/texts/44"
+          },
+          {
+            "$ref": "#/texts/45"
+          },
+          {
+            "$ref": "#/texts/46"
+          },
+          {
+            "$ref": "#/texts/47"
+          },
+          {
+            "$ref": "#/texts/48"
+          },
+          {
+            "$ref": "#/texts/49"
+          },
+          {
+            "$ref": "#/texts/50"
+          },
+          {
+            "$ref": "#/texts/51"
+          },
+          {
+            "$ref": "#/texts/52"
+          },
+          {
+            "$ref": "#/texts/53"
+          },
+          {
+            "$ref": "#/texts/54"
+          },
+          {
+            "$ref": "#/texts/55"
+          },
+          {
+            "$ref": "#/texts/56"
+          },
+          {
+            "$ref": "#/texts/57"
+          },
+          {
+            "$ref": "#/texts/58"
+          },
+          {
+            "$ref": "#/texts/59"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/6",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/60"
+          },
+          {
+            "$ref": "#/texts/61"
+          },
+          {
+            "$ref": "#/texts/62"
+          },
+          {
+            "$ref": "#/texts/63"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "key_value_area"
+      },
+      {
+        "self_ref": "#/groups/7",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/65"
+          },
+          {
+            "$ref": "#/texts/66"
+          },
+          {
+            "$ref": "#/texts/67"
+          },
+          {
+            "$ref": "#/texts/68"
+          },
+          {
+            "$ref": "#/texts/69"
+          },
+          {
+            "$ref": "#/texts/70"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "key_value_area"
+      },
+      {
+        "self_ref": "#/groups/8",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/texts/82"
+          }
+        ],
+        "content_layer": "body",
+        "name": "list",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/9",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "key_value_area"
+      },
+      {
+        "self_ref": "#/groups/10",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/11",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/groups/12"
+          },
+          {
+            "$ref": "#/groups/13"
+          },
+          {
+            "$ref": "#/groups/14"
+          },
+          {
+            "$ref": "#/groups/15"
+          },
+          {
+            "$ref": "#/groups/16"
+          },
+          {
+            "$ref": "#/groups/17"
+          },
+          {
+            "$ref": "#/groups/18"
+          },
+          {
+            "$ref": "#/groups/19"
+          },
+          {
+            "$ref": "#/groups/20"
+          },
+          {
+            "$ref": "#/groups/21"
+          },
+          {
+            "$ref": "#/groups/22"
+          },
+          {
+            "$ref": "#/groups/23"
+          },
+          {
+            "$ref": "#/groups/24"
+          },
+          {
+            "$ref": "#/groups/25"
+          },
+          {
+            "$ref": "#/groups/26"
+          },
+          {
+            "$ref": "#/groups/27"
+          },
+          {
+            "$ref": "#/groups/28"
+          },
+          {
+            "$ref": "#/groups/29"
+          },
+          {
+            "$ref": "#/groups/30"
+          },
+          {
+            "$ref": "#/groups/31"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/12",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/13",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/14",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/15",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/16",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/17",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/18",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/19",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/20",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/21",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/22",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/23",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/24",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/25",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/26",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/27",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/28",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/29",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/30",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/31",
+        "parent": {
+          "$ref": "#/groups/11"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/32",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "list",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/33",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/groups/34"
+          },
+          {
+            "$ref": "#/groups/35"
+          },
+          {
+            "$ref": "#/groups/36"
+          },
+          {
+            "$ref": "#/groups/37"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/34",
+        "parent": {
+          "$ref": "#/groups/33"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/35",
+        "parent": {
+          "$ref": "#/groups/33"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/36",
+        "parent": {
+          "$ref": "#/groups/33"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/37",
+        "parent": {
+          "$ref": "#/groups/33"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/38",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "list",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/39",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/groups/40"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/40",
+        "parent": {
+          "$ref": "#/groups/39"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      },
+      {
+        "self_ref": "#/groups/41",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/42",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/43",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/44",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/45",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/46",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/47",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [
+          {
+            "$ref": "#/groups/48"
+          }
+        ],
+        "content_layer": "body",
+        "name": "group",
+        "label": "form_area"
+      },
+      {
+        "self_ref": "#/groups/48",
+        "parent": {
+          "$ref": "#/groups/47"
+        },
+        "children": [],
+        "content_layer": "body",
+        "name": "group",
+        "label": "list"
+      }
+    ],
+    "texts": [
+      {
+        "self_ref": "#/texts/0",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 1,
+            "bbox": {
+              "l": 509.463,
+              "t": 577.228,
+              "r": 538.136,
+              "b": 473.775,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              56
+            ]
+          }
+        ],
+        "orig": "LISA HEIDELMAIER PHD 1481 CROFTON PKWY CROFTON {{{STATE}}}  ZIP-CODE",
+        "text": "LISA HEIDELMAIER PHD 1481 CROFTON PKWY CROFTON {{{STATE}}}  ZIP-CODE"
+      },
+      {
+        "self_ref": "#/texts/1",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "furniture",
+        "label": "page_footer",
+        "prov": [
+          {
+            "page_no": 1,
+            "bbox": {
+              "l": 42.0,
+              "t": 74.803,
+              "r": 565.881,
+              "b": 46.129999999999995,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              285
+            ]
+          }
+        ],
+        "orig": "CONFIDENTIALITY NOTICE: The accompanying material contains sensitive information. This information may be privileged and confidential, and intended for the use of the recipient named in this correspondence. If you have received this information in error, please contact us immediately.",
+        "text": "CONFIDENTIALITY NOTICE: The accompanying material contains sensitive information. This information may be privileged and confidential, and intended for the use of the recipient named in this correspondence. If you have received this information in error, please contact us immediately."
+      },
+      {
+        "self_ref": "#/texts/2",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "furniture",
+        "label": "page_header",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 519.063,
+              "t": 749.662,
+              "r": 558.7,
+              "b": 741.249,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              8
+            ]
+          }
+        ],
+        "orig": "{{{CASE-NUMBER-2-SLASH-3}}}",
+        "text": "{{{CASE-NUMBER-2-SLASH-3}}}"
+      },
+      {
+        "self_ref": "#/texts/3",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 42.0,
+              "t": 713.678,
+              "r": 346.535,
+              "b": 704.214,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              42
+            ]
+          }
+        ],
+        "orig": "MARYLAND DISABILITY DETERMINATION SERVICES",
+        "text": "MARYLAND DISABILITY DETERMINATION SERVICES",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/4",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 42.0,
+              "t": 700.555,
+              "r": 262.899,
+              "b": 692.143,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              53
+            ]
+          }
+        ],
+        "orig": "Serving Social Security and SSI Disability Applicants",
+        "text": "Serving Social Security and SSI Disability Applicants"
+      },
+      {
+        "self_ref": "#/texts/5",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 266.029,
+              "t": 641.11,
+              "r": 334.666,
+              "b": 632.698,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              15
+            ]
+          }
+        ],
+        "orig": "August 13, 2024",
+        "text": "August 13, 2024"
+      },
+      {
+        "self_ref": "#/texts/6",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 145.282,
+              "t": 629.034,
+              "r": 450.248,
+              "b": 619.57,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              59
+            ]
+          }
+        ],
+        "orig": "All Reports Must be Submitted via Fax or the Secure Website",
+        "text": "All Reports Must be Submitted via Fax or the Secure Website",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/7",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 42.0,
+              "t": 604.28,
+              "r": 118.103,
+              "b": 595.868,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              17
+            ]
+          }
+        ],
+        "orig": "Fax Instructions:",
+        "text": "Fax Instructions:",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/8",
+        "parent": {
+          "$ref": "#/groups/0"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "list_item",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 67.846,
+              "t": 582.312,
+              "r": 507.372,
+              "b": 562.268,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              121
+            ]
+          }
+        ],
+        "orig": "Place the enclosed invoice on top of the report you are submitting on the above named claimant and fax to (866) 891-7952.",
+        "text": "Place the enclosed invoice on top of the report you are submitting on the above named claimant and fax to (866) 891-7952.",
+        "enumerated": false,
+        "marker": ""
+      },
+      {
+        "self_ref": "#/texts/9",
+        "parent": {
+          "$ref": "#/groups/0"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "list_item",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 67.846,
+              "t": 549.358,
+              "r": 512.289,
+              "b": 529.315,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              195
+            ]
+          }
+        ],
+        "orig": "If you are faxing reports on more than one claimant, please use the bar-coded claimant-specific invoice that accompanies each request as the first page of the report being faxed on that claimant.",
+        "text": "If you are faxing reports on more than one claimant, please use the bar-coded claimant-specific invoice that accompanies each request as the first page of the report being faxed on that claimant.",
+        "enumerated": false,
+        "marker": ""
+      },
+      {
+        "self_ref": "#/texts/10",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 290.007,
+              "t": 515.759,
+              "r": 305.514,
+              "b": 507.347,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              2
+            ]
+          }
+        ],
+        "orig": "OR",
+        "text": "OR"
+      },
+      {
+        "self_ref": "#/texts/11",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 42.0,
+              "t": 493.79,
+              "r": 159.067,
+              "b": 485.378,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              25
+            ]
+          }
+        ],
+        "orig": "Use SSA's Secure Website:",
+        "text": "Use SSA's Secure Website:",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/12",
+        "parent": {
+          "$ref": "#/groups/1"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "list_item",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 67.846,
+              "t": 471.822,
+              "r": 539.255,
+              "b": 451.779,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              221
+            ]
+          }
+        ],
+        "orig": "If you are interested in learning more about submitting your reports via SSA's secure website, contact the Medical Relations Office at 410-308-4335 or 1-800-492-4283, ext. 4335 for details and to register for this option.",
+        "text": "If you are interested in learning more about submitting your reports via SSA's secure website, contact the Medical Relations Office at 410-308-4335 or 1-800-492-4283, ext. 4335 for details and to register for this option.",
+        "enumerated": false,
+        "marker": ""
+      },
+      {
+        "self_ref": "#/texts/13",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 49.108,
+              "t": 431.561,
+              "r": 543.393,
+              "b": 413.862,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              163
+            ]
+          }
+        ],
+        "orig": "Remember, when faxing, place the enclosed claimant-specific invoice on top of the report so both can be electronically associated with the correct claimant's file.",
+        "text": "Remember, when faxing, place the enclosed claimant-specific invoice on top of the report so both can be electronically associated with the correct claimant's file."
+      },
+      {
+        "self_ref": "#/texts/14",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 178.477,
+              "t": 396.423,
+              "r": 417.05,
+              "b": 386.959,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              35
+            ]
+          }
+        ],
+        "orig": "PLEASE DO NOT FAX OR MAIL THIS PAGE",
+        "text": "PLEASE DO NOT FAX OR MAIL THIS PAGE",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/15",
+        "parent": {
+          "$ref": "#/groups/2"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 519.346,
+              "t": 700.555,
+              "r": 558.695,
+              "b": 692.143,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              8
+            ]
+          }
+        ],
+        "orig": "{{{CASE-NUMBER-2-SPACE-3}}}",
+        "text": "{{{CASE-NUMBER-2-SPACE-3}}}"
+      },
+      {
+        "self_ref": "#/texts/16",
+        "parent": {
+          "$ref": "#/groups/2"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 430.33,
+              "t": 688.925,
+              "r": 495.242,
+              "b": 680.512,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              13
+            ]
+          }
+        ],
+        "orig": "P. O BOX 1810",
+        "text": "P. O BOX 1810"
+      },
+      {
+        "self_ref": "#/texts/17",
+        "parent": {
+          "$ref": "#/groups/2"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 2,
+            "bbox": {
+              "l": 430.33,
+              "t": 677.294,
+              "r": 558.695,
+              "b": 668.882,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              22
+            ]
+          }
+        ],
+        "orig": "COCKEYSVILLE, {{{STATE}}} 21030",
+        "text": "COCKEYSVILLE, {{{STATE}}} 21030"
+      },
+      {
+        "self_ref": "#/texts/18",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 179.285,
+              "t": 747.722,
+              "r": 421.401,
+              "b": 739.31,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              52
+            ]
+          }
+        ],
+        "orig": "This page MUST be on top of your report when faxing.",
+        "text": "This page MUST be on top of your report when faxing.",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/19",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 732.861,
+              "r": 212.874,
+              "b": 712.818,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              52
+            ]
+          }
+        ],
+        "orig": "Reply to: MARYLAND DISABILITY DETERMINATION SERVICES",
+        "text": "Reply to: MARYLAND DISABILITY DETERMINATION SERVICES",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/20",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 709.6,
+              "r": 173.595,
+              "b": 689.557,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              36
+            ]
+          }
+        ],
+        "orig": "P. O BOX 1810 COCKEYSVILLE, {{{STATE}}} 21030",
+        "text": "P. O BOX 1810 COCKEYSVILLE, {{{STATE}}} 21030"
+      },
+      {
+        "self_ref": "#/texts/21",
+        "parent": {
+          "$ref": "#/groups/3"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 686.339,
+              "r": 188.219,
+              "b": 677.927,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              32
+            ]
+          }
+        ],
+        "orig": "(410) 308-4500 or (800) 492-4382",
+        "text": "(410) 308-4500 or (800) 492-4382"
+      },
+      {
+        "self_ref": "#/texts/22",
+        "parent": {
+          "$ref": "#/groups/3"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 674.709,
+              "r": 130.799,
+              "b": 666.296,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              19
+            ]
+          }
+        ],
+        "orig": "Fax: (866) 891-7952",
+        "text": "Fax: (866) 891-7952"
+      },
+      {
+        "self_ref": "#/texts/23",
+        "parent": {
+          "$ref": "#/groups/4"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 607.51,
+              "r": 118.446,
+              "b": 599.098,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "Claimant Name:",
+        "text": "Claimant Name:"
+      },
+      {
+        "self_ref": "#/texts/24",
+        "parent": {
+          "$ref": "#/groups/4"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 118.447,
+              "t": 607.51,
+              "r": 235.59,
+              "b": 599.098,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              25
+            ]
+          }
+        ],
+        "orig": "{{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}}",
+        "text": "{{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}}"
+      },
+      {
+        "self_ref": "#/texts/25",
+        "parent": {
+          "$ref": "#/groups/4"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 595.88,
+              "r": 109.259,
+              "b": 587.467,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              12
+            ]
+          }
+        ],
+        "orig": "Case Number:",
+        "text": "Case Number:"
+      },
+      {
+        "self_ref": "#/texts/26",
+        "parent": {
+          "$ref": "#/groups/4"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 109.259,
+              "t": 595.88,
+              "r": 190.537,
+              "b": 587.467,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              16
+            ]
+          }
+        ],
+        "orig": "{{{COMBINED-CASE-NUMBER}}}",
+        "text": "{{{COMBINED-CASE-NUMBER}}}"
+      },
+      {
+        "self_ref": "#/texts/27",
+        "parent": {
+          "$ref": "#/groups/4"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 572.619,
+              "r": 228.846,
+              "b": 564.206,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              41
+            ]
+          }
+        ],
+        "orig": "Please Verify or Include Your Fed. Tax ID",
+        "text": "Please Verify or Include Your Fed. Tax ID"
+      },
+      {
+        "self_ref": "#/texts/28",
+        "parent": {
+          "$ref": "#/groups/4"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.231,
+              "t": 560.988,
+              "r": 203.747,
+              "b": 552.575,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              32
+            ]
+          }
+        ],
+        "orig": "Federal Tax ID Number: 923618220",
+        "text": "Federal Tax ID Number: 923618220"
+      },
+      {
+        "self_ref": "#/texts/29",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 52.984,
+              "t": 524.804,
+              "r": 286.205,
+              "b": 504.761,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              57
+            ]
+          }
+        ],
+        "orig": "Pay to: SMITH & CALABRESE ASSESSMENTS LLC 408 CRAIN HWY S",
+        "text": "Pay to: SMITH & CALABRESE ASSESSMENTS LLC 408 CRAIN HWY S"
+      },
+      {
+        "self_ref": "#/texts/30",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 52.984,
+              "t": 501.543,
+              "r": 90.026,
+              "b": 493.131,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              7
+            ]
+          }
+        ],
+        "orig": "SUITE 6",
+        "text": "SUITE 6"
+      },
+      {
+        "self_ref": "#/texts/31",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 52.984,
+              "t": 489.913,
+              "r": 171.869,
+              "b": 481.5,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              21
+            ]
+          }
+        ],
+        "orig": "GLEN BURNIE, {{{STATE}}} 21061",
+        "text": "GLEN BURNIE, {{{STATE}}} 21061"
+      },
+      {
+        "self_ref": "#/texts/32",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 52.984,
+              "t": 478.282,
+              "r": 220.95,
+              "b": 469.87,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              34
+            ]
+          }
+        ],
+        "orig": "Make Name & Address Changes Below:",
+        "text": "Make Name & Address Changes Below:"
+      },
+      {
+        "self_ref": "#/texts/33",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 52.984,
+              "t": 466.652,
+              "r": 166.705,
+              "b": 458.239,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              22
+            ]
+          }
+        ],
+        "orig": "______________________",
+        "text": "______________________"
+      },
+      {
+        "self_ref": "#/texts/34",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 52.984,
+              "t": 455.021,
+              "r": 166.705,
+              "b": 446.609,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              22
+            ]
+          }
+        ],
+        "orig": "______________________",
+        "text": "______________________"
+      },
+      {
+        "self_ref": "#/texts/35",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 51.379,
+              "t": 420.129,
+              "r": 549.306,
+              "b": 411.717,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              80
+            ]
+          }
+        ],
+        "orig": "YOU ARE HEREBY AUTHORIZED TO PROVIDE THE LISTED SERVICES TO THE ABOVE INDIVIDUAL",
+        "text": "YOU ARE HEREBY AUTHORIZED TO PROVIDE THE LISTED SERVICES TO THE ABOVE INDIVIDUAL",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/36",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 206.16,
+              "t": 408.499,
+              "r": 394.54,
+              "b": 400.086,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              40
+            ]
+          }
+        ],
+        "orig": "On: September 5th, 2024 At: 10:00 AM EDT",
+        "text": "On: September 5th, 2024 At: 10:00 AM EDT"
+      },
+      {
+        "self_ref": "#/texts/37",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 392.992,
+              "r": 66.553,
+              "b": 384.579,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              3
+            ]
+          }
+        ],
+        "orig": "CPT",
+        "text": "CPT"
+      },
+      {
+        "self_ref": "#/texts/38",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 129.37,
+              "t": 392.992,
+              "r": 226.408,
+              "b": 384.579,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              22
+            ]
+          }
+        ],
+        "orig": "Description of Service",
+        "text": "Description of Service"
+      },
+      {
+        "self_ref": "#/texts/39",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 306.422,
+              "t": 392.992,
+              "r": 394.59,
+              "b": 384.579,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              17
+            ]
+          }
+        ],
+        "orig": "Authorized Amount",
+        "text": "Authorized Amount"
+      },
+      {
+        "self_ref": "#/texts/40",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 374.254,
+              "r": 71.722,
+              "b": 365.841,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              5
+            ]
+          }
+        ],
+        "orig": "{{{SERVICE-AUTHORIZATION-CODE}}}",
+        "text": "{{{SERVICE-AUTHORIZATION-CODE}}}"
+      },
+      {
+        "self_ref": "#/texts/41",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 129.37,
+              "t": 374.254,
+              "r": 299.31,
+              "b": 365.841,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              41
+            ]
+          }
+        ],
+        "orig": "{{{SERVICE-AUTHORIZATION-DESC}}}",
+        "text": "{{{SERVICE-AUTHORIZATION-DESC}}}"
+      },
+      {
+        "self_ref": "#/texts/42",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 306.422,
+              "t": 374.254,
+              "r": 311.592,
+              "b": 365.841,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              1
+            ]
+          }
+        ],
+        "orig": "$",
+        "text": "$"
+      },
+      {
+        "self_ref": "#/texts/43",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 356.162,
+              "r": 122.258,
+              "b": 347.749,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              13
+            ]
+          }
+        ],
+        "orig": "90791-MNTL-CH",
+        "text": "90791-MNTL-CH"
+      },
+      {
+        "self_ref": "#/texts/44",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 129.37,
+              "t": 356.162,
+              "r": 259.446,
+              "b": 347.749,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              30
+            ]
+          }
+        ],
+        "orig": "Child Mental Status Evaluation",
+        "text": "Child Mental Status Evaluation"
+      },
+      {
+        "self_ref": "#/texts/45",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 306.422,
+              "t": 356.162,
+              "r": 340.022,
+              "b": 347.749,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              7
+            ]
+          }
+        ],
+        "orig": "$212.00",
+        "text": "$212.00"
+      },
+      {
+        "self_ref": "#/texts/46",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "checkbox_unselected",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 336.777,
+              "r": 154.544,
+              "b": 328.365,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              19
+            ]
+          }
+        ],
+        "orig": "Broken Appointment?",
+        "text": "Broken Appointment?"
+      },
+      {
+        "self_ref": "#/texts/47",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 303.586,
+              "t": 336.777,
+              "r": 459.73,
+              "b": 328.365,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              30
+            ]
+          }
+        ],
+        "orig": "TOTAL   ______________________",
+        "text": "TOTAL   ______________________"
+      },
+      {
+        "self_ref": "#/texts/48",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 300.594,
+              "r": 115.372,
+              "b": 292.181,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "Authorized by:",
+        "text": "Authorized by:"
+      },
+      {
+        "self_ref": "#/texts/49",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 115.378,
+              "t": 300.594,
+              "r": 212.445,
+              "b": 292.181,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              24
+            ]
+          }
+        ],
+        "orig": "Z. Morris    {{{CASE-NUMBER-2}}}    {{{CASE-NUMBER-3}}}",
+        "text": "Z. Morris    {{{CASE-NUMBER-2}}}    {{{CASE-NUMBER-3}}}"
+      },
+      {
+        "self_ref": "#/texts/50",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 48.986,
+              "t": 281.856,
+              "r": 551.704,
+              "b": 238.55099999999993,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              367
+            ]
+          }
+        ],
+        "orig": "Please submit the original of your completed report to us within 10 business days after the date of the above examination. This invoice must be signed and returned with the report in order for payment to be issued. Authorized payments will represent the lower of either the provider's usual and customary charge or the maximum allowable charge under the fee schedule.",
+        "text": "Please submit the original of your completed report to us within 10 business days after the date of the above examination. This invoice must be signed and returned with the report in order for payment to be issued. Authorized payments will represent the lower of either the provider's usual and customary charge or the maximum allowable charge under the fee schedule."
+      },
+      {
+        "self_ref": "#/texts/51",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 228.226,
+              "r": 133.464,
+              "b": 219.813,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              19
+            ]
+          }
+        ],
+        "orig": "Provider Signature:",
+        "text": "Provider Signature:"
+      },
+      {
+        "self_ref": "#/texts/52",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 303.586,
+              "t": 228.226,
+              "r": 327.695,
+              "b": 219.813,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              5
+            ]
+          }
+        ],
+        "orig": "Date:",
+        "text": "Date:"
+      },
+      {
+        "self_ref": "#/texts/53",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 177.568,
+              "t": 209.48800000000006,
+              "r": 423.122,
+              "b": 201.07500000000005,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              51
+            ]
+          }
+        ],
+        "orig": "Do not write in the blocks below - For DDS USE ONLY",
+        "text": "Do not write in the blocks below - For DDS USE ONLY"
+      },
+      {
+        "self_ref": "#/texts/54",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 190.75,
+              "r": 111.622,
+              "b": 182.337,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "Date Approved:",
+        "text": "Date Approved:"
+      },
+      {
+        "self_ref": "#/texts/55",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 217.892,
+              "t": 190.75,
+              "r": 276.756,
+              "b": 182.337,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              12
+            ]
+          }
+        ],
+        "orig": "Approved By:",
+        "text": "Approved By:"
+      },
+      {
+        "self_ref": "#/texts/56",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 389.906,
+              "t": 190.75,
+              "r": 414.313,
+              "b": 182.337,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              5
+            ]
+          }
+        ],
+        "orig": "VZ #:",
+        "text": "VZ #:"
+      },
+      {
+        "self_ref": "#/texts/57",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 172.01199999999994,
+              "r": 109.31,
+              "b": 163.59899999999993,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "Date Received:",
+        "text": "Date Received:"
+      },
+      {
+        "self_ref": "#/texts/58",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 45.877,
+              "t": 148.75099999999998,
+              "r": 113.267,
+              "b": 140.33799999999997,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              11
+            ]
+          }
+        ],
+        "orig": "DMA CASE: Y",
+        "text": "DMA CASE: Y"
+      },
+      {
+        "self_ref": "#/texts/59",
+        "parent": {
+          "$ref": "#/groups/5"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 413.288,
+              "t": 160.38099999999997,
+              "r": 445.449,
+              "b": 151.96900000000005,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              7
+            ]
+          }
+        ],
+        "orig": "Invoice",
+        "text": "Invoice"
+      },
+      {
+        "self_ref": "#/texts/60",
+        "parent": {
+          "$ref": "#/groups/6"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 306.6666666666667,
+              "t": 665.6666666666666,
+              "r": 385.0,
+              "b": 658.0,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              15
+            ]
+          }
+        ],
+        "orig": "RQID:{{{REQUEST-ID}}}",
+        "text": "RQID:{{{REQUEST-ID}}}"
+      },
+      {
+        "self_ref": "#/texts/61",
+        "parent": {
+          "$ref": "#/groups/6"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 461.66666666666663,
+              "t": 666.3333333333334,
+              "r": 530.0,
+              "b": 657.6666666666667,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              13
+            ]
+          }
+        ],
+        "orig": "SITE:S23 DR:S",
+        "text": "SITE:S23 DR:S"
+      },
+      {
+        "self_ref": "#/texts/62",
+        "parent": {
+          "$ref": "#/groups/6"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 305.6666666666667,
+              "t": 656.3333333333333,
+              "r": 375.0,
+              "b": 649.6666666666667,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              13
+            ]
+          }
+        ],
+        "orig": "SSN:********W",
+        "text": "SSN:********W"
+      },
+      {
+        "self_ref": "#/texts/63",
+        "parent": {
+          "$ref": "#/groups/6"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 379.0,
+              "t": 656.0,
+              "r": 509.0,
+              "b": 648.0,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              25
+            ]
+          }
+        ],
+        "orig": "D0CTYPE:0002 RF:D CS:5c07",
+        "text": "D0CTYPE:0002 RF:D CS:5c07"
+      },
+      {
+        "self_ref": "#/texts/64",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 375.0,
+              "t": 626.3333333333333,
+              "r": 403.0,
+              "b": 622.6666666666667,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "{{{AUTHORIZATION-NUMBER}}}",
+        "text": "{{{AUTHORIZATION-NUMBER}}}"
+      },
+      {
+        "self_ref": "#/texts/65",
+        "parent": {
+          "$ref": "#/groups/7"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 303.576,
+              "t": 607.51,
+              "r": 408.387,
+              "b": 599.098,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              21
+            ]
+          }
+        ],
+        "orig": "Authorization Number:",
+        "text": "Authorization Number:"
+      },
+      {
+        "self_ref": "#/texts/66",
+        "parent": {
+          "$ref": "#/groups/7"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 408.392,
+              "t": 607.51,
+              "r": 483.344,
+              "b": 599.098,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "{{{AUTHORIZATION-NUMBER}}}",
+        "text": "{{{AUTHORIZATION-NUMBER}}}"
+      },
+      {
+        "self_ref": "#/texts/67",
+        "parent": {
+          "$ref": "#/groups/7"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 303.576,
+              "t": 595.88,
+              "r": 378.533,
+              "b": 587.467,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "Vendor Number:",
+        "text": "Vendor Number:"
+      },
+      {
+        "self_ref": "#/texts/68",
+        "parent": {
+          "$ref": "#/groups/7"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 378.538,
+              "t": 595.88,
+              "r": 427.645,
+              "b": 587.467,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              9
+            ]
+          }
+        ],
+        "orig": "923618220",
+        "text": "923618220"
+      },
+      {
+        "self_ref": "#/texts/69",
+        "parent": {
+          "$ref": "#/groups/7"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 303.576,
+              "t": 584.249,
+              "r": 363.874,
+              "b": 575.837,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              14
+            ]
+          }
+        ],
+        "orig": "Date of Issue:",
+        "text": "Date of Issue:"
+      },
+      {
+        "self_ref": "#/texts/70",
+        "parent": {
+          "$ref": "#/groups/7"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 363.879,
+              "t": 584.249,
+              "r": 434.53,
+              "b": 575.837,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              15
+            ]
+          }
+        ],
+        "orig": "August 13, 2024",
+        "text": "August 13, 2024"
+      },
+      {
+        "self_ref": "#/texts/71",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 311.34,
+              "t": 524.804,
+              "r": 502.007,
+              "b": 516.392,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              37
+            ]
+          }
+        ],
+        "orig": "Mailing address: LISA HEIDELMAIER PHD",
+        "text": "Mailing address: LISA HEIDELMAIER PHD"
+      },
+      {
+        "self_ref": "#/texts/72",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 311.34,
+              "t": 513.174,
+              "r": 415.691,
+              "b": 504.761,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              17
+            ]
+          }
+        ],
+        "orig": "1481 CROFTON PKWY",
+        "text": "1481 CROFTON PKWY"
+      },
+      {
+        "self_ref": "#/texts/73",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 3,
+            "bbox": {
+              "l": 311.34,
+              "t": 501.543,
+              "r": 408.897,
+              "b": 493.131,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              17
+            ]
+          }
+        ],
+        "orig": "CROFTON, {{{STATE}}} ZIP-CODE",
+        "text": "CROFTON, {{{STATE}}} ZIP-CODE"
+      },
+      {
+        "self_ref": "#/texts/74",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 723.37,
+              "r": 346.535,
+              "b": 713.906,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              42
+            ]
+          }
+        ],
+        "orig": "MARYLAND DISABILITY DETERMINATION SERVICES",
+        "text": "MARYLAND DISABILITY DETERMINATION SERVICES",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/75",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 710.247,
+              "r": 569.245,
+              "b": 678.574,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              99
+            ]
+          }
+        ],
+        "orig": "{{{CASE-NUMBER-2-SPACE-3}}} P. O BOX 1810 COCKEYSVILLE, {{{STATE}}} 21030 Serving Social Security and SSI Disability Applicants",
+        "text": "{{{CASE-NUMBER-2-SPACE-3}}} P. O BOX 1810 COCKEYSVILLE, {{{STATE}}} 21030 Serving Social Security and SSI Disability Applicants"
+      },
+      {
+        "self_ref": "#/texts/76",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 393.5,
+              "t": 652.095,
+              "r": 536.499,
+              "b": 579.068,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              153
+            ]
+          }
+        ],
+        "orig": "Date: August 13, 2024 Case ID: {{{CASE-NUMBER}}} RE: {{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} DOB: August 1, 2015 Applicant: {{{APPLICANT-NAME}}} Authorization #: {{{AUTHORIZATION-NUMBER}}}",
+        "text": "Date: August 13, 2024 Case ID: {{{CASE-NUMBER}}} RE: {{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} DOB: August 1, 2015 Applicant: {{{APPLICANT-NAME}}} Authorization #: {{{AUTHORIZATION-NUMBER}}}"
+      },
+      {
+        "self_ref": "#/texts/77",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 564.866,
+              "r": 160.885,
+              "b": 531.9,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              56
+            ]
+          }
+        ],
+        "orig": "LISA HEIDELMAIER PHD 1481 CROFTON PKWY CROFTON {{{STATE}}}  ZIP-CODE",
+        "text": "LISA HEIDELMAIER PHD 1481 CROFTON PKWY CROFTON {{{STATE}}}  ZIP-CODE",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/78",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 221.233,
+              "t": 504.775,
+              "r": 390.017,
+              "b": 496.362,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              25
+            ]
+          }
+        ],
+        "orig": "APPOINTMENT AUTHORIZATION",
+        "text": "APPOINTMENT AUTHORIZATION",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/79",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 478.929,
+              "r": 560.896,
+              "b": 435.625,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              440
+            ]
+          }
+        ],
+        "orig": "{{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} has applied for disability benefits. This letter authorizes you to perform the service(s) listed below. If you decide that you need additional tests, please call this office at (800) 492-4283 for authorization. We will pay the usual and customary fees in accordance with State regulation but will only pay for pre-authorized services. Do not bill the claimant for any services provided as part of this appointment.",
+        "text": "{{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} has applied for disability benefits. This letter authorizes you to perform the service(s) listed below. If you decide that you need additional tests, please call this office at (800) 492-4283 for authorization. We will pay the usual and customary fees in accordance with State regulation but will only pay for pre-authorized services. Do not bill the claimant for any services provided as part of this appointment."
+      },
+      {
+        "self_ref": "#/texts/80",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 269.5799999999999,
+              "r": 166.306,
+              "b": 249.53700000000003,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              35
+            ]
+          }
+        ],
+        "orig": "Please evaluate the following: ADHD",
+        "text": "Please evaluate the following: ADHD"
+      },
+      {
+        "self_ref": "#/texts/81",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 235.98000000000002,
+              "r": 133.04,
+              "b": 227.56799999999998,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              21
+            ]
+          }
+        ],
+        "orig": "Special Instructions:",
+        "text": "Special Instructions:",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/82",
+        "parent": {
+          "$ref": "#/groups/8"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "list_item",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 67.846,
+              "t": 214.01199999999994,
+              "r": 165.66,
+              "b": 205.59899999999993,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              20
+            ]
+          }
+        ],
+        "orig": "CELL #{{{PHONE-NUMBER}}}",
+        "text": "CELL #{{{PHONE-NUMBER}}}",
+        "enumerated": false,
+        "marker": ""
+      },
+      {
+        "self_ref": "#/texts/83",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 182.351,
+              "r": 163.101,
+              "b": 173.938,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              24
+            ]
+          }
+        ],
+        "orig": "What You Need To Do Next",
+        "text": "What You Need To Do Next",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/84",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 160.38200000000006,
+              "r": 553.581,
+              "b": 128.70900000000006,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              341
+            ]
+          }
+        ],
+        "orig": "Please provide a report based on your findings. Ensure the service provided includes the details identified in this document. The medical source who performed the examination must review and sign the report either by 'wet' signature submitted by mail or fax, or electronic signature, if submitted though the Electronic Records Express (ERE).",
+        "text": "Please provide a report based on your findings. Ensure the service provided includes the details identified in this document. The medical source who performed the examination must review and sign the report either by 'wet' signature submitted by mail or fax, or electronic signature, if submitted though the Electronic Records Express (ERE)."
+      },
+      {
+        "self_ref": "#/texts/85",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "text",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 115.15200000000004,
+              "r": 543.934,
+              "b": 83.47900000000004,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              291
+            ]
+          }
+        ],
+        "orig": "Please see the barcoded page for instructions on how to return the report. You must return the medical report to our office within 10 days from the date of the exam. If we do not receive your report, we may cancel the payment authorization and schedule the appointment with another provider.",
+        "text": "Please see the barcoded page for instructions on how to return the report. You must return the medical report to our office within 10 days from the date of the exam. If we do not receive your report, we may cancel the payment authorization and schedule the appointment with another provider."
+      },
+      {
+        "self_ref": "#/texts/86",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "section_header",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 42.0,
+              "t": 60.23000000000002,
+              "r": 161.102,
+              "b": 51.817999999999984,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              25
+            ]
+          }
+        ],
+        "orig": "If You Have Any Questions",
+        "text": "If You Have Any Questions",
+        "level": 1
+      },
+      {
+        "self_ref": "#/texts/87",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "furniture",
+        "label": "page_footer",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 146.727,
+              "t": 33.14300000000003,
+              "r": 464.003,
+              "b": 25.82000000000005,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              77
+            ]
+          }
+        ],
+        "orig": "{{{CASE-NUMBER}}}/ Assigned 9106 null/ DCPS / {{{REQUEST-ID}}} / OMB No. 0960-0555 / 98022179",
+        "text": "{{{CASE-NUMBER}}}/ Assigned 9106 null/ DCPS / {{{REQUEST-ID}}} / OMB No. 0960-0555 / 98022179"
+      }
+    ],
+    "pictures": [],
+    "tables": [
+      {
+        "self_ref": "#/tables/0",
+        "parent": {
+          "$ref": "#/body"
+        },
+        "children": [],
+        "content_layer": "body",
+        "label": "table",
+        "prov": [
+          {
+            "page_no": 4,
+            "bbox": {
+              "l": 41.6760368347168,
+              "t": 425.3179931640625,
+              "r": 569.5775146484375,
+              "b": 281.9487609863281,
+              "coord_origin": "BOTTOMLEFT"
+            },
+            "charspan": [
+              0,
+              0
+            ]
+          }
+        ],
+        "captions": [],
+        "references": [],
+        "footnotes": [],
+        "data": {
+          "table_cells": [
+            {
+              "bbox": {
+                "l": 45.877,
+                "t": 373.808,
+                "r": 160.435,
+                "b": 435.204,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Claimant Information {{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} {{{STREET-ADDRESS}}} {{{CITY}}}, {{{STATE}}}{{{ZIP-CODE}}} {{{PHONE-NUMBER}}}",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 182.081,
+                "t": 373.808,
+                "r": 320.502,
+                "b": 423.574,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "Date and Time Thursday September 5th, 2024 10:00 AMEastern Daylight Time",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 345.009,
+                "t": 373.808,
+                "r": 541.072,
+                "b": 493.357,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 2,
+              "end_col_offset_idx": 3,
+              "text": "Services Authorized Code: {{{SERVICE-AUTHORIZATION-CODE}}} Procedure Type Code: E Desc: {{{SERVICE-AUTHORIZATION-DESC}}} Fee: $ Code: 90791-MNTL-CH Procedure Type Code: E Desc: Child Mental Status Evaluation Fee: $212.00",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          "num_rows": 1,
+          "num_cols": 3,
+          "grid": [
+            [
+              {
+                "bbox": {
+                  "l": 45.877,
+                  "t": 373.808,
+                  "r": 160.435,
+                  "b": 435.204,
+                  "coord_origin": "TOPLEFT"
+                },
+                "row_span": 1,
+                "col_span": 1,
+                "start_row_offset_idx": 0,
+                "end_row_offset_idx": 1,
+                "start_col_offset_idx": 0,
+                "end_col_offset_idx": 1,
+                "text": "Claimant Information {{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} {{{STREET-ADDRESS}}} {{{CITY}}}, {{{STATE}}}{{{ZIP-CODE}}} {{{PHONE-NUMBER}}}",
+                "column_header": false,
+                "row_header": false,
+                "row_section": false,
+                "fillable": false
+              },
+              {
+                "bbox": {
+                  "l": 182.081,
+                  "t": 373.808,
+                  "r": 320.502,
+                  "b": 423.574,
+                  "coord_origin": "TOPLEFT"
+                },
+                "row_span": 1,
+                "col_span": 1,
+                "start_row_offset_idx": 0,
+                "end_row_offset_idx": 1,
+                "start_col_offset_idx": 1,
+                "end_col_offset_idx": 2,
+                "text": "Date and Time Thursday September 5th, 2024 10:00 AMEastern Daylight Time",
+                "column_header": false,
+                "row_header": false,
+                "row_section": false,
+                "fillable": false
+              },
+              {
+                "bbox": {
+                  "l": 345.009,
+                  "t": 373.808,
+                  "r": 541.072,
+                  "b": 493.357,
+                  "coord_origin": "TOPLEFT"
+                },
+                "row_span": 1,
+                "col_span": 1,
+                "start_row_offset_idx": 0,
+                "end_row_offset_idx": 1,
+                "start_col_offset_idx": 2,
+                "end_col_offset_idx": 3,
+                "text": "Services Authorized Code: {{{SERVICE-AUTHORIZATION-CODE}}} Procedure Type Code: E Desc: {{{SERVICE-AUTHORIZATION-DESC}}} Fee: $ Code: 90791-MNTL-CH Procedure Type Code: E Desc: Child Mental Status Evaluation Fee: $212.00",
+                "column_header": false,
+                "row_header": false,
+                "row_section": false,
+                "fillable": false
+              }
+            ]
+          ]
+        },
+        "annotations": []
+      }
+    ],
+    "key_value_items": [],
+    "form_items": [],
+    "pages": {
+      "3": {
+        "size": {
+          "width": 612.0,
+          "height": 792.0
+        },
+        "page_no": 3
+      },
+      "4": {
+        "size": {
+          "width": 612.0,
+          "height": 792.0
+        },
+        "page_no": 4
+      }
+    }
+  },
+  "markdown": "LISA HEIDELMAIER PHD 1481 CROFTON PKWY CROFTON MD  ZIP-CODE\n\n## MARYLAND DISABILITY DETERMINATION SERVICES\n\nServing Social Security and SSI Disability Applicants\n\nAugust 13, 2024\n\n## All Reports Must be Submitted via Fax or the Secure Website\n\n## Fax Instructions:\n\n- Place the enclosed invoice on top of the report you are submitting on the above named claimant and fax to (866) 891-7952.\n- If you are faxing reports on more than one claimant, please use the bar-coded claimant-specific invoice that accompanies each request as the first page of the report being faxed on that claimant.\n\nOR\n\n## Use SSA's Secure Website:\n\n- If you are interested in learning more about submitting your reports via SSA's secure website, contact the Medical Relations Office at 410-308-4335 or 1-800-492-4283, ext. 4335 for details and to register for this option.\n\nRemember, when faxing, place the enclosed claimant-specific invoice on top of the report so both can be electronically associated with the correct claimant's file.\n\n## PLEASE DO NOT FAX OR MAIL THIS PAGE\n\n{{{CASE-NUMBER-2-SPACE-3}}}\n\nP. O BOX 1810\n\nCOCKEYSVILLE, MD 21030\n\n## This page MUST be on top of your report when faxing.\n\n## Reply to: MARYLAND DISABILITY DETERMINATION SERVICES\n\nP. O BOX 1810 COCKEYSVILLE, MD 21030\n\n(410) 308-4500 or (800) 492-4382\n\nFax: (866) 891-7952\n\nClaimant Name:\n\n{{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}}\n\nCase Number:\n\n{{{COMBINED-CASE-NUMBER}}}\n\nPlease Verify or Include Your Fed. Tax ID\n\nFederal Tax ID Number: 923618220\n\nPay to: SMITH &amp; CALABRESE ASSESSMENTS LLC 408 CRAIN HWY S\n\nSUITE 6\n\nGLEN BURNIE, MD 21061\n\nMake Name &amp; Address Changes Below:\n\n\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n\n\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n\n## YOU ARE HEREBY AUTHORIZED TO PROVIDE THE LISTED SERVICES TO THE ABOVE INDIVIDUAL\n\nOn: September 5th, 2024 At: 10:00 AM EDT\n\nCPT\n\nDescription of Service\n\nAuthorized Amount\n\n{{{SERVICE-AUTHORIZATION-CODE}}}\n\n{{{SERVICE-AUTHORIZATION-DESC}}}\n\n$\n\n90791-MNTL-CH\n\nChild Mental Status Evaluation\n\n$212.00\n\n- [ ] Broken Appointment?\n\nTOTAL   \\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n\nAuthorized by:\n\nZ. Morris    {{{CASE-NUMBER-2}}}    {{{CASE-NUMBER-3}}}\n\nPlease submit the original of your completed report to us within 10 business days after the date of the above examination. This invoice must be signed and returned with the report in order for payment to be issued. Authorized payments will represent the lower of either the provider's usual and customary charge or the maximum allowable charge under the fee schedule.\n\nProvider Signature:\n\nDate:\n\nDo not write in the blocks below - For DDS USE ONLY\n\nDate Approved:\n\nApproved By:\n\nVZ #:\n\nDate Received:\n\nDMA CASE: Y\n\nInvoice\n\n<!-- image -->\n\nRQID:{{{REQUEST-ID}}}\n\nSITE:S23 DR:S\n\nSSN:********W\n\nD0CTYPE:0002 RF:D CS:5c07\n\n<!-- image -->\n\n{{{AUTHORIZATION-NUMBER}}}\n\nAuthorization Number:\n\n{{{AUTHORIZATION-NUMBER}}}\n\nVendor Number:\n\n923618220\n\nDate of Issue:\n\nAugust 13, 2024\n\nMailing address: LISA HEIDELMAIER PHD\n\n1481 CROFTON PKWY\n\nCROFTON, MD ZIP-CODE\n\n## MARYLAND DISABILITY DETERMINATION SERVICES\n\n{{{CASE-NUMBER-2-SPACE-3}}} P. O BOX 1810 COCKEYSVILLE, MD 21030 Serving Social Security and SSI Disability Applicants\n\nDate: August 13, 2024 Case ID: {{{CASE-NUMBER}}} RE: {{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} DOB: August 1, 2015 Applicant: {{{APPLICANT-NAME}}} Authorization #: {{{AUTHORIZATION-NUMBER}}}\n\n## LISA HEIDELMAIER PHD 1481 CROFTON PKWY CROFTON MD  ZIP-CODE\n\n## APPOINTMENT AUTHORIZATION\n\n{{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} has applied for disability benefits. This letter authorizes you to perform the service(s) listed below. If you decide that you need additional tests, please call this office at (800) 492-4283 for authorization. We will pay the usual and customary fees in accordance with State regulation but will only pay for pre-authorized services. Do not bill the claimant for any services provided as part of this appointment.\n\n| Claimant Information {{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} {{{STREET-ADDRESS}}} {{{CITY}}}, {{{STATE}}}{{{ZIP-CODE}}} {{{PHONE-NUMBER}}}   | Date and Time Thursday September 5th, 2024 10:00 AMEastern Daylight Time   | Services Authorized Code: {{{SERVICE-AUTHORIZATION-CODE}}} Procedure Type Code: E Desc: {{{SERVICE-AUTHORIZATION-DESC}}} Fee: $ Code: 90791-MNTL-CH Procedure Type Code: E Desc: Child Mental Status Evaluation Fee: $212.00   |\n|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|\n\nPlease evaluate the following: ADHD\n\n## Special Instructions:\n\n- CELL #{{{PHONE-NUMBER}}}\n\n## What You Need To Do Next\n\nPlease provide a report based on your findings. Ensure the service provided includes the details identified in this document. The medical source who performed the examination must review and sign the report either by 'wet' signature submitted by mail or fax, or electronic signature, if submitted though the Electronic Records Express (ERE).\n\nPlease see the barcoded page for instructions on how to return the report. You must return the medical report to our office within 10 days from the date of the exam. If we do not receive your report, we may cancel the payment authorization and schedule the appointment with another provider.\n\n## If You Have Any Questions\n\nIf you have any questions about this appointment, please contact us at the number(s) shown between 8:00 am and 4:30 pm. When you call or leave a message, please provide the Case ID: {{{CASE-NUMBER}}}, the individual's name, your name, and a call back number.\n\nThank you for your help.\n\nZ. Morris/K. Brooks (800) 492-4283 EXT.4455 (866) 891-7952 (FAX)\n\nEnclosure(s): Invoice Privacy Act and Paperwork Reduction Act Statement SSA-827 Authorization to Disclose Information to the Social Security Administration (SSA) Attachments Return Envelope\n\n## Privacy Act Statement Collection and Use of Personal Information\n\nSections 205(a), 223(d), 1614(a) and 1631(d) of the Social Security Act, as amended, allow us to collect your information or the information you are submitting on behalf of another, which we will use to determine benefits eligibility. Providing the information is voluntary, but not providing all or part of the information may an accurate and timely decision on any claim filed. As law permits, we may use and share the information you submit, including with other Federal agencies, private medical and vocational consultants, contractors, and others, as outlined in the routine uses within System of Records Notices (SORN) 60-0044, 60-0046, 60-0089, and 60-0320; available at www.ssa.gov/privacy. The information you submit may also be used in computer matching programs to establish or verify eligibility for Federal benefit programs and to recoup debts under these programs.\n\nPaperwork Reduction Act Statement - This information collection meets the requirements of 44 U.S.C. § 3507, as amended by section 2 of the Paperwork Reduction Act of 1995. You do not need to answer these questions unless we display a valid Office of Management and Budget (OMB) control number. We estimate that it will take between 5 to 30 minutes to read the instructions, gather the facts, and answer the questions. Send only comments regarding this burden estimate or any other aspect of this collection, including suggestions for reducing this burden to: SSA, 6401 Security Blvd, {{{CITY}}}, {{{STATE}}} 212356401.\n\n## WHOSE Records to be Disclosed\n\nForm Approved OMB No. 0960-0623\n\nNAME (First, Middle, Last, Suffix)\n\nSSN {{{SSN-WITH-DASHES}}}\n\nBirthday\n\n(mm/dd/yy)\n\n{{{DATE-OF-BIRTH}}}\n\n{{{FIRST-NAME}}}         {{{MIDDLE-NAME}}}    {{{LAST-NAME}}}\n\nStreet Address\n\nThe Social Security Administration and to the State agency authorized to process my case (usually called \"disability determination services\"), including contract copy services, and doctors or other professionals consulted during the process. [Also, for international claims, to the U.S. Department of State Foreign Service Post.]\n\nIF not signed by subject of disclosure, specify basis for authority to sign PLEASE SIGN USING BLUE OR BLACK INK ONLY\n\n(Parent/guardian/personal representative sign here if two signatures required by State law)\n\n- [x] Parent of minor\n\n- [ ] Guardian\n\n- [ ] Other personal representative (explain)\n\nWITNESS I know the person signing this form or am satisfied of this person's identity:\n\n**  PLEASE READ THE ENTIRE FORM, BOTH PAGES, BEFORE SIGNING BELOW  **\n\n## AUTHORIZATION TO DISCLOSE INFORMATION TO THE SOCIAL SECURITY ADMINISTRATION (SSA)\n\nPhone Number (with area code)\n\nDate Signed\n\nI voluntarily authorize and request disclosure (including paper, oral, and electronic interchange) :\n\nOF WHAT All my medical records; also education records and other information related to my ability to perform tasks.  This includes specific permission to release:\n\n1. All records and other information regarding my treatment, hospitalization, and outpatient care for my impairment(s) including , and not limited to :\n\n- Psychological, psychiatric or other mental impairment(s) (excludes \"psychotherapy notes\" as defined in 45 CFR 164.501)\n\n- Drug abuse, alcoholism, or other substance abuse\n\n- Sickle cell anemia\n\n- Records which may indicate the presence of a communicable or noncommunicable disease; and tests for or records of HIV/AIDS\n\n- Gene-related impairments (including genetic test results)\n\n2. Information about how my impairment(s) affects my ability to complete tasks and activities of daily living, and affects my ability to work.\n\n3. Copies of educational tests or evaluations, including Individualized Educational Programs, triennial assessments, psychological and speech evaluations, and any other records that can help evaluate function; also teachers' observations and evaluations.\n\n4. Information created within 12 months after the date this authorization is signed, as well as past information.\n\n## TO WHOM\n\n## PURPOSE\n\nEXPIRES WHEN This authorization is good for 12 months from the date signed (below my signature).\n\n- All medical sources (hospitals, clinics, labs, physicians, psychologists, etc.) including mental health, correctional, addiction treatment, and VA health care facilities\n\n- All educational sources (schools, teachers, records administrators, counselors, etc.)\n\n- Social workers/rehabilitation counselors\n\n- Consulting examiners used by SSA\n\n- Employers, insurance companies, workers' compensation programs\n\n- Others who may know about my condition (family, neighbors, friends, public officials)\n\nThis general and special authorization to disclose was developed to comply with the provisions regarding disclosure of medical, educational, and other information under P.L. 104-191 (\"HIPAA\"); 45 CFR parts 160 and 164; 42 U.S. Code section 290dd-2; 42 CFR part 2; 38 U.S. Code section 7332; 38 CFR 1.475; 20 U.S. Code section 1232g (\"FERPA\"); 34 CFR parts 99 and 300; and State law.\n\nSIGN\n\n- I authorize the use of a copy (including electronic copy) of this form for the disclosure of the information described above.\n\n- I understand that there are some circumstances in which this information may be redisclosed to other parties (see page 2 for details).\n\n- I may write to SSA and my sources to revoke this authorization at any time (see page 2 for details).\n\n- SSA will give me a copy of this form if I ask; I may ask the source to allow me to inspect or get a copy of material to be disclosed.\n\n- I have read both pages of this form and agree to the disclosures above from the types of sources listed.\n\nDetermining my eligibility for benefits , including looking at the combined effect of any impairments\n\nthat by themselves would not meet SSA's definition of disability; and whether I can manage such benefits.\n\n- [ ] Determining whether I am capable of managing benefits ONLY (check only if this applies)\n\nTHIS BOX TO BE COMPLETED BY SSA/DDS (as needed) Additional information to identify the subject (e.g., other names used), the specific source, or the material to be disclosed:\n\n## FROM WHOM\n\nINDIVIDUAL authorizing disclosure\n\nCity\n\nState\n\nZIP\n\nPhone Number (or Address)\n\nPhone Number (or Address)\n\nSIGN\n\nSIGN\n\nIF needed, second witness sign here (e.g., if signed with \"X\" above)\n\n{{{CITY}}}\n\nJ Moore\n\nElectronically signed by SIGNED-BY\n\n{{{ZIP-CODE}}}-\n\n{{{STATE}}}\n\n{{{PHONE-NUMBER}}}\n\n{{{STREET-ADDRESS}}}\n\nAttested by SSA or Designated State Agency Employee:\n\n866-708-3210 {{{CITY}}} {{{STATE}}} 21290-3015\n\nDATE-SIGNED\n\nLISA HEIDELMAIER PHD 1481 CROFTON PKWY CROFTON, {{{STATE}}} ZIP-CODE\n\n## Explanation of Form SSA-827,\n\n## \"Authorization to Disclose Information to the Social Security Administration (SSA)\"\n\nWe need your written authorization to help get the information required to process your claim, and to determine your capability of managing benefits. Laws and regulations require that sources of personal information have a signed authorization before releasing it to us. Also, laws require specific authorization for the release of information about certain conditions and from educational sources.\n\nYou can provide this authorization by signing a form SSA-827. Federal law permits sources with information about you to release that information if you sign a single authorization to release all your information from all your possible sources. We will make copies of it for each source. A covered entity (that is, a source of medical information about you) may not condition treatment, payment, enrollment, or eligibility for benefits on whether you sign this authorization form. A few States, and some individual sources of information, require that the authorization specifically name the source that you authorize to release personal information. In those cases, we may ask you to sign one authorization for each source and we may contact you again if we need you to sign more authorizations.\n\nYou have the right to revoke this authorization at any time, except to the extent a source of information has already relied on it to take an action. To revoke, send a written statement to any Social Security Office. If you do, also send a copy directly to any of your sources that you no longer wish to disclose information about you; SSA can tell you if we identified any sources you didn't tell us about. SSA may use information disclosed prior to revocation to decide your claim.\n\nIt is SSA's policy to provide service to people with limited English proficiency in their native language or preferred mode of communication consistent with Executive Order 13166 (August 11, 2000) and the Individuals with Disabilities Education Act. SSA makes every reasonable effort to ensure that the information in the SSA-827 is provided to you in your native or preferred language.\n\n## Privacy Act Statement Collection and Use of Personal Information\n\nSections 205(a), 223(d), and 1631(d) of the Social Security Act, as amended, allow us to collect this information. Furnishing us this information is voluntary. However, failing to provide all or part of the information may prevent us from making an accurate and timely decision on your claim that could result in a denial or loss of benefits.\n\nWe will use the information you provide to determine your eligibility or continuing eligibility for benefits, and your ability to manage any benefits that you currently receive.\n\nWe may also share your information for the following purposes, called routine uses:\n\n1. To State audit agencies for auditing State supplementation payments and Medicaid eligibility considerations;\n2. To third party contacts where necessary to establish or verify information provided by representative payees or payee applicants; and\n3. To Federal, State or local agencies for administering cash or non-cash income maintenance or health maintenance programs.\n\nIn addition, we may share this information in accordance with the Privacy Act and other Federal laws. For example, where authorized, we may use and disclose this information in computer matching programs, in which our records are compared with other records to establish or verify a person's eligibility for Federal benefit programs and for repayment of incorrect or delinquent debts under these programs.\n\nA list of additional routine uses is available in our Privacy Act System of Records Notices (SORNs) 60-0089, entitled Claims Folders Systems; 60-0090, entitled Master Beneficiary Record; 60-0320, entitled Electronic Disability; and 600103, entitled Supplemental Security Income Record and Special Veterans Benefits. Additional information and a full listing of all our SORNs are available on our website at www.socialsecurity.gov/foia/bluebook.\n\n## Paperwork Reduction Act Statement\n\nThis information collection meets the requirements of 44 U.S.C. § 3507, as amended by section 2 of the Paperwork Reduction Act of 1995. You do not need to answer these questions unless we display a valid Office of Management and Budget control number. We estimate that it will take about 10 minutes to read the instructions, gather the facts, and answer the questions. SEND OR BRING THE COMPLETED FORM TO YOUR LOCAL SOCIAL SECURITY OFFICE. You can find your local Social Security office through SSA's website at www.socialsecurity.gov. Offices are also listed under U. S. Government agencies in your telephone directory or you may call Social Security at 1-800-7721213 (TTY 1-800-325-0778). You may send comments on our time estimate above to : SSA , 6401 Security Blvd, {{{CITY}}}, {{{STATE}}} 21235-6401. Send only comments relating to our time estimate to this address, not the completed form.\n\ny g\n\n\\_ Man\n\nI\n\n<!-- image -->\n\nj\n\nt\n\n## Contact\n\n210 W. Pennsylvania Ave Ste 100 Towson, {{{STATE}}} 21204\n\n410-449-3977\n\ninfo@preparingouryouth.com\n\n5 =55\n\ns 5 o\n\n\\_ . \\_ \\_\n\n',=====--\n\n*\n\n<!-- image -->\n\n## Comments:\n\n<!-- image -->\n\n8\n\n7\n\n<!-- image -->\n\n## SECTION 1 -IDENTIFYING INFORMATION\n\n\\_\\_\\_\n\n\\_\\_\\_\\_\\_\\_\\_\n\n1. 1 A. Print NAME OF CHILD:\n\nFIRST\n\nMIDDLE\n\nLAST\n\n{{{FIRST-NAME}}}\n\n{{{MIDDLE-NAME}}}\n\n{{{LAST-NAME}}}\n\n\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_   C\n\n- B. Child's SOCIAL SECURITY NUMBER:\n\n0/l-QA-0218\n\n•\n\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------   C\n\n- C. Child's DATE OF BIRTH:\n\nMonth/Day/Year\n\n{{{DATE-OF-BIRTH}}}\n\n\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_  C\n\n- D. PERSON COMPLETING FORM\n\nNAMELOnitli Marie\n\nRELATIONSHIP TO CHILD:\n\nVoher\n\nDATE FORM COMPLETED:\n\nMonth/Day/Year\n\n\\_\\_\\_\\_\\_\\_\\_\n\n\\_02/4\\_\n\nDAYTIME TELEPHONE NUMBER (including Area Code):\n\n\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_ \\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n\nMAILING ADDRESS (Number and Street, Apt. No. (if any), P.O. Box, or Rural Route):\n\nas QolMor daud\n\n\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n\n{{{CITY}}}\n\nSTATE\n\nZIP CODE\n\nIkoe\n\n\\_\\_\\_\\_\\_\\_\\_\n\nM\n\n\\_\\_\\_\\_\\_\\_\n\n6007\n\n<!-- image -->\n\nIncome benefits. We may also share your information for the following purposes, called routine uses:\n\n1. To Federal, State, or local agencies for administering cash or non-cash income maintenance or health maintenance programs;\n2. To appropriate State agencies, or other agencies providing services to disabled children, to identify Title XVI eligible under the age of 16 for the consideration of rehabilitation services; and\n3. To specified business and other community members and Federal, State, and local agencies for verification of eligibility for benefits.\n\nIn addition, we may share this information in accordance with the Privacy Act and other Federal laws. For example, where authorized, we may use and disclose this information in computer matching programs, in which our records are compared with other records to establish or verify a person's eligibility for Federal benefit programs and for repayment of incorrect or delinquent debts under these programs.\n\nA list of additional routine uses is available in our Privacy Act System of Records Notices (SORNs) 60-0089, entitled Claims Folders Systems, as published in the Federal Register (FR), on April 1,2003, at 68 FR 15784; 60-0103, entitled Supplemental Security Income Record and Special Veterans Benefits, as published in the FR on January 11,2006 at 71 FR 1830; and 600320, entitled Electronic Disability (eDIB) Claim File, as published in the FRon December 22, 2003 at 68 FR 71210. Additional information, and a full listing of all of our SORNs, are available on our website at www.ssa.gov/privacy/.\n\nPaperwork Reduction Act Statement - This information collection meets the requirements of 44 U.S.C. § 3507, as amended by Section 2 of the Paperwork Reduction Act of 1995. You do not need to answer these questions unless we display a valid Office of Management and Budget control number. We estimate that it will take about 20 minutes to read the instructions, gather the facts, and answer the questions. SEND THE COMPLETED FORM TO YOUR LOCAL SOCIAL SECURITY OFFICE. The office is listed under U. S. Government agencies in your telephone directory or you may call Social Security at 1-800-772-1213 (TTY 1-800-325-0778). You may send comments on our time estimate above to: SSA, 1338 Annex Building, {{{CITY}}}, {{{STATE}}} 21235-6401. Send only comments relating to our time estimate to this address, not the completed form.\n\n0904210942---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n-----------------------------------------------\n\n<!-- image -->\n\nE\n\nJ\n\n&gt;\n\n5\n\nN\n\no\n\n2\n\nA\n\no\n\nCD\n\n3\n\n4\n\nCD\n\nQ\n\nX\n\no\n\nH.\n\n8\n\n\\_\n\n8\n\nU\n\nJQ\n\n9\n\ncd\n\nu\n\no\n\nH\n\ns\n\n- [ ] □ Child cannot be fitted for glasses or contact lenses. Explain:\n\n- [ ] • Child has other seeing problems. If so, please describe:\n\n\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n\n- B. Does the child have problems hearing?\n\nIf \"yes,\" please mark every statement below that is generally true about the child:\n\n- [ ] □ YES (Continue) • Child uses hearing aid(s). If the child has problems hearing even with a hearing aid(s) OR has trouble using a hearing DNO(Goto2.c.) aid, please explain:\n\n/\n\n- [ ] • Child cannot be fitted for hearing aid(s).\n\n- [ ] • Child has other hearing problems. If so, please describe:\n\n- [ ] • Child uses American Sign Language.\n\n- [ ] • Child reads lips.\n\nM\n\n0905210942\n\n<!-- image -->\n\n3\n\n0Q\n\nCD\n\ni\n\nO\n\ns\n\nSpeech can be understood by people who know the child well:\n\n- [ ] □ Most of the time, or\n\n- [ ] □ Some of the time, or\n\n- [ ] • Hardly ever.\n\nSpeech can be understood by people who don't know the child well:\n\n- [ ] • Most of the time, or\n\n- [ ] • Some of the time, or\n\n- [ ] • Hardly ever.\n\nIf the child has other problems talking, please explain:\n\n-\n\n8\n\nCD\n\n8\n\no\n\n.\n\nUl\n\nCD\n\nU\n\n3\n\nJ\n\nQu\n\nX\n\n2\n\nH\n\nH-\n\n8\n\nco co\n\nU\n\n0Q\n\n9\n\nCD\n\non\n\nO\n\ns\n\n•Yes • No Explain why he or she did something\n\ni- . Uses sentences with \"because,\" \"what if,\" / Yes No - - or should have been\"\n\n- [x] \\_\n\n- [x] DYes\n\n- [ ] • No  Talks with family\n\n- [x] AYes\n\n- [ ] □  No Talks with friends\n\nIf necessary, please explain. In addition, please tell us anything else you think we should know about the child's ability to communicate:\n\n0906210942\n\nki\n\n<!-- image -->\n\n[2] Yes 7 No Read and understands simple sentences\n\n- [ ] i-i. -\n\n-.  Read and understands stories in books Yes NO - or magazines\n\n- [x] / LAYes  • \\_\n\n- [ ] No Print some letters\n\n- [ ] 2Yes\n\n- [ ] • No Print name\n\n- [x] -\n\n- [ ] • Yes\n\n- [x] ZNo  Write in longhand (script)\n\n- [x] 7 Yes\n\n- [ ] □ No  Spell most 3-4 letter words\n\n- [x] \\_ \\_\n\n- [ ] • Yes\n\n- [x] • No  Write a simple story with 6-7  sentences\n\n- [x] A Yes\n\n- [ ] E J No  Add and subtract numbers over  10\n\n- [x] Yes -\n\n- [ ] -  No Knows days of the week and months of - the year\n\n- No Understands money - can make correct change\n\n- [x] 4  -\n\n- [x] ZYes\n\n- [ ] •  No Tells time\n\nIf necessary, please explain. In addition, please tell us anything else you think we should know about the child's ability to progress in learning:\n\n<!-- image -->\n\nCO\n\ns\n\n□ Yes n No Ride a bike\n\n- [ ] -\n\n- [ ] -\n\n□ Yes • No Jump rope\n\n- [ ] Yes No Use roller skates or roller blades\n\n-1-\n\n- [ ] • Yes • No\n\nSwim\n\n- [ ] Q Yes • No\n\nUse scissors\n\n□ Yes • No Work video game controls\n\n• Yes • No Dress/undress dolls or action figures\n\nIf necessary, please explain. In addition, please tell us anything else you think we should know about the child's physical abilities:\n\nU 9 0Q CD\n\nO\n\n\\_\\_\\_\\_\\_\\_ \\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n\nm\n\n- [ ] - (Continue)\n\nLYes • No Generally gets along with school teachers\n\n- Yes -No Plays team sports (for example, baseball, - - basketball, soccer)\n\nIf necessary, please explain. In addition, please tell us anything else you think we should know about the child's behavior with other people:\n\n1\n\n83\n\nS\n\no\n\n\"\n\n\\_\n\nCD\n\nU\n\n3\n\n-\n\nCD\n\nQ\n\nCD\n\nX\n\no\n\nH.\n\nO\n\nCD\n\nCO\n\nCO\n\nU\n\n0Q\n\n9\n\nCD\n\nCD\n\nO\n\ns\n\n- [ ] □ NO (Go to 2.1.) /\n\n- [ ] . LYes 7\n\n- [ ] • No\n\nBrushes teeth\n\n- [ ] L/NOTSURE (Continue)\n\n- [x] \\_ 0 No\n\n- [ ] • Yes\n\nCombs or brushes hair\n\n- [x] • Yes  0No Washes hair by self /\n\n- [ ] 0 Yes  I No\n\nChooses clothes by self\n\n- [x] ZYes\n\n- [ ] 0 No\n\nEats by self using a knife, fork, and spoon\n\n- [ ] Yes  0 No\n\nPicks up and puts away toys\n\n- [x] / 0 Yes  • No /\n\nHangs up clothes\n\n- [ ] Yes  0 No\n\nHelps around the house (for example, washes or dries dishes, makes bed(s), sweeps/vacuums floor, rakes  or mows yard, helps with laundry)\n\n/\n\n- [ ] □ Yes  0 No\n\nDoes what he or she is told most of the  time\n\n- [x] • Yes  • No\n\nObeys safety rules; for instance, looks for cars before crossing street\n\n- [x] / • Yes  □ No\n\nGets to school on time\n\n\\_\n\n- [ ] □ Yes  • No\n\nAccepts criticism or correction\n\nIf necessary, please explain. In addition, please tell us anything else you think we should know about the child's ability to help him or herself and cooperate with others in caring for personal needs:\n\n-\n\n<!-- image -->\n\n-----------------------------------------------\n\n1\n\n<!-- image -->\n\nN\n\non\n\nCD\n\nU\n\n3\n\n- [x] DYes • No\n\nCompletes homework\n\n1\n\n□ Yes No Completes chores most of the time\n\n5\n\n-----------------------------------------------------------------------------------------------------------------------------------------------\n\nIf necessary, please explain. In addition, please tell us anything else you think we should know about the child's ability to pay attention and stick with a task:\n\nS\n\n-\n\n-\n\n- J. Please tell us anything else about the child that you think we should know.\n\nco\n\nRA on Wukolp c h n 14- d z ulu w - ALsn/ond 2M00 $25? I luja-0U1 04 kLA/ 37 /Lda 5 - 2Ain onyr v \"55/2 - pito &amp;- 4 gvont \" 1s9---- p&gt; &amp; w w ca5 a-A 4//kky. 4 *la dzzls 9- hy pkrdktS\"e\"\n\n(Conmue)",
+  "_markdown_note": "Markdown is from full document. Use 'document' dict for page-filtered content.",
+  "tables": [
+    {
+      "export": [
+        {
+          "0": "Claimant Information {{{FIRST-NAME}}} {{{MIDDLE-NAME}}} {{{LAST-NAME}}} {{{STREET-ADDRESS}}} {{{CITY}}}, {{{STATE}}}{{{ZIP-CODE}}} {{{PHONE-NUMBER}}}",
+          "1": "Date and Time Thursday September 5th, 2024 10:00 AMEastern Daylight Time",
+          "2": "Services Authorized Code: {{{SERVICE-AUTHORIZATION-CODE}}} Procedure Type Code: E Desc: {{{SERVICE-AUTHORIZATION-DESC}}} Fee: $ Code: 90791-MNTL-CH Procedure Type Code: E Desc: Child Mental Status Evaluation Fee: $212.00"
+        }
+      ],
+      "text": null
+    }
+  ],
+  "table_count": 1
+}

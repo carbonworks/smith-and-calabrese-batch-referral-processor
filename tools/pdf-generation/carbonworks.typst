@@ -1,0 +1,123 @@
+// Carbon Works — Pandoc Typst Template (Wrapper)
+//
+// ╔═══════════════════════════════════════════════════════════════════════════╗
+// ║  ⚠️  AI ASSISTANT: ASK BEFORE EDITING THIS FILE                           ║
+// ║                                                                           ║
+// ║  This file is part of a 3-file PDF generation system:                     ║
+// ║    1. generate-pdf.sh    — entry point, sets up paths and variables       ║
+// ║    2. carbonworks.typst  — THIS FILE, pandoc wrapper                      ║
+// ║    3. carbonworks.typ    — defines conf() function (styling/layout)       ║
+// ║                                                                           ║
+// ║  This wrapper:                                                            ║
+// ║    • Imports conf() from carbonworks.typ                                  ║
+// ║    • Invokes #show: doc => conf(...) with pandoc variables                ║
+// ║    • Places document content at the end via pandoc variable               ║
+// ║                                                                           ║
+// ║  CRITICAL: Do NOT use pandoc template variables (dollar-sign + name)      ║
+// ║  inside comments! Pandoc will expand them, corrupting the template.       ║
+// ║                                                                           ║
+// ║  Before making changes, please:                                           ║
+// ║    1. Explain what you want to change and why                             ║
+// ║    2. Confirm with the user which file(s) need modification               ║
+// ║    3. Test with generate-pdf.sh after changes                             ║
+// ╚═══════════════════════════════════════════════════════════════════════════╝
+//
+// Extends the default pandoc typst template with custom variables:
+//   -V template=...  (path to carbonworks.typ)
+//   -V logo=...      (path to logo image)
+//   -V client=...    (client name for cover page)
+//   -V confidential  (show confidentiality notice)
+
+#let horizontalrule = {
+  v(0.5em)
+  line(length: 40%, stroke: 0.75pt + rgb("#E2E8F0"))
+  v(0.5em)
+}
+
+#show terms: it => {
+  it.children
+    .map(child => [
+      #strong[#child.term]
+      #block(inset: (left: 1.5em, top: -0.4em))[#child.description]
+      ])
+    .join()
+}
+
+$if(highlighting-definitions)$
+// syntax highlighting functions from skylighting:
+$highlighting-definitions$
+
+$endif$
+$if(template)$
+#import "$template$": conf
+$else$
+$template.typst()$
+$endif$
+
+$if(smart)$
+$else$
+#set smartquote(enabled: false)
+
+$endif$
+$for(header-includes)$
+$header-includes$
+
+$endfor$
+#show: doc => conf(
+$if(title)$
+  title: [$title$],
+$endif$
+$if(subtitle)$
+  subtitle: [$subtitle$],
+$endif$
+$if(author)$
+  authors: (
+$for(author)$
+$if(author.name)$
+    ( name: [$author.name$],
+      affiliation: [$author.affiliation$],
+      email: [$author.email$] ),
+$else$
+    ( name: [$author$],
+      affiliation: "",
+      email: "" ),
+$endif$
+$endfor$
+    ),
+$endif$
+$if(date)$
+  date: [$date$],
+$endif$
+$if(emblem)$
+  emblem: "$emblem$",
+$endif$
+$if(wordmark)$
+  wordmark: "$wordmark$",
+$endif$
+$if(client)$
+  client: [$client$],
+$endif$
+$if(confidential)$
+  confidential: true,
+$endif$
+  cols: $if(columns)$$columns$$else$1$endif$,
+  doc,
+)
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+#outline(
+  title: auto,
+  depth: $toc-depth$
+);
+$endif$
+
+$body$
+
+$for(include-after)$
+
+$include-after$
+$endfor$

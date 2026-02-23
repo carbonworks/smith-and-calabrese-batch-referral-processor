@@ -1,0 +1,94 @@
+{
+  "_description": "Maps target XLSX fields to PDF extraction coordinates/rules. Populated after running dual-library extraction on sample PDFs.",
+  "_status": "skeleton — fill in after analysis",
+  "_see": "build-plan.md Section A",
+  "pdf_type": "SSA Referral Form",
+  "fields": [
+    {
+      "field_name": "patient_name",
+      "xlsx_column": null,
+      "pdfplumber_rule": {
+        "method": null,
+        "bbox": null,
+        "regex": null,
+        "notes": ""
+      },
+      "docling_rule": {
+        "method": null,
+        "key": null,
+        "notes": ""
+      },
+      "required": true,
+      "data_type": "string"
+    },
+    {
+      "field_name": "date_of_birth",
+      "xlsx_column": null,
+      "pdfplumber_rule": {
+        "method": null,
+        "bbox": null,
+        "regex": null,
+        "notes": ""
+      },
+      "docling_rule": {
+        "method": null,
+        "key": null,
+        "notes": ""
+      },
+      "required": true,
+      "data_type": "date"
+    },
+    {
+      "field_name": "ssn",
+      "xlsx_column": null,
+      "pdfplumber_rule": {
+        "method": null,
+        "bbox": null,
+        "regex": null,
+        "notes": ""
+      },
+      "docling_rule": {
+        "method": null,
+        "key": null,
+        "notes": ""
+      },
+      "required": true,
+      "data_type": "string"
+    },
+    {
+      "field_name": "referral_date",
+      "xlsx_column": null,
+      "pdfplumber_rule": {
+        "method": null,
+        "bbox": null,
+        "regex": null,
+        "notes": ""
+      },
+      "docling_rule": {
+        "method": null,
+        "key": null,
+        "notes": ""
+      },
+      "required": true,
+      "data_type": "date"
+    },
+    {
+      "field_name": "case_number",
+      "xlsx_column": null,
+      "pdfplumber_rule": {
+        "method": null,
+        "bbox": null,
+        "regex": null,
+        "notes": ""
+      },
+      "docling_rule": {
+        "method": null,
+        "key": null,
+        "notes": ""
+      },
+      "required": true,
+      "data_type": "string"
+    }
+  ],
+  "_notes": "Field list is preliminary. Actual fields will be determined from sample PDF analysis and Tyler's field priority list."
+}
