@@ -14,7 +14,7 @@ A batch PDF data extraction tool for Smith & Calabrese Assessments. Processes SS
 ## Project Structure
 
 ```
-src/                     # Kotlin/Compose application source (TBD)
+src/                     # Kotlin/Compose Multiplatform Desktop application
 docs/                    # Project documentation, research, brand assets
 reference/               # Python prototype scripts and sample output
 tools/                   # PDF generation toolchain for deliverable documents
@@ -22,7 +22,18 @@ tools/                   # PDF generation toolchain for deliverable documents
 
 ## Build Instructions
 
-*Build setup pending — Kotlin project initialization is a separate step.*
+**Prerequisites**: JDK 17+ (e.g., [Eclipse Temurin](https://adoptium.net/))
+
+```bash
+# Run the application
+./gradlew run
+
+# Build without running
+./gradlew build
+
+# Package native installer (MSI for Windows, DMG for macOS)
+./gradlew package
+```
 
 ## Documentation
 

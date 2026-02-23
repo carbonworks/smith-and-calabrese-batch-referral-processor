@@ -23,7 +23,8 @@ jpackage/
 # Gradle
 .gradle/
 gradle-app.setting
-!gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
 
 # OS files
 .DS_Store
