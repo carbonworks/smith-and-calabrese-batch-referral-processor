@@ -1,21 +1,18 @@
 {
-  "_description": "Maps target XLSX fields to PDF extraction coordinates/rules. Populated after running dual-library extraction on sample PDFs.",
+  "_description": "Maps target XLSX fields to PDF extraction coordinates/rules. Populated after running PDFBox/Tabula-java extraction on sample PDFs.",
   "_status": "skeleton — fill in after analysis",
-  "_see": "build-plan.md Section A",
+  "_see": "build-plan.md Section 2B",
   "pdf_type": "SSA Referral Form",
   "fields": [
     {
       "field_name": "patient_name",
       "xlsx_column": null,
-      "pdfplumber_rule": {
+      "extraction_rule": {
         "method": null,
+        "library": null,
         "bbox": null,
         "regex": null,
-        "notes": ""
-      },
-      "docling_rule": {
-        "method": null,
-        "key": null,
+        "table_ref": null,
         "notes": ""
       },
       "required": true,
@@ -24,15 +21,12 @@
     {
       "field_name": "date_of_birth",
       "xlsx_column": null,
-      "pdfplumber_rule": {
+      "extraction_rule": {
         "method": null,
+        "library": null,
         "bbox": null,
         "regex": null,
-        "notes": ""
-      },
-      "docling_rule": {
-        "method": null,
-        "key": null,
+        "table_ref": null,
         "notes": ""
       },
       "required": true,
@@ -41,15 +35,12 @@
     {
       "field_name": "ssn",
       "xlsx_column": null,
-      "pdfplumber_rule": {
+      "extraction_rule": {
         "method": null,
+        "library": null,
         "bbox": null,
         "regex": null,
-        "notes": ""
-      },
-      "docling_rule": {
-        "method": null,
-        "key": null,
+        "table_ref": null,
         "notes": ""
       },
       "required": true,
@@ -58,15 +49,12 @@
     {
       "field_name": "referral_date",
       "xlsx_column": null,
-      "pdfplumber_rule": {
+      "extraction_rule": {
         "method": null,
+        "library": null,
         "bbox": null,
         "regex": null,
-        "notes": ""
-      },
-      "docling_rule": {
-        "method": null,
-        "key": null,
+        "table_ref": null,
         "notes": ""
       },
       "required": true,
@@ -75,20 +63,17 @@
     {
       "field_name": "case_number",
       "xlsx_column": null,
-      "pdfplumber_rule": {
+      "extraction_rule": {
         "method": null,
+        "library": null,
         "bbox": null,
         "regex": null,
-        "notes": ""
-      },
-      "docling_rule": {
-        "method": null,
-        "key": null,
+        "table_ref": null,
         "notes": ""
       },
       "required": true,
       "data_type": "string"
     }
   ],
-  "_notes": "Field list is preliminary. Actual fields will be determined from sample PDF analysis and Tyler's field priority list."
+  "_notes": "Field list is preliminary. Actual fields will be determined from sample PDF analysis and Tyler's field priority list. The 'library' value should be 'pdfbox' for text/coordinate extraction or 'tabula' for table extraction. The 'method' value describes the extraction approach (e.g., 'bbox_text', 'regex', 'table_cell')."
 }

@@ -5,7 +5,7 @@ project: smith-calabrese-consulting
 goal: launch-consulting
 cycle: 2026-02
 created: 2026-02-17
-updated: 2026-02-17
+updated: 2026-02-23
 ---
 
 # S&C Phase 1 Build Plan — PDF Referral Parser
@@ -19,24 +19,16 @@ Command center for the 2-week engagement. Start here for current status, next st
 **Project files:**
 - [Contract](contract-phase1-pdf-parser.md) — scope, deliverables, terms
 - [Solution Analysis](solution-analysis.md) — 3 problem areas, option evaluation
-- [PDF Structure Dump Guide](pdf-structure-dump-guide.md) — Tyler's analysis tool
-- [Project File](smith-calabrese-consulting.md) — engagement context, timeline, milestones
+- [Tech Stack Decision](tech-stack-decision.md) — Kotlin/Compose Multiplatform rationale
+- [JVM Library Research](research/jvm-pdf-extraction-research.md) — PDFBox, Tabula-java, POI evaluation
 
-**Scripts** (in `scripts/`):
-- `dump_pdf.py` — pdfplumber extraction (batch, outputs `<name>-pdfplumber.json`)
-- `dump_pdf_docling.py` — Docling extraction (batch, outputs `<name>-docling.json`)
-- `sanitize_extraction.py` — strip PHI from extraction JSON, flag for manual review
+**Reference:**
+- `reference/python-scripts/` — Python prototype scripts (extraction logic reference, not production code)
+- `reference/sample-output/` — Sanitized extraction output samples
 
-**Analysis templates** (in `analysis/`):
+**Analysis templates:**
 - `field-mapping.json` — field names → extraction coordinates/rules (skeleton)
 - `extraction-template.json` — reusable template for SSA referral forms (skeleton)
-- `library-comparison-notes.md` — side-by-side quality assessment (template)
-
-**Knowledge base:**
-- [PDF Extraction Stack (PHI-Compliant)](/reference/knowledge/tools-and-services/pdf-extraction-stack-phi.md) — pdfplumber + Ollama pipeline
-- [Docling PDF Processing](/reference/knowledge/tools-and-services/docling-pdf-processing.md) — IBM's AI-driven alternative
-- [Windows App Framework Comparison](/reference/knowledge/tools-and-services/windows-app-framework-comparison.md) — C# WinForms vs Python+PyQt6
-- [Encrypted Vault Storage](/reference/knowledge/tools-and-services/encrypted-vault-storage-phi.md) — PHI file transfer options
 
 **People:**
 - [Smith & Calabrese (client)](/people/clients/smith-and-calabrese/smith-and-calabrese.md)
@@ -57,82 +49,52 @@ Command center for the 2-week engagement. Start here for current status, next st
 
 ## 2. Work Breakdown
 
-### 0. Environment Setup
+### A. Project Scaffolding
 
-Install Python packages (run from command line):
-- [ ] `pip install pdfplumber` — primary PDF extraction
-- [ ] `pip install docling` — alternative AI-driven extraction
-- [ ] `pip install openpyxl` — XLSX output
+- [ ] Initialize Kotlin/Gradle project with Compose Multiplatform Desktop plugin
+- [ ] Add dependencies: PDFBox, Tabula-java, Apache POI, Tess4J
+- [ ] Basic Compose window — app shell with CW branding (title, colors, typography)
+- [ ] Verify clean build on Windows and macOS
 
-Verify scripts work (quick smoke test, no PDFs needed):
-- [ ] `python scripts/dump_pdf.py` — should print usage and exit
-- [ ] `python scripts/dump_pdf_docling.py` — should print usage and exit
-- [ ] `python scripts/sanitize_extraction.py` — should print usage and exit
+### B. PDF Extraction Engine
 
-Already installed:
-- Python 3.13.12
-- Tesseract 5.4.0
+Port extraction logic from Python reference scripts (`reference/python-scripts/`) to Kotlin:
 
-Install later (only if needed):
-- [ ] **Ollama** — local LLM fallback, only if deterministic extraction fails on some PDFs
-- [ ] **.NET 8 SDK** — only if framework decision goes C# WinForms instead of Python
+- [ ] PDFBox text extraction — `PDFTextStripper` with coordinate filtering
+- [ ] Tabula-java table extraction — structured table data
+- [ ] Field mapping — coordinate-based field identification using extraction template
+- [ ] Regex parsing — SSN, dates, case numbers, names (port from `extract_referral_fields.py`)
+- [ ] Confidence scoring — flag low-confidence extractions for manual review
 
-### A. Analysis
+**Randall-driven** (PHI files — Claude does not touch):
+- [ ] Run extraction on all sample PDFs, review results
+- [ ] Validate field mapping against all samples
 
-**Randall-driven** (PHI files — Claude does not touch, run, or orchestrate):
-- [ ] Run `scripts/dump_pdf.py` on all sample PDFs → `<name>-pdfplumber.json` for each
-- [ ] Run `scripts/dump_pdf_docling.py` on all sample PDFs → `<name>-docling.json` for each
-- [ ] Run `scripts/sanitize_extraction.py` on both sets of JSON → `<name>-sanitized.json`
-- [ ] Review sanitized output to confirm no PHI remains (script flags items for review)
-- [ ] **Pull sanitized results into intranet** at `/work/projects/smith-calabrese-consulting/analysis/`
+### C. XLSX Output
 
-**Claude-assisted** (sanitized data only):
-- [ ] Evaluate sanitized JSON output: text quality, table detection, field positions, consistency across samples
-- [ ] Write library comparison notes (side-by-side quality assessment)
-- [ ] **Feasibility gate**: Can fields be reliably extracted? Go/no-go decision
-- [ ] Map target fields to extraction coordinates (pdfplumber) or document regions (Docling)
-- [ ] Select primary library based on actual results
+- [ ] Apache POI spreadsheet generation — column headings, one row per referral
+- [ ] Data types — dates as dates, numbers as numbers, strings as strings
+- [ ] Filename format: `patient-referrals-[date]-[time].xlsx`
+- [ ] Output to same directory as source PDFs
+- [ ] Google Sheets compatibility — no Excel-only features
 
-### B. Prototype
+### D. Desktop UI
 
-**Claude-assisted** (writes code; Randall runs it against PHI files):
-- [ ] Build extraction script using selected primary library
-- [ ] Define template JSON — field names → bounding boxes / extraction rules
+- [ ] File picker — select one or multiple PDFs
+- [ ] Batch processing — handle 1-50 PDFs in sequence
+- [ ] Progress display — show extraction progress
+- [ ] Data preview — review extracted data before saving
+- [ ] CW branding — colors, typography, layout per Section 12
+- [ ] Drag-and-drop support
 
-**Randall-driven** (PHI files):
-- [ ] Validate template against all sample PDFs
-- [ ] End-to-end test: PDF in → XLSX out
+### E. Packaging & Delivery
 
-**Claude-assisted** (sanitized output):
-- [ ] Build openpyxl XLSX output — column headings, data types, formatting
-
-### C. Tyler Feedback
-
-- [ ] Send Tyler: PDF analysis summary, prototype XLSX output, field priority questions
-- [ ] **At Checkpoint #1 delivery, remind Tyler of outstanding items:**
-  - Existing tracking spreadsheet (needed for format matching)
-  - Desired fields for XLSX output / field priority list
-  - Preferred XLSX column layout and order
-- [ ] Request existing tracking spreadsheet for format matching
-- [ ] Incorporate Tyler's field priorities — "nice to have" vs "must have"
-- [ ] Incorporate Tyler's spreadsheet layout — match column order, headers, formatting
-
-### D. Integration
-
-- [ ] Framework decision: C# WPF vs Python + PyQt6 (follows library choice from Phase A)
-- [ ] Apply CW branding to tool UI — colors, typography, window chrome (see Section 12)
-- [ ] Build user interface — file selection, progress display, preview before save
-- [ ] Batch processing — handle 1-50 PDFs in one run
-- [ ] Error handling — corrupt PDFs, missing fields, unexpected layouts
-- [ ] Edge cases — multi-page referrals, scanned pages (Tesseract fallback)
-
-### E. Documentation & Delivery
-
+- [ ] jpackage .msi installer for Windows (bundled JRE, ~60-100MB)
+- [ ] jpackage .dmg for macOS (secondary)
+- [ ] Clean-machine test — install and run on fresh Windows machine
 - [ ] Technical specification document
 - [ ] User guide with screenshots
-- [ ] Packaging — installer or distribution zip
-- [ ] Final testing on clean machine
-- [ ] Deliver to Tyler: tool, source code, tech spec, user guide
+- [ ] Deliver to Tyler: installer, source code, tech spec, user guide
 
 ---
 
@@ -140,10 +102,8 @@ Install later (only if needed):
 
 | Gate | Question | Depends On | Decision Maker | Status |
 |------|----------|------------|----------------|--------|
-| **Feasibility** | Can target fields be reliably extracted from sample PDFs? | Analysis complete | Randall | [ ] Pending |
-| **Library Choice** | pdfplumber (deterministic) or Docling (AI-driven) for production? | Dual-library extraction results | Randall | [ ] Pending |
+| **Feasibility** | Can target fields be reliably extracted from sample PDFs? | Extraction engine tested against samples | Randall | [ ] Pending |
 | **Column Mapping** | Which fields go in which columns, and in what order? | Tyler's feedback on Checkpoint #1 | Tyler | [ ] Pending |
-| **Framework** | C# WPF or Python + PyQt6? (Follows library choice — same language as PDF library) | Library choice + Tyler's UX feedback | Randall + Tyler input | [ ] Pending |
 
 ---
 
@@ -173,45 +133,33 @@ Install later (only if needed):
 
 ---
 
-## 6. Dual-Library Extraction & Reuse Strategy
+## 6. Technical Architecture
 
-### Why Both Libraries
+See [Tech Stack Decision](tech-stack-decision.md) for full rationale and trade-off analysis.
 
-Running pdfplumber AND Docling on the same sample PDFs serves three purposes:
+| Component | Library | Purpose |
+|-----------|---------|---------|
+| PDF text extraction | Apache PDFBox | Core text and coordinate extraction |
+| Table extraction | Tabula-java | Structured table data from PDFs |
+| XLSX output | Apache POI | Spreadsheet generation |
+| OCR fallback | Tess4J | JNA wrapper for Tesseract (scanned pages) |
+| Desktop UI | Compose Multiplatform | Cross-platform Windows + macOS |
+| Build/packaging | Gradle + jpackage | Build, bundle JRE, create .msi/.dmg |
 
-1. **Informed decision**: Compare actual extraction results, not just feature lists
-2. **Fallback readiness**: If the primary library struggles with certain layouts, the alternative is already tested
-3. **Reusable reference data**: Sanitized extraction results stored in the intranet become a template for future clients with similar government PDF extraction needs
-
-### Sanitization Protocol
-
-Before pulling extraction results into the intranet:
-
-1. Strip all PHI fields: patient names, SSNs, DOBs, addresses, phone numbers, diagnosis codes
-2. Preserve structural data: field positions, bounding boxes, font info, table layouts, page dimensions
-3. Replace PHI values with type-labeled placeholders: `[PATIENT_NAME]`, `[SSN]`, `[DOB]`, etc.
-4. Review output manually before committing
-
-### Intranet Storage
+### Extraction Pipeline
 
 ```
-/work/projects/smith-calabrese-consulting/analysis/
-  ├── pdfplumber-extraction-sample1.json    (sanitized)
-  ├── pdfplumber-extraction-sample2.json    (sanitized)
-  ├── docling-extraction-sample1.json       (sanitized)
-  ├── docling-extraction-sample2.json       (sanitized)
-  ├── field-mapping.json                    (field names → coordinates/rules)
-  ├── library-comparison-notes.md           (side-by-side quality assessment)
-  └── extraction-template.json              (reusable template for SSA referral forms)
+PDF → PDFBox (text + coordinates) → Field mapping (template) → Regex parsing → Structured data
+  └→ Tabula-java (tables) ──────────┘
+  └→ Tess4J (scanned pages) ────────┘
 ```
 
-### Reuse for Future Clients
+### Reference Implementation
 
-If another client needs SSA/government PDF extraction:
-- The sanitized structure data shows exactly what these PDFs look like internally
-- The field mapping and extraction template can be adapted
-- The library comparison notes inform tooling decisions without re-running the analysis
-- The build plan itself serves as a project template
+The Python prototype scripts in `reference/python-scripts/` contain the extraction logic being ported to Kotlin. Key files:
+- `extract_referral_fields.py` — core field extraction with regex parsing (572 lines)
+- `dump_pdf.py` — pdfplumber extraction (batch processing)
+- `sanitize_extraction.py` — PHI stripping utility
 
 ---
 
@@ -257,53 +205,7 @@ If another client needs SSA/government PDF extraction:
 
 ---
 
-## 8. Technical Architecture
-
-> **Update (2026-02-23)**: The Kotlin/Compose Multiplatform decision supersedes the Python/Tauri/WPF options below. Production stack: PDFBox + Tabula-java + Apache POI + Compose Multiplatform. The Python tools and framework evaluation below are preserved as historical context. See the [tech stack decision section](smith-calabrese-consulting.md#tech-stack-decision-2026-02-23) and the development project at `/home/rmdev/projects/smith-and-calabrese-batch-referral-processor/`.
-
-### Primary: pdfplumber (deterministic extraction)
-
-Best for uniform government forms. Template-based coordinate extraction with regex validation.
-
-| Component | Tool | License |
-|---|---|---|
-| PDF text extraction | pdfplumber 0.11.x | MIT |
-| Template definition | Custom JSON schema | N/A |
-| XLSX output | openpyxl 3.1.x | MIT |
-| Validation | Python `re` + custom rules | stdlib |
-
-### Alternative: Docling (AI-driven extraction)
-
-Better if PDFs have more layout variation than expected. TableFormer for table detection, Granite-Docling for document understanding. All local, no cloud.
-
-| Component | Tool | License |
-|---|---|---|
-| Document conversion | Docling | MIT |
-| Table extraction | TableFormer (bundled) | Permissive (verify) |
-| Document understanding | Granite-Docling (bundled) | Apache 2.0 (verify) |
-
-### Fallback: Ollama + NuExtract (local LLM)
-
-For PDFs where deterministic extraction fails. NuExtract (3.8B params) accepts text + JSON template, returns structured JSON. Runs on localhost:11434.
-
-### UI Framework (Client-Facing Shell)
-
-The UI is a thin shell that invokes the Python extraction script and displays results. It does NOT do PDF processing — the extraction engine is always Python regardless of UI choice.
-
-| Framework | Theming | Data Grid | Theme Swap | Installer | Maintainability |
-|---|---|---|---|---|---|
-| **Tauri** (Rust + HTML/CSS/JS) | Excellent (CSS) | Very Good (HTML/JS table) | Excellent (CSS vars) | **2-8 MB** | Excellent (HTML/CSS/JS — widest talent pool) |
-| **C# WPF** (.NET 8) | Excellent (XAML ResourceDictionary) | Excellent (built-in DataGrid) | Excellent (swap XAML dicts) | 25-50 MB | Moderate (XAML/C# — narrower pool) |
-
-**Primary: Tauri** — CSS is the best tool for expressing the CW brand spec. 2-8 MB installer signals craftsmanship. HTML/CSS/JS is the most maintainable codebase for any future developer Tyler might hire. Rust backend is ~20-30 lines of boilerplate (invoke Python, return JSON).
-
-**Alternative: WPF** — Best built-in DataGrid, most structured native theming. Choose if Rust toolchain is unwanted or client's future developers are likely .NET.
-
-**Eliminated**: WinForms (no theming system), Electron (same as Tauri but 80-150 MB), customtkinter (no data grid), ttkbootstrap (theming ceiling too low for client deliverable), PyQt6 (harder to theme than CSS, worse grid than WPF, larger than Tauri). See [Windows App Framework Comparison](/reference/knowledge/tools-and-services/windows-app-framework-comparison.md) for full evaluation.
-
----
-
-## 9. PHI Compliance
+## 8. PHI Compliance
 
 ### Contract Requirements (Section 9)
 
@@ -315,7 +217,7 @@ The UI is a thin shell that invokes the Python extraction script and displays re
 
 ### AI Assistant Constraint
 
-Claude **must not be involved in any process that touches PHI files** — not reading, running scripts against, or orchestrating workflows involving them. Even if Claude wouldn't upload file contents, having Claude drive the process means Claude is making decisions about PHI handling. **That decision authority stays with Randall** as long as files contain PHI.
+Claude **must not be involved in any process that touches PHI files** — not reading, running scripts against, or orchestrating workflows involving them. **That decision authority stays with Randall** as long as files contain PHI.
 
 **Boundary rule**: Randall drives all PHI-touching processes. Claude's involvement begins only after Randall has sanitized the output and confirmed it's clean.
 
@@ -328,13 +230,14 @@ The workflow is:
 
 ### Local Workflow Safeguards
 
+All extraction libraries run locally with no network access:
+
 | Tool | Network Access | PHI Exposure |
 |---|---|---|
-| pdfplumber | None (pure Python) | Local only |
-| Docling | None (local models) | Local only |
-| openpyxl | None (file I/O) | Local only |
-| Tesseract | None (local exe) | Local only |
-| Ollama | localhost:11434 only | Local only |
+| Apache PDFBox | None (JVM library) | Local only |
+| Tabula-java | None (JVM library) | Local only |
+| Apache POI | None (JVM library) | Local only |
+| Tess4J / Tesseract | None (local native) | Local only |
 
 Additional:
 - Windows BitLocker enabled for disk encryption
@@ -345,25 +248,24 @@ Additional:
 
 ---
 
-## 10. Risk Register
+## 9. Risk Register
 
 | # | Risk | Likelihood | Severity | Mitigation | Status |
 |---|------|-----------|----------|------------|--------|
-| 1 | PDFs are scanned images, not native text | Low | High | Tesseract OCR fallback; feasibility gate | Monitoring |
+| 1 | PDFs are scanned images, not native text | Low | High | Tess4J OCR fallback; feasibility gate | Monitoring |
 | 2 | PDFs are encrypted/DRM-protected | Low | High | Feasibility gate; contract Section 8 allows termination | Monitoring |
-| 3 | PDF layout varies significantly across samples | Medium | Medium | Docling as alternative; dual-library extraction informs decision | Monitoring |
+| 3 | PDF layout varies significantly across samples | Medium | Medium | Flexible field mapping; confidence scoring flags edge cases | Monitoring |
 | 4 | Tyler delays on feedback | Medium | High | Proactive follow-up; delivery dates shift but hard deadline holds | Monitoring |
-| 5 | Framework choice adds unexpected complexity | Low | Medium | Defer decision until extraction is working; simplest option wins | Monitoring |
-| 6 | Extraction accuracy insufficient for production use | Low | High | Confidence scoring per field; manual review flag for low-confidence extractions | Monitoring |
+| 5 | Extraction accuracy insufficient for production use | Low | High | Confidence scoring per field; manual review flag for low-confidence extractions | Monitoring |
 
 ---
 
-## 11. Deliverable Specifications
+## 10. Deliverable Specifications
 
 ### D1: Batch PDF Processing Tool
 
-- Windows executable or script (depending on framework decision)
-- Accepts 1-50 PDFs via context menu, SendTo, drag-drop, or file picker
+- Windows .msi installer (bundled JRE via jpackage)
+- Accepts 1-50 PDFs via file picker or drag-and-drop
 - Processes all selected PDFs in sequence
 - Shows progress during processing
 - Preview extracted data before saving
@@ -384,8 +286,8 @@ Additional:
 
 ### D4: Source Code
 
-- Complete, commented Python (and/or C#) source
-- `requirements.txt` or `.csproj` with pinned dependencies
+- Complete Kotlin source code
+- Gradle build files with pinned dependencies
 - README with build/run instructions
 
 ### D5: Technical Specification
@@ -404,7 +306,7 @@ Additional:
 - Troubleshooting common issues
 - How to update if PDF format changes (point to tech spec)
 
-## 12. Tool Branding
+## 11. Tool Branding
 
 S&C branding was offered to Tyler but not followed up on. Default to **Carbon Works branding** for the delivered tool. If Tyler later provides S&C branding assets, the theme can be swapped.
 
@@ -447,4 +349,4 @@ Source: [Carbon Works Brand Guidelines](/org/brand/carbon-works-brand-guidelines
 
 ---
 
-*Last updated: 2026-02-23 — tech stack decision note in Section 8*
+*Last updated: 2026-02-23 — rewritten for Kotlin/Compose Multiplatform stack*

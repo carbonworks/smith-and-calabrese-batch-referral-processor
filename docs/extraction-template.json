@@ -1,7 +1,7 @@
 {
   "_description": "Reusable extraction template for SSA referral forms. Maps form structure to extraction rules. Intended to be adaptable for future clients with similar government PDF extraction needs.",
-  "_status": "skeleton — populate after dual-library extraction and field mapping",
-  "_see": "build-plan.md Section 6",
+  "_status": "skeleton — populate after extraction engine development and field mapping",
+  "_see": "build-plan.md Section 2B",
   "template_name": "SSA Referral Form",
   "template_version": null,
   "page_expectations": {
@@ -10,9 +10,9 @@
     "page_height": null,
     "orientation": null
   },
-  "extraction_library": null,
+  "extraction_library": "pdfbox+tabula",
   "extraction_rules": [],
   "validation_rules": [],
   "known_variants": [],
-  "_notes": "This template becomes the production extraction config. Each rule maps a field name to a specific extraction method (bbox, regex, table cell, etc.)."
+  "_notes": "This template becomes the production extraction config. Each rule maps a field name to a specific extraction method (bbox, regex, table cell, etc.). Uses PDFBox for text/coordinate extraction and Tabula-java for table extraction."
 }
