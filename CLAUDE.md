@@ -41,7 +41,10 @@ This project processes Protected Health Information (PHI) from SSA disability re
 ## Project Structure
 
 ```
+archive/
+  prompts/               # AI session prompt logs (YYYY/MM.md)
 docs/                    # Project documentation, research, brand assets
+  protocols/             # Workflow protocols (prompt logging, etc.)
 reference/
   python-scripts/        # Python prototype scripts (reference only, not production)
   sample-output/         # Sanitized extraction output samples
@@ -63,6 +66,8 @@ src/                     # Kotlin/Compose Multiplatform application source
 | HIPAA compliance | `docs/hipaa/hipaa-compliance-solo-consultant.md` |
 | Brand guidelines | `docs/brand/carbon-works-brand-guidelines.md` |
 | Python prototypes | `reference/python-scripts/` (reference implementations) |
+| Prompt logging protocol | `docs/protocols/prompt-logging.md` |
+| Prompt logs | `archive/prompts/YYYY/MM.md` |
 
 ---
 
@@ -72,6 +77,7 @@ src/                     # Kotlin/Compose Multiplatform application source
 - Descriptive commit messages in imperative mood
 - Do NOT include `Co-Authored-By` trailers
 - Stage files explicitly (never `git add .` or `git add -A`)
+- When making a commit, also log the session. See protocol: `docs/protocols/prompt-logging.md`
 
 ---
 
