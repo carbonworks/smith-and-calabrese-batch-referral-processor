@@ -39,7 +39,7 @@ Build the core PDF text extraction layer using Apache PDFBox:
 
 ## WP-1: Field Parsing Engine — Regex & Pattern Matching
 
-**Status:** ready
+**Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`
 **Reads:** `reference/python-scripts/extract_referral_fields.py` (port this logic), `docs/field-mapping.json`, `docs/extraction-template.json`
 **Touches:** none
@@ -81,7 +81,7 @@ Integrate Tabula-java for structured table data extraction:
 
 ## WP-3: XLSX Output — Apache POI Spreadsheet Generation
 
-**Status:** blocked
+**Status:** ready
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
 **Reads:** `docs/build-plan.md` (Section 10, D2 and D3 specs)
 **Touches:** none
