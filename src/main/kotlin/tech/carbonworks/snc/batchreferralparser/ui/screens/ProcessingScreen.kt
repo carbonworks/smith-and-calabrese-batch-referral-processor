@@ -116,8 +116,7 @@ fun ProcessingScreen(
 
                         val fields = fieldParser.parse(success, tables)
                         val filled = fields.filledFieldCount()
-                        val hasLow = fields.hasLowConfidenceFields()
-                        println("[Pipeline]   Field parsing OK: $filled field(s) extracted${if (hasLow) ", has low-confidence fields" else ""}")
+                        println("[Pipeline]   Field parsing OK: $filled field(s) extracted")
 
                         ProcessedReferral(file, fields, null)
                     }

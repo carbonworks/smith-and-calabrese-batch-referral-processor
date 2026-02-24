@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import tech.carbonworks.snc.batchreferralparser.extraction.Confidence
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwAccentButton
@@ -46,7 +45,6 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.FilePathText
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
-import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
@@ -236,33 +234,19 @@ fun ResultsScreen(
 
                             // Data rows
                             for ((rowIndex, row) in rowData.withIndex()) {
-                                val fields = referralFields[rowIndex]
-                                val hasLow = fields.hasLowConfidenceFields()
-                                val rowBackground = if (hasLow) {
-                                    BrandOrange.copy(alpha = 0.08f)
-                                } else {
-                                    CleanWhite
-                                }
-
                                 Row(
                                     modifier = Modifier
-                                        .background(rowBackground)
+                                        .background(CleanWhite)
                                         .padding(horizontal = 4.dp),
                                 ) {
                                     TableDataCell(
                                         text = "${rowIndex + 1}",
                                         width = 40,
                                     )
-                                    for ((colIndex, value) in row.withIndex()) {
-                                        val confidence = getFieldConfidence(fields, colIndex)
-                                        val cellBackground = when (confidence) {
-                                            Confidence.LOW -> BrandOrange.copy(alpha = 0.15f)
-                                            else -> Color.Transparent
-                                        }
+                                    for (value in row) {
                                         TableDataCell(
                                             text = value,
                                             width = 140,
-                                            backgroundColor = cellBackground,
                                         )
                                     }
                                 }
@@ -403,65 +387,31 @@ private fun TableDataCell(
  */
 private fun extractRowValues(referral: ReferralFields): List<String> {
     val services = referral.services.joinToString(", ") { it.cptCode }
-    val lowConfidenceFlag = if (referral.hasLowConfidenceFields()) "YES" else ""
 
     return listOf(
-        referral.firstName.value.orEmpty(),
-        referral.middleName.value.orEmpty(),
-        referral.lastName.value.orEmpty(),
-        referral.caseId.value.orEmpty(),
-        referral.authorizationNumber.value.orEmpty(),
-        referral.requestId.value.orEmpty(),
-        referral.dateOfIssue.value.orEmpty(),
-        referral.dob.value.orEmpty(),
-        referral.applicantName.value.orEmpty(),
-        referral.appointmentDate.value.orEmpty(),
-        referral.appointmentTime.value.orEmpty(),
-        referral.streetAddress.value.orEmpty(),
-        referral.city.value.orEmpty(),
-        referral.state.value.orEmpty(),
-        referral.zipCode.value.orEmpty(),
-        referral.phone.value.orEmpty(),
+        referral.firstName.orEmpty(),
+        referral.middleName.orEmpty(),
+        referral.lastName.orEmpty(),
+        referral.caseId.orEmpty(),
+        referral.authorizationNumber.orEmpty(),
+        referral.requestId.orEmpty(),
+        referral.dateOfIssue.orEmpty(),
+        referral.dob.orEmpty(),
+        referral.applicantName.orEmpty(),
+        referral.appointmentDate.orEmpty(),
+        referral.appointmentTime.orEmpty(),
+        referral.streetAddress.orEmpty(),
+        referral.city.orEmpty(),
+        referral.state.orEmpty(),
+        referral.zipCode.orEmpty(),
+        referral.phone.orEmpty(),
         services,
-        referral.federalTaxId.value.orEmpty(),
-        referral.vendorNumber.value.orEmpty(),
-        referral.caseNumberFullFooter.value.orEmpty(),
-        referral.assignedCode.value.orEmpty(),
-        referral.dccNumber.value.orEmpty(),
-        lowConfidenceFlag,
+        referral.federalTaxId.orEmpty(),
+        referral.vendorNumber.orEmpty(),
+        referral.caseNumberFullFooter.orEmpty(),
+        referral.assignedCode.orEmpty(),
+        referral.dccNumber.orEmpty(),
     )
-}
-
-/**
- * Get the confidence level for a field by its column index.
- * Matches the order of SpreadsheetWriter.COLUMN_HEADINGS.
- */
-private fun getFieldConfidence(referral: ReferralFields, colIndex: Int): Confidence? {
-    return when (colIndex) {
-        0 -> referral.firstName.confidence
-        1 -> referral.middleName.confidence
-        2 -> referral.lastName.confidence
-        3 -> referral.caseId.confidence
-        4 -> referral.authorizationNumber.confidence
-        5 -> referral.requestId.confidence
-        6 -> referral.dateOfIssue.confidence
-        7 -> referral.dob.confidence
-        8 -> referral.applicantName.confidence
-        9 -> referral.appointmentDate.confidence
-        10 -> referral.appointmentTime.confidence
-        11 -> referral.streetAddress.confidence
-        12 -> referral.city.confidence
-        13 -> referral.state.confidence
-        14 -> referral.zipCode.confidence
-        15 -> referral.phone.confidence
-        16 -> referral.servicesConfidence
-        17 -> referral.federalTaxId.confidence
-        18 -> referral.vendorNumber.confidence
-        19 -> referral.caseNumberFullFooter.confidence
-        20 -> referral.assignedCode.confidence
-        21 -> referral.dccNumber.confidence
-        else -> null
-    }
 }
 
 /**
