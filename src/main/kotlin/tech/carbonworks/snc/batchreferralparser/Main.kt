@@ -1,45 +1,101 @@
 package tech.carbonworks.snc.batchreferralparser
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import tech.carbonworks.snc.batchreferralparser.ui.screens.FileProcessingState
+import tech.carbonworks.snc.batchreferralparser.ui.screens.MainScreen
+import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessedReferral
+import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessingScreen
+import tech.carbonworks.snc.batchreferralparser.ui.screens.ResultsScreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CarbonWorksTheme
-import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
+import java.io.File
+
+/**
+ * Application screens for the batch processing workflow.
+ */
+enum class Screen {
+    FILE_SELECTION,
+    PROCESSING,
+    RESULTS,
+}
 
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "Carbon Works \u2014 PDF Referral Parser",
-        state = rememberWindowState(width = 900.dp, height = 600.dp),
+        state = rememberWindowState(width = 1100.dp, height = 700.dp),
     ) {
-        App()
+        App(window)
     }
 }
 
 @Composable
-fun App() {
+fun App(window: java.awt.Window? = null) {
+    // All app state hoisted to App() level
+    var currentScreen by remember { mutableStateOf(Screen.FILE_SELECTION) }
+    var selectedFiles by remember { mutableStateOf<List<File>>(emptyList()) }
+    var fileStates by remember { mutableStateOf<List<FileProcessingState>>(emptyList()) }
+    var processingResults by remember { mutableStateOf<List<ProcessedReferral>>(emptyList()) }
+
     CarbonWorksTheme {
-        Box(
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(WarmWhite),
-            contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = "S&C Batch Referral Processor",
-                color = DeepInk,
-                fontSize = 24.sp,
-            )
+            when (currentScreen) {
+                Screen.FILE_SELECTION -> {
+                    MainScreen(
+                        files = selectedFiles,
+                        onFilesChanged = { selectedFiles = it },
+                        onProcess = {
+                            fileStates = selectedFiles.map { FileProcessingState(it) }
+                            processingResults = emptyList()
+                            currentScreen = Screen.PROCESSING
+                        },
+                        window = window,
+                    )
+                }
+
+                Screen.PROCESSING -> {
+                    ProcessingScreen(
+                        files = selectedFiles,
+                        fileStates = fileStates,
+                        onFileStateUpdate = { index, state ->
+                            fileStates = fileStates.toMutableList().also {
+                                it[index] = state
+                            }
+                        },
+                        onComplete = { results ->
+                            processingResults = results
+                            currentScreen = Screen.RESULTS
+                        },
+                    )
+                }
+
+                Screen.RESULTS -> {
+                    ResultsScreen(
+                        results = processingResults,
+                        onStartOver = {
+                            selectedFiles = emptyList()
+                            fileStates = emptyList()
+                            processingResults = emptyList()
+                            currentScreen = Screen.FILE_SELECTION
+                        },
+                    )
+                }
+            }
         }
     }
 }
