@@ -136,6 +136,26 @@ Deliverable documents for Tyler and future maintainers.
 
 ---
 
+## Bugs
+
+### B1. Most patient metadata fields not extracted
+
+Only 7/23 fields are populated from test PDFs. The table-extracted fields work (Appointment Date, Appointment Time, City, State, ZIP, Phone, Services) but header, invoice, and footer fields are all empty:
+
+- **Header block** (First Name, Last Name, Case ID, DOB, Applicant, Authorization #, Date of Issue) — regex pattern `Date: ... Case ID: ... RE: ... DOB: ... Applicant: ... Authorization #:` not matching. Diagnostic logging shows whether the labels are present but the full pattern fails.
+- **Invoice fields** (Federal Tax ID, Vendor Number, Request ID) — regex patterns for `Federal Tax ID Number:`, `Vendor Number:`, `RQID:` not matching.
+- **Footer fields** (Case Number, Assigned Code, DCC Number) — `Assigned ... DCPS` pattern not matching.
+
+Line-structure reconstruction was added (Y-coordinate grouping with newlines) and footer regex was updated with MULTILINE flag, but fields are still not captured. Next steps:
+- Run with diagnostic `[FieldParser]` logging to identify whether labels exist in the text
+- If labels are present but regexes fail, the patterns need tuning for the actual PDF text layout
+- If labels are absent, the text extraction pipeline may need adjustment (e.g., word gap threshold, line tolerance)
+
+**Severity**: High — core extraction functionality
+**Depends on**: #2
+
+---
+
 ## Enhancements
 
 ### E1. Remember last file picker directory
