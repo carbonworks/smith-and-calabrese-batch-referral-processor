@@ -30,6 +30,14 @@ dependencies {
 
     // OCR fallback (declared, not wired up yet)
     implementation("net.sourceforge.tess4j:tess4j:5.13.0")
+
+    // Testing
+    testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 kotlin {
