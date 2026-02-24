@@ -104,7 +104,7 @@ Generate XLSX spreadsheets from extracted referral data:
 
 ## WP-4: Desktop UI — File Selection & Batch Processing
 
-**Status:** ready
+**Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/components/`
 **Reads:** `docs/build-plan.md` (Sections 10-11), `docs/brand/carbon-works-brand-guidelines.md`
 **Touches:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt` (replace placeholder content with screen navigation)
@@ -126,7 +126,7 @@ Build the Compose Desktop UI for the complete batch processing workflow:
 
 ## WP-6: Packaging — jpackage Installer
 
-**Status:** blocked
+**Status:** ready
 **Owns:** packaging config in `build.gradle.kts` (jpackage section), installer resources
 **Reads:** `docs/build-plan.md` (Section 10, D1 spec)
 **Touches:** none
