@@ -40,6 +40,15 @@ tasks.test {
     useJUnitPlatform()
 }
 
+// Resolve duplicate transitive resources (e.g., vx.json from PDFBox/Tabula overlap)
+tasks.withType<Copy> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 kotlin {
     jvmToolchain(17)
 }
