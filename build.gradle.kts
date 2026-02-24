@@ -54,15 +54,37 @@ compose.desktop {
     application {
         mainClass = "tech.carbonworks.snc.batchreferralparser.MainKt"
 
+        jvmArgs("-Xmx512m")
+
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "SNC Batch Referral Processor"
             packageVersion = "1.0.0"
             vendor = "Carbon Works"
+            description = "Batch PDF data extraction tool for SSA/DDS referral processing"
+            copyright = "Copyright 2026 Carbon Works"
 
             windows {
                 menuGroup = "Carbon Works"
                 upgradeUuid = "e4c8b3a1-5f2d-4e6a-9b7c-1d3e5f7a9b0c"
+                perUserInstall = true
+                dirChooser = true
+                shortcut = true
+                // TODO: Add Windows icon file at src/main/resources/icon.ico
+                // iconFile.set(project.file("src/main/resources/icon.ico"))
+            }
+
+            macOS {
+                bundleID = "tech.carbonworks.snc.batchreferralparser"
+                // TODO: Add macOS icon file at src/main/resources/icon.icns
+                // iconFile.set(project.file("src/main/resources/icon.icns"))
+            }
+
+            linux {
+                debMaintainer = "dev@carbonworks.tech"
+                menuGroup = "Office"
+                // TODO: Add Linux icon file at src/main/resources/icon.png
+                // iconFile.set(project.file("src/main/resources/icon.png"))
             }
         }
     }
