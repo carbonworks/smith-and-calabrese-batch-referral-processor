@@ -6,8 +6,7 @@ package tech.carbonworks.snc.batchreferralparser.extraction
  * Ports the Python prototype logic from `extract_referral_fields.py` to Kotlin.
  * Takes [ExtractionResult.Success] (word-level text blocks) and [ExtractedTable] data,
  * reconstructs page-level text strings, applies regex patterns and heuristics to
- * extract each target field, and returns a populated [ReferralFields] with per-field
- * confidence scores.
+ * extract each target field, and returns a populated [ReferralFields].
  *
  * Merge priority: header > table > invoice > fallback (phone).
  */
@@ -18,7 +17,7 @@ class FieldParser {
      *
      * @param textResult successful PDF text extraction containing word-level text blocks
      * @param tables structured table data extracted from the PDF
-     * @return populated [ReferralFields] with confidence scores for each extracted field
+     * @return populated [ReferralFields] with extracted field values
      */
     fun parse(
         textResult: ExtractionResult.Success,
@@ -207,10 +206,7 @@ class FieldParser {
                     "Services Authorized" in cellText || "Code:" in cellText -> {
                         val services = parseServicesCell(cellText)
                         if (services.isNotEmpty()) {
-                            result = result.copy(
-                                services = services,
-                                servicesConfidence = Confidence.HIGH,
-                            )
+                            result = result.copy(services = services)
                         }
                     }
                 }
@@ -433,73 +429,58 @@ class FieldParser {
         caseFields: CaseFields,
         phoneFromCell: String?,
     ): ReferralFields {
-        // Start with invoice (lowest priority for overlapping fields)
-        var firstName: ParsedField<String> = ParsedField.notFound()
-        var middleName: ParsedField<String> = ParsedField.notFound()
-        var lastName: ParsedField<String> = ParsedField.notFound()
-        var caseId: ParsedField<String> = ParsedField.notFound()
-        var authorizationNumber: ParsedField<String> = ParsedField.notFound()
-        var requestId: ParsedField<String> = ParsedField.notFound()
-        var dateOfIssue: ParsedField<String> = ParsedField.notFound()
-        var dob: ParsedField<String> = ParsedField.notFound()
-        var applicantName: ParsedField<String> = ParsedField.notFound()
-        var appointmentDate: ParsedField<String> = ParsedField.notFound()
-        var appointmentTime: ParsedField<String> = ParsedField.notFound()
-        var streetAddress: ParsedField<String> = ParsedField.notFound()
-        var city: ParsedField<String> = ParsedField.notFound()
-        var state: ParsedField<String> = ParsedField.notFound()
-        var zipCode: ParsedField<String> = ParsedField.notFound()
-        var phone: ParsedField<String> = ParsedField.notFound()
+        // Start with all fields null (lowest priority)
+        var firstName: String? = null
+        var middleName: String? = null
+        var lastName: String? = null
+        var caseId: String? = null
+        var authorizationNumber: String? = null
+        var requestId: String? = null
+        var dateOfIssue: String? = null
+        var dob: String? = null
+        var applicantName: String? = null
+        var appointmentDate: String? = null
+        var appointmentTime: String? = null
+        var streetAddress: String? = null
+        var city: String? = null
+        var state: String? = null
+        var zipCode: String? = null
+        var phone: String? = null
         var services: List<ServiceLine> = emptyList()
-        var servicesConfidence: Confidence? = null
-        var federalTaxId: ParsedField<String> = ParsedField.notFound()
-        var vendorNumber: ParsedField<String> = ParsedField.notFound()
+        var federalTaxId: String? = null
+        var vendorNumber: String? = null
 
-        // Invoice fields (LOW-MEDIUM priority for overlap fields, MEDIUM for invoice-specific)
-        invoiceFields.federalTaxId?.let { federalTaxId = ParsedField.medium(it) }
-        invoiceFields.vendorNumber?.let { vendorNumber = ParsedField.medium(it) }
-        invoiceFields.authorizationNumberInvoice?.let {
-            authorizationNumber = ParsedField.medium(it)
-        }
-        invoiceFields.requestId?.let { requestId = ParsedField.medium(it) }
+        // Invoice fields (lowest priority for overlapping fields)
+        invoiceFields.federalTaxId?.let { federalTaxId = it }
+        invoiceFields.vendorNumber?.let { vendorNumber = it }
+        invoiceFields.authorizationNumberInvoice?.let { authorizationNumber = it }
+        invoiceFields.requestId?.let { requestId = it }
 
-        // Table fields (MEDIUM priority — structured but from table extraction)
-        tableFields.streetAddress?.let { streetAddress = ParsedField.medium(it) }
-        tableFields.city?.let { city = ParsedField.medium(it) }
-        tableFields.state?.let { state = ParsedField.medium(it) }
-        tableFields.zipCode?.let { zipCode = ParsedField.medium(it) }
-        tableFields.phone?.let { phone = ParsedField.medium(it) }
-        tableFields.appointmentDate?.let { appointmentDate = ParsedField.medium(it) }
-        tableFields.appointmentTime?.let { appointmentTime = ParsedField.medium(it) }
+        // Table fields (medium priority — structured but from table extraction)
+        tableFields.streetAddress?.let { streetAddress = it }
+        tableFields.city?.let { city = it }
+        tableFields.state?.let { state = it }
+        tableFields.zipCode?.let { zipCode = it }
+        tableFields.phone?.let { phone = it }
+        tableFields.appointmentDate?.let { appointmentDate = it }
+        tableFields.appointmentTime?.let { appointmentTime = it }
         if (tableFields.services.isNotEmpty()) {
             services = tableFields.services
-            servicesConfidence = tableFields.servicesConfidence
         }
 
-        // Header fields (HIGH priority — most reliable source)
-        headerFields.dateOfIssue?.let { dateOfIssue = ParsedField.high(it) }
-        headerFields.caseId?.let { caseId = ParsedField.high(it) }
-        headerFields.firstName?.let { firstName = ParsedField.high(it) }
-        headerFields.middleName?.let { middleName = ParsedField.high(it) }
-        headerFields.lastName?.let { lastName = ParsedField.high(it) }
-        headerFields.dob?.let { dob = ParsedField.high(it) }
-        headerFields.applicantName?.let { applicantName = ParsedField.high(it) }
-        headerFields.authorizationNumber?.let { authorizationNumber = ParsedField.high(it) }
+        // Header fields (highest priority — most reliable source)
+        headerFields.dateOfIssue?.let { dateOfIssue = it }
+        headerFields.caseId?.let { caseId = it }
+        headerFields.firstName?.let { firstName = it }
+        headerFields.middleName?.let { middleName = it }
+        headerFields.lastName?.let { lastName = it }
+        headerFields.dob?.let { dob = it }
+        headerFields.applicantName?.let { applicantName = it }
+        headerFields.authorizationNumber?.let { authorizationNumber = it }
 
-        // Case number components (HIGH — specific footer pattern)
-        val caseNumberFullFooter = caseFields.caseNumberFullFooter?.let {
-            ParsedField.high(it)
-        } ?: ParsedField.notFound()
-        val assignedCode = caseFields.assignedCode?.let {
-            ParsedField.high(it)
-        } ?: ParsedField.notFound()
-        val dccNumber = caseFields.dccNumber?.let {
-            ParsedField.high(it)
-        } ?: ParsedField.notFound()
-
-        // Fallback: CELL # phone (LOW priority — less structured)
-        if (!phone.isPresent && phoneFromCell != null) {
-            phone = ParsedField.low(phoneFromCell)
+        // Fallback: CELL # phone (lowest priority — less structured)
+        if (phone == null && phoneFromCell != null) {
+            phone = phoneFromCell
         }
 
         return ReferralFields(
@@ -520,12 +501,11 @@ class FieldParser {
             zipCode = zipCode,
             phone = phone,
             services = services,
-            servicesConfidence = servicesConfidence,
             federalTaxId = federalTaxId,
             vendorNumber = vendorNumber,
-            caseNumberFullFooter = caseNumberFullFooter,
-            assignedCode = assignedCode,
-            dccNumber = dccNumber,
+            caseNumberFullFooter = caseFields.caseNumberFullFooter,
+            assignedCode = caseFields.assignedCode,
+            dccNumber = caseFields.dccNumber,
         )
     }
 
@@ -559,7 +539,6 @@ class FieldParser {
         val appointmentDate: String? = null,
         val appointmentTime: String? = null,
         val services: List<ServiceLine> = emptyList(),
-        val servicesConfidence: Confidence? = null,
     ) {
         fun mergeClaimant(info: ClaimantInfo): TableFields = copy(
             streetAddress = info.streetAddress ?: streetAddress,
