@@ -124,26 +124,6 @@ Build the Compose Desktop UI for the complete batch processing workflow:
 
 ---
 
-## WP-5: OCR Fallback — Tess4J Integration
-
-**Status:** ready
-**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/OcrFallback.kt`
-**Reads:** `docs/build-plan.md` (Risk #1)
-**Touches:** none
-**Depends on:** WP-0 (extends extraction for pages with no text)
-
-**Scope:**
-Add OCR capability for scanned PDF pages:
-1. Create `OcrFallback` — wraps Tess4J to run Tesseract OCR on image-based PDF pages
-2. Trigger when PdfTextExtractor detects a page with no extractable text
-3. Convert PDF page to image, run OCR, return text with approximate positions
-4. Bundle Tesseract trained data files with the application
-5. Graceful degradation — if Tesseract is unavailable, skip OCR and report which pages were skipped
-
-**Acceptance:** Scanned PDF pages produce extracted text via OCR. Normal (text-based) PDFs are unaffected. Missing Tesseract installation doesn't crash the app.
-
----
-
 ## WP-6: Packaging — jpackage Installer
 
 **Status:** blocked
@@ -167,12 +147,10 @@ Create distributable installers:
 ## Dependency Graph
 
 ```
-WP-0 (PDF Text Extraction)  ──┬──> WP-1 (Field Parsing) ──┬──> WP-3 (XLSX Output) ──┐
-                               │                            │                          │
-                               └──> WP-5 (OCR Fallback)     │                          ├──> WP-4 (Desktop UI) ──> WP-6 (Packaging)
-                                                             │                          │
-WP-2 (Table Extraction)  ─────────────────────────────────── ┘                          │
-                                                                                        │
+WP-0 (PDF Text Extraction) ──> WP-1 (Field Parsing) ──┬──> WP-3 (XLSX Output) ──┐
+                                                        │                          │
+WP-2 (Table Extraction) ───────────────────────────────┘                          ├──> WP-4 (Desktop UI) ──> WP-6 (Packaging)
+                                                                                   │
 ```
 
 ## Recommended Execution Order
@@ -181,7 +159,7 @@ WP-2 (Table Extraction)  ──────────────────�
 - WP-0, WP-2
 
 **Wave 2** (after WP-0 is merged):
-- WP-1, WP-5
+- WP-1
 
 **Wave 3** (after WP-1 and WP-2 are merged):
 - WP-3

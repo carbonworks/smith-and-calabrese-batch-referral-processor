@@ -28,9 +28,6 @@ dependencies {
     // XLSX output
     implementation("org.apache.poi:poi-ooxml:5.3.0")
 
-    // OCR fallback (declared, not wired up yet)
-    implementation("net.sourceforge.tess4j:tess4j:5.13.0")
-
     // Testing
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
