@@ -66,6 +66,7 @@ src/                     # Kotlin/Compose Multiplatform application source
 | HIPAA compliance | `docs/hipaa/hipaa-compliance-solo-consultant.md` |
 | Brand guidelines | `docs/brand/carbon-works-brand-guidelines.md` |
 | Python prototypes | `reference/python-scripts/` (reference implementations) |
+| Work packages | `work-packages.md` (parallel agent development) |
 | Prompt logging protocol | `docs/protocols/prompt-logging.md` |
 | Prompt logs | `archive/prompts/YYYY/MM.md` |
 
@@ -78,6 +79,76 @@ src/                     # Kotlin/Compose Multiplatform application source
 - Do NOT include `Co-Authored-By` trailers
 - Stage files explicitly (never `git add .` or `git add -A`)
 - When making a commit, also log the session. See protocol: `docs/protocols/prompt-logging.md`
+
+---
+
+## Parallel Agent Workflow
+
+This project supports parallel development via git worktree-isolated subagents. The user can ask Claude Code to launch multiple agents working on independent packages simultaneously.
+
+### Work Packages
+
+All implementation work is defined in `work-packages.md`. Each package specifies:
+- **Owns**: Files the agent creates or heavily modifies (exclusive ownership)
+- **Reads**: Spec docs to reference (read-only)
+- **Touches**: Shared files where small additions are expected (merge conflicts acceptable)
+- **Depends on**: Packages that must be merged first
+
+### How to Launch Agents
+
+When the user asks to run work packages (e.g., "run WP-0 and WP-2" or "kick off Wave 1"):
+
+1. **Read `work-packages.md`** to get the current status and scope of each requested package.
+2. **Check dependencies** — only launch packages whose dependencies are merged (status: `done`).
+3. **Launch each package as a Task** with `isolation: "worktree"` and `subagent_type: "Bash"` or `"general-purpose"`. Each agent gets its own git worktree (isolated branch).
+4. **Provide each agent a clear prompt** including:
+   - The full text of the work package scope and acceptance criteria
+   - The list of spec docs to read (from the "Reads" field)
+   - Instructions to commit their work on the worktree branch when done
+   - The project's commit conventions (imperative mood, no Co-Authored-By)
+5. **Monitor agents** — check output periodically. When agents complete, their worktree branches contain the work.
+6. **Merge completed branches** into `main` one at a time. Resolve any conflicts (most likely in shared files listed under "Touches"). Use standard `git merge` — do not squash, so the branch history is preserved.
+7. **Update `work-packages.md`** — set the merged package's status to `done`.
+8. **After merging a wave**, check for newly unblocked packages. Report this to the user.
+
+### Agent Prompt Template
+
+When launching a worktree agent for a work package, use this structure:
+
+```
+You are implementing work package WP-{N} for the S&C Batch Referral Processor.
+
+## Your Task
+{paste the full Scope section from work-packages.md}
+
+## Acceptance Criteria
+{paste the Acceptance section}
+
+## Key References
+Read these files before writing code:
+- {list from Reads field}
+- CLAUDE.md (project conventions)
+
+## File Ownership
+You OWN (create/modify freely): {Owns list}
+You may ADD SMALL CHANGES to: {Touches list}
+Do NOT modify any other files.
+
+## When Done
+- Commit your work with an imperative-mood message summarizing what you built.
+- Do not add Co-Authored-By or any AI attribution.
+- Do not push — just commit locally on this branch.
+```
+
+### Conflict Resolution
+
+Conflicts are most likely in files listed under "Touches" for multiple packages (primarily `Main.kt`). When merging:
+- These are typically additive (adding imports, init calls) — take both sides.
+- If logic conflicts occur, the work package's scope description is the authority for its subsystem.
+
+### Running Agents Concurrently
+
+Launch all independent packages in a single message with multiple Task tool calls. For example, Wave 1 (WP-0, WP-2) can run simultaneously since they have no dependencies on each other.
 
 ---
 
