@@ -9,14 +9,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
-import tech.carbonworks.snc.batchreferralparser.ui.theme.SkyBlue
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 
 /**
- * Primary action button with DeepInk background and CleanWhite text.
+ * Primary action button with BrandGreen background and CleanWhite text.
  */
 @Composable
 fun CwPrimaryButton(
@@ -30,7 +31,7 @@ fun CwPrimaryButton(
         modifier = modifier.height(44.dp),
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
-            containerColor = DeepInk,
+            containerColor = BrandGreen,
             contentColor = CleanWhite,
             disabledContainerColor = LightGray,
             disabledContentColor = SoftGray,
@@ -66,7 +67,7 @@ fun CwSecondaryButton(
 }
 
 /**
- * Accent button with SkyBlue background for interactive/highlighted actions.
+ * Accent button with BrandOrange background for interactive/highlighted actions.
  */
 @Composable
 fun CwAccentButton(
@@ -80,7 +81,7 @@ fun CwAccentButton(
         modifier = modifier.height(44.dp),
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
-            containerColor = SkyBlue,
+            containerColor = BrandOrange,
             contentColor = CleanWhite,
             disabledContainerColor = LightGray,
             disabledContentColor = SoftGray,

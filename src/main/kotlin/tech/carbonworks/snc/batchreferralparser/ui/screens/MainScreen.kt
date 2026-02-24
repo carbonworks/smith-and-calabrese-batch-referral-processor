@@ -46,6 +46,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.FilePathText
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
+import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SkyBlue
@@ -175,7 +176,7 @@ fun MainScreen(
 
         // Drop zone
         val dropBorderColor = if (isDragOver) SkyBlue else LightGray
-        val dropBackground = if (isDragOver) SkyBlue.copy(alpha = 0.05f) else WarmWhite
+        val dropBackground = if (isDragOver) SkyBlue.copy(alpha = 0.05f) else CleanWhite
 
         Box(
             modifier = Modifier

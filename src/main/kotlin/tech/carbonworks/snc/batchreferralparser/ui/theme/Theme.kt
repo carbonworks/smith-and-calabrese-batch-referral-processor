@@ -6,24 +6,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 // Primary palette
+val BrandGreen = Color(0xFF03757A)
 val DeepInk = Color(0xFF2D3748)
-val SoftGray = Color(0xFF718096)
-val LightGray = Color(0xFFE2E8F0)
-val WarmWhite = Color(0xFFFFFAF5)
+val SoftGray = Color(0xFF5A6B7E)
+val LightGray = Color(0xFFCBD5E0)
+val GreenTint = Color(0xFFE6F2F3)
 val CleanWhite = Color(0xFFFFFFFF)
 
 // Accent colors
-val SkyBlue = Color(0xFF4A9FD4)
+val BrandOrange = Color(0xFFFE904D)
 val SoftTeal = Color(0xFF38B2AC)
-val PaperTan = Color(0xFFD4A574)
+
+// Legacy aliases (referenced in screens/components — map to new palette)
+val WarmWhite = GreenTint
+val SkyBlue = BrandGreen
+val PaperTan = BrandOrange
 
 private val CarbonWorksColorScheme = lightColorScheme(
-    primary = DeepInk,
+    primary = BrandGreen,
     onPrimary = CleanWhite,
-    secondary = SkyBlue,
+    secondary = BrandOrange,
     onSecondary = CleanWhite,
-    tertiary = PaperTan,
-    background = WarmWhite,
+    tertiary = BrandOrange,
+    background = GreenTint,
     onBackground = DeepInk,
     surface = CleanWhite,
     onSurface = DeepInk,

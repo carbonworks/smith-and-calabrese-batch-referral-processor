@@ -33,10 +33,11 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.FilePathText
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
 import tech.carbonworks.snc.batchreferralparser.ui.components.FileStatus
 import tech.carbonworks.snc.batchreferralparser.ui.components.StatusIcon
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
-import tech.carbonworks.snc.batchreferralparser.ui.theme.PaperTan
+import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
-import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
 import java.io.File
 
 /**
@@ -87,12 +88,14 @@ fun ProcessingScreen(
 
     // Launch batch processing
     LaunchedEffect(files) {
+        println("[Pipeline] Starting batch processing: ${files.size} file(s)")
         val results = mutableListOf<ProcessedReferral>()
         val textExtractor = PdfTextExtractor()
         val tableExtractor = TableExtractor()
         val fieldParser = FieldParser()
 
         for ((index, file) in files.withIndex()) {
+            println("[Pipeline] [${index + 1}/${files.size}] Processing: ${file.name}")
             onFileStateUpdate(index, FileProcessingState(file, FileStatus.PROCESSING))
 
             val result = withContext(Dispatchers.IO) {
@@ -100,14 +103,26 @@ fun ProcessingScreen(
                     val textResult = textExtractor.extract(file)
 
                     if (textResult is ExtractionResult.Error) {
+                        println("[Pipeline]   Text extraction FAILED: ${textResult.message}")
                         ProcessedReferral(file, null, textResult.message)
                     } else {
                         val success = textResult as ExtractionResult.Success
+                        val pageCount = success.pages.size
+                        val blockCount = success.pages.sumOf { it.textBlocks.size }
+                        println("[Pipeline]   Text extraction OK: $pageCount page(s), $blockCount text block(s)")
+
                         val tables = tableExtractor.extract(file)
+                        println("[Pipeline]   Table extraction OK: ${tables.size} table(s)")
+
                         val fields = fieldParser.parse(success, tables)
+                        val filled = fields.filledFieldCount()
+                        val hasLow = fields.hasLowConfidenceFields()
+                        println("[Pipeline]   Field parsing OK: $filled field(s) extracted${if (hasLow) ", has low-confidence fields" else ""}")
+
                         ProcessedReferral(file, fields, null)
                     }
                 } catch (e: Exception) {
+                    println("[Pipeline]   EXCEPTION: ${e.message}")
                     ProcessedReferral(
                         file,
                         null,
@@ -122,13 +137,17 @@ fun ProcessingScreen(
             onFileStateUpdate(index, FileProcessingState(file, status, result.error))
         }
 
+        val successCount = results.count { it.error == null }
+        val errorCount = results.count { it.error != null }
+        println("[Pipeline] Batch complete: $successCount succeeded, $errorCount failed")
+
         onComplete(results)
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(WarmWhite)
+            .background(GreenTint)
             .padding(32.dp),
     ) {
         // Header
@@ -169,7 +188,7 @@ fun ProcessingScreen(
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth().height(8.dp),
-                    color = PaperTan,
+                    color = BrandGreen,
                 )
             }
         }
@@ -215,8 +234,8 @@ fun ProcessingScreen(
                             },
                             fontSize = 12.sp,
                             color = when (state.status) {
-                                FileStatus.PROCESSING -> PaperTan
-                                FileStatus.ERROR -> SoftGray
+                                FileStatus.PROCESSING -> BrandOrange
+                                FileStatus.SUCCESS -> BrandGreen
                                 else -> SoftGray
                             },
                         )

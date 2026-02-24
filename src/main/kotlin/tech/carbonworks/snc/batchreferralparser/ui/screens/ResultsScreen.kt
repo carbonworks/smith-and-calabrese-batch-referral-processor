@@ -42,13 +42,13 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.FilePathText
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
+import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
-import tech.carbonworks.snc.batchreferralparser.ui.theme.PaperTan
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
-import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftTeal
-import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
 import java.awt.Desktop
 import java.io.File
 
@@ -74,7 +74,7 @@ fun ResultsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(WarmWhite)
+            .background(GreenTint)
             .padding(32.dp),
     ) {
         // Header
@@ -105,7 +105,7 @@ fun ResultsScreen(
             SummaryCard(
                 label = "Successful",
                 value = "${successResults.size}",
-                valueColor = SoftTeal,
+                valueColor = BrandGreen,
                 modifier = Modifier.weight(1f),
             )
             SummaryCard(
@@ -213,7 +213,7 @@ fun ResultsScreen(
                             val fields = referralFields[rowIndex]
                             val hasLow = fields.hasLowConfidenceFields()
                             val rowBackground = if (hasLow) {
-                                PaperTan.copy(alpha = 0.08f)
+                                BrandOrange.copy(alpha = 0.08f)
                             } else {
                                 CleanWhite
                             }
@@ -230,7 +230,7 @@ fun ResultsScreen(
                                 for ((colIndex, value) in row.withIndex()) {
                                     val confidence = getFieldConfidence(fields, colIndex)
                                     val cellBackground = when (confidence) {
-                                        Confidence.LOW -> PaperTan.copy(alpha = 0.15f)
+                                        Confidence.LOW -> BrandOrange.copy(alpha = 0.15f)
                                         else -> Color.Transparent
                                     }
                                     TableDataCell(
@@ -253,7 +253,7 @@ fun ResultsScreen(
             Text(
                 text = msg,
                 fontSize = 13.sp,
-                color = SoftTeal,
+                color = BrandGreen,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
         }
@@ -437,8 +437,10 @@ private fun saveToXlsx(
     try {
         // Default output directory: parent of first source PDF
         val outputDir = results.firstOrNull()?.file?.parentFile ?: File(System.getProperty("user.home"))
+        println("[Save] Writing ${referralFields.size} referral(s) to XLSX in: ${outputDir.absolutePath}")
 
         val outputFile = SpreadsheetWriter.write(referralFields, outputDir)
+        println("[Save] Saved: ${outputFile.absolutePath}")
 
         onResult("Saved to: ${outputFile.absolutePath}", null)
 
@@ -451,6 +453,7 @@ private fun saveToXlsx(
             // Non-critical: file was saved successfully, just couldn't open the folder
         }
     } catch (e: Exception) {
+        println("[Save] FAILED: ${e.message}")
         onResult(null, "Failed to save: ${e.message ?: "Unknown error"}")
     }
 }

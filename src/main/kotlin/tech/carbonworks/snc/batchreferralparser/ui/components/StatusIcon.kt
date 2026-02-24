@@ -12,10 +12,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
-import tech.carbonworks.snc.batchreferralparser.ui.theme.PaperTan
-import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftTeal
 
 /**
  * Processing status for a single file in the batch pipeline.
@@ -42,8 +42,8 @@ fun StatusIcon(
 ) {
     val backgroundColor = when (status) {
         FileStatus.PENDING -> LightGray
-        FileStatus.PROCESSING -> PaperTan
-        FileStatus.SUCCESS -> SoftTeal
+        FileStatus.PROCESSING -> BrandOrange
+        FileStatus.SUCCESS -> BrandGreen
         FileStatus.ERROR -> Color(0xFFE53E3E)
     }
     val symbol = when (status) {

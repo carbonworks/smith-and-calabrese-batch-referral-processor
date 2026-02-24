@@ -12,10 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tech.carbonworks.snc.batchreferralparser.extraction.Confidence
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
-import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
-import tech.carbonworks.snc.batchreferralparser.ui.theme.PaperTan
-import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftTeal
 
 /**
  * Colored badge displaying a confidence level (HIGH, MEDIUM, or LOW).
@@ -31,15 +30,11 @@ fun ConfidenceBadge(
     modifier: Modifier = Modifier,
 ) {
     val backgroundColor = when (confidence) {
-        Confidence.HIGH -> SoftTeal
-        Confidence.MEDIUM -> PaperTan
+        Confidence.HIGH -> BrandGreen
+        Confidence.MEDIUM -> BrandOrange
         Confidence.LOW -> Color(0xFFE53E3E)
     }
-    val textColor = when (confidence) {
-        Confidence.HIGH -> CleanWhite
-        Confidence.MEDIUM -> DeepInk
-        Confidence.LOW -> CleanWhite
-    }
+    val textColor = CleanWhite
 
     Box(
         modifier = modifier
