@@ -55,7 +55,7 @@ compose.desktop {
         mainClass = "tech.carbonworks.snc.batchreferralparser.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Msi, TargetFormat.Dmg)
+            targetFormats(TargetFormat.Msi, TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "SNC Batch Referral Processor"
             packageVersion = "1.0.0"
             vendor = "Carbon Works"

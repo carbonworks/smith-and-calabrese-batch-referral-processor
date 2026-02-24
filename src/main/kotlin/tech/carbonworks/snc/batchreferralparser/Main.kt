@@ -10,8 +10,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import java.awt.Dimension
 import tech.carbonworks.snc.batchreferralparser.ui.screens.FileProcessingState
 import tech.carbonworks.snc.batchreferralparser.ui.screens.MainScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessedReferral
@@ -36,6 +38,7 @@ fun main() = application {
         title = "Carbon Works \u2014 PDF Referral Parser",
         state = rememberWindowState(width = 1100.dp, height = 700.dp),
     ) {
+        window.minimumSize = Dimension(600, 400)
         App(window)
     }
 }

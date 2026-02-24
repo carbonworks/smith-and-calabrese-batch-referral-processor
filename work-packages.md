@@ -136,9 +136,10 @@ Build the Compose Desktop UI for the complete batch processing workflow:
 Create distributable installers:
 1. Configure Gradle jpackage task for Windows .msi (bundled JRE, ~60-100MB)
 2. Configure Gradle jpackage task for macOS .dmg (secondary target)
-3. App icon and installer metadata (CW branding)
-4. Verify installer produces a working application on clean machine
-5. No "install Java first" requirement — JRE is bundled
+3. Configure Gradle jpackage task for Linux .deb (tertiary target)
+4. App icon and installer metadata (CW branding)
+5. Verify installer produces a working application on clean machine
+6. No "install Java first" requirement — JRE is bundled
 
 **Acceptance:** .msi installs on Windows and runs the application. Bundled JRE — no external Java needed. App icon and window title show CW branding.
 
