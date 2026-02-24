@@ -81,7 +81,7 @@ Integrate Tabula-java for structured table data extraction:
 
 ## WP-3: XLSX Output — Apache POI Spreadsheet Generation
 
-**Status:** ready
+**Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
 **Reads:** `docs/build-plan.md` (Section 10, D2 and D3 specs)
 **Touches:** none
@@ -104,7 +104,7 @@ Generate XLSX spreadsheets from extracted referral data:
 
 ## WP-4: Desktop UI — File Selection & Batch Processing
 
-**Status:** blocked
+**Status:** ready
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/components/`
 **Reads:** `docs/build-plan.md` (Sections 10-11), `docs/brand/carbon-works-brand-guidelines.md`
 **Touches:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt` (replace placeholder content with screen navigation)
