@@ -14,16 +14,14 @@ import java.time.format.DateTimeFormatter
  * or data validation) to ensure Google Sheets compatibility. The header row
  * is bold and frozen.
  *
- * Column order mirrors [ReferralFields] property order, with a final
- * "Low Confidence Flag" column.
+ * Column order mirrors [ReferralFields] property order.
  */
 object SpreadsheetWriter {
 
     private val FILENAME_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")
 
     /**
-     * Column headings in output order. The final column is the low-confidence
-     * flag; all others correspond to [ReferralFields] properties.
+     * Column headings in output order. Each corresponds to a [ReferralFields] property.
      */
     val COLUMN_HEADINGS: List<String> = listOf(
         "First Name",
@@ -48,7 +46,6 @@ object SpreadsheetWriter {
         "Case Number (Footer)",
         "Assigned Code",
         "DCC Number",
-        "Low Confidence Flag",
     )
 
     /**
@@ -115,32 +112,30 @@ object SpreadsheetWriter {
      */
     private fun extractRowValues(referral: ReferralFields): List<String> {
         val services = referral.services.joinToString(", ") { it.cptCode }
-        val lowConfidenceFlag = if (referral.hasLowConfidenceFields()) "YES" else ""
 
         return listOf(
-            referral.firstName.value.orEmpty(),
-            referral.middleName.value.orEmpty(),
-            referral.lastName.value.orEmpty(),
-            referral.caseId.value.orEmpty(),
-            referral.authorizationNumber.value.orEmpty(),
-            referral.requestId.value.orEmpty(),
-            referral.dateOfIssue.value.orEmpty(),
-            referral.dob.value.orEmpty(),
-            referral.applicantName.value.orEmpty(),
-            referral.appointmentDate.value.orEmpty(),
-            referral.appointmentTime.value.orEmpty(),
-            referral.streetAddress.value.orEmpty(),
-            referral.city.value.orEmpty(),
-            referral.state.value.orEmpty(),
-            referral.zipCode.value.orEmpty(),
-            referral.phone.value.orEmpty(),
+            referral.firstName.orEmpty(),
+            referral.middleName.orEmpty(),
+            referral.lastName.orEmpty(),
+            referral.caseId.orEmpty(),
+            referral.authorizationNumber.orEmpty(),
+            referral.requestId.orEmpty(),
+            referral.dateOfIssue.orEmpty(),
+            referral.dob.orEmpty(),
+            referral.applicantName.orEmpty(),
+            referral.appointmentDate.orEmpty(),
+            referral.appointmentTime.orEmpty(),
+            referral.streetAddress.orEmpty(),
+            referral.city.orEmpty(),
+            referral.state.orEmpty(),
+            referral.zipCode.orEmpty(),
+            referral.phone.orEmpty(),
             services,
-            referral.federalTaxId.value.orEmpty(),
-            referral.vendorNumber.value.orEmpty(),
-            referral.caseNumberFullFooter.value.orEmpty(),
-            referral.assignedCode.value.orEmpty(),
-            referral.dccNumber.value.orEmpty(),
-            lowConfidenceFlag,
+            referral.federalTaxId.orEmpty(),
+            referral.vendorNumber.orEmpty(),
+            referral.caseNumberFullFooter.orEmpty(),
+            referral.assignedCode.orEmpty(),
+            referral.dccNumber.orEmpty(),
         )
     }
 }

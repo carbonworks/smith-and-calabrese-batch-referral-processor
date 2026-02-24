@@ -3,8 +3,6 @@ package tech.carbonworks.snc.batchreferralparser.output
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import tech.carbonworks.snc.batchreferralparser.extraction.Confidence
-import tech.carbonworks.snc.batchreferralparser.extraction.ParsedField
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import java.io.File
@@ -46,36 +44,33 @@ class SpreadsheetWriterTest {
         firstName: String = "Jane",
         middleName: String = "M",
         lastName: String = "Doe",
-        lowConfidence: Boolean = false,
     ): ReferralFields {
-        val conf = if (lowConfidence) Confidence.LOW else Confidence.HIGH
         return ReferralFields(
-            firstName = ParsedField(firstName, conf),
-            middleName = ParsedField(middleName, conf),
-            lastName = ParsedField(lastName, conf),
-            caseId = ParsedField("CASE-001", Confidence.HIGH),
-            authorizationNumber = ParsedField("AUTH-12345", Confidence.HIGH),
-            requestId = ParsedField("REQ-999", Confidence.HIGH),
-            dateOfIssue = ParsedField("02/01/2026", Confidence.HIGH),
-            dob = ParsedField("05/15/1990", Confidence.HIGH),
-            applicantName = ParsedField("John Doe", Confidence.HIGH),
-            appointmentDate = ParsedField("03/01/2026", Confidence.HIGH),
-            appointmentTime = ParsedField("10:00 AM", Confidence.HIGH),
-            streetAddress = ParsedField("123 Main St", Confidence.HIGH),
-            city = ParsedField("Anytown", Confidence.HIGH),
-            state = ParsedField("CA", Confidence.HIGH),
-            zipCode = ParsedField("90210", Confidence.HIGH),
-            phone = ParsedField("555-123-4567", Confidence.HIGH),
+            firstName = firstName,
+            middleName = middleName,
+            lastName = lastName,
+            caseId = "CASE-001",
+            authorizationNumber = "AUTH-12345",
+            requestId = "REQ-999",
+            dateOfIssue = "02/01/2026",
+            dob = "05/15/1990",
+            applicantName = "John Doe",
+            appointmentDate = "03/01/2026",
+            appointmentTime = "10:00 AM",
+            streetAddress = "123 Main St",
+            city = "Anytown",
+            state = "CA",
+            zipCode = "90210",
+            phone = "555-123-4567",
             services = listOf(
                 ServiceLine(cptCode = "96130", description = "Psych eval"),
                 ServiceLine(cptCode = "96131", description = "Add'l hour"),
             ),
-            servicesConfidence = Confidence.HIGH,
-            federalTaxId = ParsedField("12-3456789", Confidence.HIGH),
-            vendorNumber = ParsedField("V-1234", Confidence.HIGH),
-            caseNumberFullFooter = ParsedField("FULL-CASE-001", Confidence.HIGH),
-            assignedCode = ParsedField("AC-01", Confidence.HIGH),
-            dccNumber = ParsedField("DCC-555", Confidence.HIGH),
+            federalTaxId = "12-3456789",
+            vendorNumber = "V-1234",
+            caseNumberFullFooter = "FULL-CASE-001",
+            assignedCode = "AC-01",
+            dccNumber = "DCC-555",
         )
     }
 
@@ -163,28 +158,27 @@ class SpreadsheetWriterTest {
     }
 
     // -------------------------------------------------------------------
-    // Test 4: Low confidence flag set correctly
+    // Test 4: No low confidence flag column exists
     // -------------------------------------------------------------------
 
     @Test
-    fun `low confidence flag set correctly`() {
-        val highConfReferral = sampleReferral(lowConfidence = false)
-        val lowConfReferral = sampleReferral(firstName = "Lowconf", lowConfidence = true)
-
-        val file = SpreadsheetWriter.write(
-            listOf(highConfReferral, lowConfReferral),
-            tempDir,
-            fixedTimestamp,
-        )
-
-        val flagCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("Low Confidence Flag")
+    fun `no low confidence flag column exists`() {
+        val referral = sampleReferral()
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
 
         openWorkbook(file).use { wb ->
-            // Row 1: high confidence — flag should be blank
-            assertEquals("", cellText(wb, 1, flagCol))
+            val sheet = wb.getSheetAt(0)
+            val headerRow = sheet.getRow(0)
 
-            // Row 2: low confidence — flag should be "YES"
-            assertEquals("YES", cellText(wb, 2, flagCol))
+            // Verify column count is 22 (no Low Confidence Flag)
+            assertEquals(22, headerRow.lastCellNum.toInt())
+
+            // Verify "Low Confidence Flag" is not in headings
+            for (col in 0 until headerRow.lastCellNum) {
+                val heading = headerRow.getCell(col)?.stringCellValue ?: ""
+                assertTrue(heading != "Low Confidence Flag",
+                    "Low Confidence Flag column should not exist")
+            }
         }
     }
 
@@ -247,7 +241,7 @@ class SpreadsheetWriterTest {
     @Test
     fun `empty services list produces blank services cell`() {
         val referral = ReferralFields(
-            firstName = ParsedField.high("Test"),
+            firstName = "Test",
             services = emptyList(),
         )
         val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)

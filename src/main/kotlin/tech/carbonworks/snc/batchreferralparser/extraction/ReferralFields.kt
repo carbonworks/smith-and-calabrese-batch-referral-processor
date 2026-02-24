@@ -1,32 +1,6 @@
 package tech.carbonworks.snc.batchreferralparser.extraction
 
 /**
- * Confidence level for a parsed field value.
- * HIGH: strong regex match or structured table extraction.
- * MEDIUM: partial match or secondary source.
- * LOW: weak heuristic match or fallback extraction.
- */
-enum class Confidence { HIGH, MEDIUM, LOW }
-
-/**
- * Wrapper for an extracted field value with an associated confidence level.
- * A field may be absent (notFound) or present with HIGH, MEDIUM, or LOW confidence.
- */
-data class ParsedField<T>(
-    val value: T?,
-    val confidence: Confidence?,
-) {
-    val isPresent: Boolean get() = value != null
-
-    companion object {
-        fun <T> notFound(): ParsedField<T> = ParsedField(null, null)
-        fun <T> high(value: T): ParsedField<T> = ParsedField(value, Confidence.HIGH)
-        fun <T> medium(value: T): ParsedField<T> = ParsedField(value, Confidence.MEDIUM)
-        fun <T> low(value: T): ParsedField<T> = ParsedField(value, Confidence.LOW)
-    }
-}
-
-/**
  * A single service line item from the Services Authorized section of a referral.
  * Only [cptCode] is required; all other fields are optional.
  */
@@ -40,78 +14,64 @@ data class ServiceLine(
 /**
  * All target fields extracted from an SSA/DDS consultative examination referral PDF.
  *
- * Each scalar field is wrapped in [ParsedField] to carry extraction confidence.
- * Services are stored as a flat list with a separate [servicesConfidence] level.
+ * Each scalar field is a nullable [String]. Services are stored as a flat list.
  *
- * Use [hasLowConfidenceFields] to check whether any field was extracted with low
- * confidence, and [filledFieldCount] to count how many fields were successfully extracted.
+ * Use [filledFieldCount] to count how many fields were successfully extracted.
  */
 data class ReferralFields(
     // Claimant identity
-    val firstName: ParsedField<String> = ParsedField.notFound(),
-    val middleName: ParsedField<String> = ParsedField.notFound(),
-    val lastName: ParsedField<String> = ParsedField.notFound(),
+    val firstName: String? = null,
+    val middleName: String? = null,
+    val lastName: String? = null,
 
     // Case identification
-    val caseId: ParsedField<String> = ParsedField.notFound(),
-    val authorizationNumber: ParsedField<String> = ParsedField.notFound(),
-    val requestId: ParsedField<String> = ParsedField.notFound(),
+    val caseId: String? = null,
+    val authorizationNumber: String? = null,
+    val requestId: String? = null,
 
     // Dates
-    val dateOfIssue: ParsedField<String> = ParsedField.notFound(),
-    val dob: ParsedField<String> = ParsedField.notFound(),
+    val dateOfIssue: String? = null,
+    val dob: String? = null,
 
     // Applicant (parent/guardian)
-    val applicantName: ParsedField<String> = ParsedField.notFound(),
+    val applicantName: String? = null,
 
     // Appointment
-    val appointmentDate: ParsedField<String> = ParsedField.notFound(),
-    val appointmentTime: ParsedField<String> = ParsedField.notFound(),
+    val appointmentDate: String? = null,
+    val appointmentTime: String? = null,
 
     // Claimant address
-    val streetAddress: ParsedField<String> = ParsedField.notFound(),
-    val city: ParsedField<String> = ParsedField.notFound(),
-    val state: ParsedField<String> = ParsedField.notFound(),
-    val zipCode: ParsedField<String> = ParsedField.notFound(),
+    val streetAddress: String? = null,
+    val city: String? = null,
+    val state: String? = null,
+    val zipCode: String? = null,
 
     // Contact
-    val phone: ParsedField<String> = ParsedField.notFound(),
+    val phone: String? = null,
 
     // Services authorized
     val services: List<ServiceLine> = emptyList(),
-    val servicesConfidence: Confidence? = null,
 
     // Provider/invoice
-    val federalTaxId: ParsedField<String> = ParsedField.notFound(),
-    val vendorNumber: ParsedField<String> = ParsedField.notFound(),
+    val federalTaxId: String? = null,
+    val vendorNumber: String? = null,
 
     // Footer/case components
-    val caseNumberFullFooter: ParsedField<String> = ParsedField.notFound(),
-    val assignedCode: ParsedField<String> = ParsedField.notFound(),
-    val dccNumber: ParsedField<String> = ParsedField.notFound(),
+    val caseNumberFullFooter: String? = null,
+    val assignedCode: String? = null,
+    val dccNumber: String? = null,
 ) {
-    /**
-     * Returns true if any extracted field has LOW confidence, indicating
-     * the extraction result may need manual review.
-     */
-    fun hasLowConfidenceFields(): Boolean {
-        return allParsedFields().any { it.confidence == Confidence.LOW } ||
-            servicesConfidence == Confidence.LOW
-    }
-
     /**
      * Returns the count of fields that were successfully extracted (non-null value).
      * Services count as one field if the list is non-empty.
      */
     fun filledFieldCount(): Int {
-        return allParsedFields().count { it.isPresent } +
+        return listOf(
+            firstName, middleName, lastName, caseId, authorizationNumber,
+            requestId, dateOfIssue, dob, applicantName, appointmentDate,
+            appointmentTime, streetAddress, city, state, zipCode, phone,
+            federalTaxId, vendorNumber, caseNumberFullFooter, assignedCode, dccNumber,
+        ).count { it != null } +
             if (services.isNotEmpty()) 1 else 0
     }
-
-    private fun allParsedFields(): List<ParsedField<*>> = listOf(
-        firstName, middleName, lastName, caseId, authorizationNumber,
-        requestId, dateOfIssue, dob, applicantName, appointmentDate,
-        appointmentTime, streetAddress, city, state, zipCode, phone,
-        federalTaxId, vendorNumber, caseNumberFullFooter, assignedCode, dccNumber,
-    )
 }

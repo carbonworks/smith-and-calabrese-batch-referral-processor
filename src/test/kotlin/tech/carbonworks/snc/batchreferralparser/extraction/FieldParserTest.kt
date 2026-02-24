@@ -2,7 +2,6 @@ package tech.carbonworks.snc.batchreferralparser.extraction
 
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -82,16 +81,14 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("09/15/2024", result.dateOfIssue.value)
-        assertEquals(Confidence.HIGH, result.dateOfIssue.confidence)
-        assertEquals("ABC-12345", result.caseId.value)
-        assertEquals("John", result.firstName.value)
-        assertEquals("Michael", result.middleName.value)
-        assertEquals("Smith", result.lastName.value)
-        assertEquals("03/22/1990", result.dob.value)
-        assertEquals("Jane Smith", result.applicantName.value)
-        assertEquals("AUTH-9876", result.authorizationNumber.value)
-        assertEquals(Confidence.HIGH, result.authorizationNumber.confidence)
+        assertEquals("09/15/2024", result.dateOfIssue)
+        assertEquals("ABC-12345", result.caseId)
+        assertEquals("John", result.firstName)
+        assertEquals("Michael", result.middleName)
+        assertEquals("Smith", result.lastName)
+        assertEquals("03/22/1990", result.dob)
+        assertEquals("Jane Smith", result.applicantName)
+        assertEquals("AUTH-9876", result.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
@@ -106,10 +103,10 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("Alice", result.firstName.value)
-        assertNull(result.middleName.value)
-        assertEquals("Johnson", result.lastName.value)
-        assertEquals("XYZ-999", result.caseId.value)
+        assertEquals("Alice", result.firstName)
+        assertNull(result.middleName)
+        assertEquals("Johnson", result.lastName)
+        assertEquals("XYZ-999", result.caseId)
     }
 
     // -------------------------------------------------------------------
@@ -124,10 +121,9 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("BHA-12345-CE", result.caseNumberFullFooter.value)
-        assertEquals(Confidence.HIGH, result.caseNumberFullFooter.confidence)
-        assertEquals("4321", result.assignedCode.value)
-        assertEquals("DCC-9999", result.dccNumber.value)
+        assertEquals("BHA-12345-CE", result.caseNumberFullFooter)
+        assertEquals("4321", result.assignedCode)
+        assertEquals("DCC-9999", result.dccNumber)
     }
 
     // -------------------------------------------------------------------
@@ -143,13 +139,11 @@ class FieldParserTest {
 
         val result = parser.parse(input, tables)
 
-        assertEquals("123 MAIN ST", result.streetAddress.value)
-        assertEquals(Confidence.MEDIUM, result.streetAddress.confidence)
-        assertEquals("ANYTOWN", result.city.value)
-        assertEquals("MD", result.state.value)
-        assertEquals("21201", result.zipCode.value)
-        assertEquals("410-555-1234", result.phone.value)
-        assertEquals(Confidence.MEDIUM, result.phone.confidence)
+        assertEquals("123 MAIN ST", result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertEquals("410-555-1234", result.phone)
     }
 
     // -------------------------------------------------------------------
@@ -165,9 +159,8 @@ class FieldParserTest {
 
         val result = parser.parse(input, tables)
 
-        assertEquals("Thursday September 5th, 2024", result.appointmentDate.value)
-        assertEquals(Confidence.MEDIUM, result.appointmentDate.confidence)
-        assertEquals("10:00 AM", result.appointmentTime.value)
+        assertEquals("Thursday September 5th, 2024", result.appointmentDate)
+        assertEquals("10:00 AM", result.appointmentTime)
     }
 
     // -------------------------------------------------------------------
@@ -184,7 +177,6 @@ class FieldParserTest {
         val result = parser.parse(input, tables)
 
         assertEquals(2, result.services.size)
-        assertEquals(Confidence.HIGH, result.servicesConfidence)
 
         val svc1 = result.services[0]
         assertEquals("96130", svc1.cptCode)
@@ -211,14 +203,12 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("123456789", result.federalTaxId.value)
-        assertEquals(Confidence.MEDIUM, result.federalTaxId.confidence)
-        assertEquals("V-5678", result.vendorNumber.value)
-        assertEquals("RQ-42", result.requestId.value)
+        assertEquals("123456789", result.federalTaxId)
+        assertEquals("V-5678", result.vendorNumber)
+        assertEquals("RQ-42", result.requestId)
         // Invoice auth number should be overridden if header also has one,
         // but with no header it should be the invoice value
-        assertEquals("AUTH-INVOICE-1", result.authorizationNumber.value)
-        assertEquals(Confidence.MEDIUM, result.authorizationNumber.confidence)
+        assertEquals("AUTH-INVOICE-1", result.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
@@ -233,31 +223,28 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("410-555-9876", result.phone.value)
-        assertEquals(Confidence.LOW, result.phone.confidence)
+        assertEquals("410-555-9876", result.phone)
     }
 
     // -------------------------------------------------------------------
-    // 9. Missing fields produce notFound (empty input)
+    // 9. Missing fields produce null values (empty input)
     // -------------------------------------------------------------------
 
     @Test
-    fun `empty input produces all notFound fields`() {
+    fun `empty input produces all null fields`() {
         val input = textResult("")
 
         val result = parser.parse(input)
 
-        assertFalse(result.firstName.isPresent)
-        assertFalse(result.lastName.isPresent)
-        assertFalse(result.caseId.isPresent)
-        assertFalse(result.authorizationNumber.isPresent)
-        assertFalse(result.dob.isPresent)
-        assertFalse(result.appointmentDate.isPresent)
-        assertFalse(result.phone.isPresent)
-        assertFalse(result.federalTaxId.isPresent)
-        assertNull(result.firstName.confidence)
+        assertNull(result.firstName)
+        assertNull(result.lastName)
+        assertNull(result.caseId)
+        assertNull(result.authorizationNumber)
+        assertNull(result.dob)
+        assertNull(result.appointmentDate)
+        assertNull(result.phone)
+        assertNull(result.federalTaxId)
         assertTrue(result.services.isEmpty())
-        assertNull(result.servicesConfidence)
         assertEquals(0, result.filledFieldCount())
     }
 
@@ -277,27 +264,22 @@ class FieldParserTest {
         val result = parser.parse(input)
 
         // Header has higher priority, so header value wins
-        assertEquals("AUTH-HEADER", result.authorizationNumber.value)
-        assertEquals(Confidence.HIGH, result.authorizationNumber.confidence)
+        assertEquals("AUTH-HEADER", result.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
-    // 11. Low confidence detection and filledFieldCount
+    // 11. filledFieldCount works correctly
     // -------------------------------------------------------------------
 
     @Test
-    fun `hasLowConfidenceFields and filledFieldCount work correctly`() {
-        // Only a CELL # phone (LOW confidence) and one table cell (MEDIUM confidence)
+    fun `filledFieldCount counts extracted fields correctly`() {
+        // Only a CELL # phone and one table cell
         val input = textResult("CELL # 555-123-4567")
         val tables = tableWith(
             "Date and Time Monday January 6th, 2025 2:30 PM Eastern"
         )
 
         val result = parser.parse(input, tables)
-
-        // Phone is LOW confidence from CELL # pattern
-        assertTrue(result.hasLowConfidenceFields())
-        assertEquals(Confidence.LOW, result.phone.confidence)
 
         // Should have: phone (1) + appointmentDate (1) + appointmentTime (1) = 3 fields
         assertEquals(3, result.filledFieldCount())
