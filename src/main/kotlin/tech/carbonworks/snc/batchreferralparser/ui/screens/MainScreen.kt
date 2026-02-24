@@ -60,12 +60,38 @@ import java.awt.dnd.DropTargetDragEvent
 import java.awt.dnd.DropTargetDropEvent
 import java.awt.dnd.DropTargetEvent
 import java.io.File
+import java.util.prefs.Preferences
 import javax.swing.JFileChooser
 import javax.swing.UIManager
 import javax.swing.filechooser.FileNameExtensionFilter
 
 /** Maximum number of PDFs allowed in a single batch. */
 private const val MAX_FILES = 50
+
+/** Preferences key for the last-used file picker directory. */
+private const val PREF_LAST_DIRECTORY = "lastDirectory"
+
+/** User preferences node for persisting application settings. */
+private val prefs: Preferences =
+    Preferences.userRoot().node("tech/carbonworks/snc/batchreferralparser")
+
+/**
+ * Load the last-used directory from preferences.
+ *
+ * @return the saved directory if it exists and is valid, or null otherwise
+ */
+private fun loadLastDirectory(): File? {
+    val path = prefs.get(PREF_LAST_DIRECTORY, null) ?: return null
+    val dir = File(path)
+    return if (dir.isDirectory) dir else null
+}
+
+/**
+ * Save a directory path to preferences for next session.
+ */
+private fun saveLastDirectory(dir: File) {
+    prefs.put(PREF_LAST_DIRECTORY, dir.absolutePath)
+}
 
 /**
  * File selection screen: the entry point of the batch processing workflow.
@@ -123,6 +149,11 @@ fun MainScreen(
 
                             addFilesWithLimit(files, pdfFiles, onFilesChanged) { msg ->
                                 limitMessage = msg
+                            }
+
+                            // Remember the directory of the dropped files
+                            pdfFiles.firstOrNull()?.parentFile?.let { dir ->
+                                saveLastDirectory(dir)
                             }
                         }
                         dtde.dropComplete(true)
@@ -326,6 +357,9 @@ fun MainScreen(
 
 /**
  * Open a system file chooser to select PDF files.
+ *
+ * Restores the last-used directory from preferences and saves the chosen
+ * directory after file selection.
  */
 private fun openFilePicker(
     currentFiles: List<File>,
@@ -343,12 +377,22 @@ private fun openFilePicker(
         fileFilter = FileNameExtensionFilter("PDF Files (*.pdf)", "pdf")
         isMultiSelectionEnabled = true
         fileSelectionMode = JFileChooser.FILES_ONLY
+
+        // Restore the last-used directory if available and still valid
+        loadLastDirectory()?.let { dir ->
+            currentDirectory = dir
+        }
     }
 
     val result = chooser.showOpenDialog(null)
     if (result == JFileChooser.APPROVE_OPTION) {
         val selected = chooser.selectedFiles.toList()
         addFilesWithLimit(currentFiles, selected, onFilesChanged, onLimitMessage)
+
+        // Remember the directory for next time
+        selected.firstOrNull()?.parentFile?.let { dir ->
+            saveLastDirectory(dir)
+        }
     }
 }
 
