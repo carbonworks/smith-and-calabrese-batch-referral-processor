@@ -16,7 +16,7 @@ This file defines independent work packages for parallel agent development. Each
 
 ## WP-0: PDF Text Extraction Core — FOUNDATION
 
-**Status:** ready
+**Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/PdfTextExtractor.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ExtractionResult.kt`
 **Reads:** `reference/python-scripts/extract_referral_fields.py`, `reference/python-scripts/dump_pdf.py`, `docs/field-mapping.json`, `docs/extraction-template.json`, `docs/build-plan.md` (Section 6)
 **Touches:** none
@@ -39,7 +39,7 @@ Build the core PDF text extraction layer using Apache PDFBox:
 
 ## WP-1: Field Parsing Engine — Regex & Pattern Matching
 
-**Status:** blocked
+**Status:** ready
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`
 **Reads:** `reference/python-scripts/extract_referral_fields.py` (port this logic), `docs/field-mapping.json`, `docs/extraction-template.json`
 **Touches:** none
@@ -60,7 +60,7 @@ Port the Python field extraction logic to Kotlin:
 
 ## WP-2: Table Extraction — Tabula-java Integration
 
-**Status:** ready
+**Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`
 **Reads:** `reference/python-scripts/dump_pdf.py`, `docs/build-plan.md` (Section 6)
 **Touches:** none
@@ -126,7 +126,7 @@ Build the Compose Desktop UI for the complete batch processing workflow:
 
 ## WP-5: OCR Fallback — Tess4J Integration
 
-**Status:** blocked
+**Status:** ready
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/OcrFallback.kt`
 **Reads:** `docs/build-plan.md` (Risk #1)
 **Touches:** none
