@@ -45,6 +45,10 @@ __pycache__/
 venv/
 *.egg-info/
 
+# VNote indexing
+vx.json
+vx_notebook/
+
 # Environment / secrets
 .env
 .env.*
