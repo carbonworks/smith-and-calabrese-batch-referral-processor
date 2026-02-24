@@ -136,6 +136,49 @@ Deliverable documents for Tyler and future maintainers.
 
 ---
 
+## Enhancements
+
+### E1. Remember last file picker directory
+
+Store the folder location of the most recently selected file and use it as the default directory when opening the file picker.
+
+- Persist across app sessions (e.g., Java Preferences API or a small config file)
+- On first launch or if the stored path no longer exists, fall back to the user's home directory
+- Update the stored path whenever files are selected via the file picker or drag-and-drop
+
+**Depends on**: #4
+**Priority**: Low — quality-of-life improvement
+
+---
+
+### E2. Remove confidence scoring
+
+Remove the per-field confidence system (HIGH/MEDIUM/LOW). The extraction algorithms are deterministic regex patterns, not fuzzy or ML-based — a field either matches or it doesn't. Confidence adds complexity without value.
+
+- Remove `Confidence` enum and `ParsedField` wrapper; fields become plain `String?`
+- Remove confidence-based UI highlighting (orange row/cell tinting, `ConfidenceBadge`)
+- Remove "Low Confidence Flag" column from XLSX output
+- Simplify `ReferralFields` and `FieldParser` merge logic
+
+**Depends on**: #2, #4
+**Priority**: Medium — reduces code complexity
+
+---
+
+### E3. Improve PDF parsing feedback
+
+Log warnings for fields that fail to extract. Currently, missing fields are silently returned as null/empty with no indication of what went wrong.
+
+- Log a warning per field when a regex pattern doesn't match (e.g., "WARN: header block not matched — 'Case ID:' label found but full pattern failed")
+- Include which extraction stage was attempted (header, table, invoice, footer)
+- Surface a per-file summary in the UI (e.g., "12/23 fields extracted — 11 missing") alongside the error panel
+- Optionally list missing field names in the results screen so the user knows what to check manually
+
+**Depends on**: #2, #4
+**Priority**: Medium — critical for debugging extraction issues in the field
+
+---
+
 ## Cross-cutting: Tyler Feedback
 
 Tyler's input on field priorities and spreadsheet layout affects items #2, #3, and #4. This isn't a discrete work item — it's an ongoing dependency:

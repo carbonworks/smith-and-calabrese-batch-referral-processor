@@ -81,7 +81,10 @@ fun App(window: java.awt.Window? = null) {
                             }
                         },
                         onComplete = { results ->
+                            println("[Nav] Processing complete, received ${results.size} result(s)")
+                            println("[Nav]   Success: ${results.count { it.fields != null }}, Errors: ${results.count { it.error != null }}")
                             processingResults = results
+                            println("[Nav] Set processingResults (size=${processingResults.size}), navigating to RESULTS")
                             currentScreen = Screen.RESULTS
                         },
                     )

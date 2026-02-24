@@ -14,9 +14,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.HorizontalScrollbar
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -63,9 +66,15 @@ fun ResultsScreen(
     results: List<ProcessedReferral>,
     onStartOver: () -> Unit,
 ) {
+    println("[Results] ResultsScreen composed with ${results.size} result(s)")
+    for ((i, r) in results.withIndex()) {
+        println("[Results]   [$i] file=${r.file.name} fields=${r.fields != null} error=${r.error}")
+    }
+
     val successResults = results.filter { it.fields != null }
     val errorResults = results.filter { it.error != null }
     val referralFields = successResults.mapNotNull { it.fields }
+    println("[Results] successResults=${successResults.size}, errorResults=${errorResults.size}, referralFields=${referralFields.size}")
 
     var saveMessage by remember { mutableStateOf<String?>(null) }
     var saveError by remember { mutableStateOf<String?>(null) }
@@ -174,6 +183,7 @@ fun ResultsScreen(
             modifier = Modifier.weight(1f),
         ) {
             if (referralFields.isEmpty()) {
+                println("[Results] Table: referralFields is EMPTY — showing 'No data to preview'")
                 Box(
                     modifier = Modifier.fillMaxSize().padding(32.dp),
                     contentAlignment = Alignment.Center,
@@ -188,60 +198,88 @@ fun ResultsScreen(
                 val horizontalScroll = rememberScrollState()
                 val columnHeadings = SpreadsheetWriter.COLUMN_HEADINGS
                 val rowData = referralFields.map { extractRowValues(it) }
+                println("[Results] Table: ${rowData.size} row(s), ${columnHeadings.size} column(s)")
+                for ((i, row) in rowData.withIndex()) {
+                    val nonEmpty = row.count { it.isNotEmpty() }
+                    val populatedCols = row.withIndex()
+                        .filter { it.value.isNotEmpty() }
+                        .joinToString(", ") { "[${it.index}] ${columnHeadings[it.index]}" }
+                    println("[Results]   Row $i: $nonEmpty/${row.size} non-empty — columns: $populatedCols")
+                }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .horizontalScroll(horizontalScroll),
-                ) {
-                    // Header row
-                    Row(
+                val verticalScroll = rememberScrollState()
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    SelectionContainer(
                         modifier = Modifier
-                            .background(LightGray.copy(alpha = 0.4f))
-                            .padding(horizontal = 4.dp),
+                            .fillMaxSize()
+                            .padding(end = 12.dp, bottom = 12.dp),
                     ) {
-                        // Row number column
-                        TableHeaderCell(text = "#", width = 40)
-                        for (heading in columnHeadings) {
-                            TableHeaderCell(text = heading, width = 140)
-                        }
-                    }
-
-                    // Data rows
-                    LazyColumn {
-                        itemsIndexed(rowData) { rowIndex, row ->
-                            val fields = referralFields[rowIndex]
-                            val hasLow = fields.hasLowConfidenceFields()
-                            val rowBackground = if (hasLow) {
-                                BrandOrange.copy(alpha = 0.08f)
-                            } else {
-                                CleanWhite
-                            }
-
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .horizontalScroll(horizontalScroll)
+                                .verticalScroll(verticalScroll),
+                        ) {
+                            // Header row
                             Row(
                                 modifier = Modifier
-                                    .background(rowBackground)
+                                    .background(LightGray.copy(alpha = 0.4f))
                                     .padding(horizontal = 4.dp),
                             ) {
-                                TableDataCell(
-                                    text = "${rowIndex + 1}",
-                                    width = 40,
-                                )
-                                for ((colIndex, value) in row.withIndex()) {
-                                    val confidence = getFieldConfidence(fields, colIndex)
-                                    val cellBackground = when (confidence) {
-                                        Confidence.LOW -> BrandOrange.copy(alpha = 0.15f)
-                                        else -> Color.Transparent
-                                    }
+                                // Row number column
+                                TableHeaderCell(text = "#", width = 40)
+                                for (heading in columnHeadings) {
+                                    TableHeaderCell(text = heading, width = 140)
+                                }
+                            }
+
+                            // Data rows
+                            for ((rowIndex, row) in rowData.withIndex()) {
+                                val fields = referralFields[rowIndex]
+                                val hasLow = fields.hasLowConfidenceFields()
+                                val rowBackground = if (hasLow) {
+                                    BrandOrange.copy(alpha = 0.08f)
+                                } else {
+                                    CleanWhite
+                                }
+
+                                Row(
+                                    modifier = Modifier
+                                        .background(rowBackground)
+                                        .padding(horizontal = 4.dp),
+                                ) {
                                     TableDataCell(
-                                        text = value,
-                                        width = 140,
-                                        backgroundColor = cellBackground,
+                                        text = "${rowIndex + 1}",
+                                        width = 40,
                                     )
+                                    for ((colIndex, value) in row.withIndex()) {
+                                        val confidence = getFieldConfidence(fields, colIndex)
+                                        val cellBackground = when (confidence) {
+                                            Confidence.LOW -> BrandOrange.copy(alpha = 0.15f)
+                                            else -> Color.Transparent
+                                        }
+                                        TableDataCell(
+                                            text = value,
+                                            width = 140,
+                                            backgroundColor = cellBackground,
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
+
+                    // Visible, draggable scrollbars
+                    VerticalScrollbar(
+                        adapter = rememberScrollbarAdapter(verticalScroll),
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                    )
+                    HorizontalScrollbar(
+                        adapter = rememberScrollbarAdapter(horizontalScroll),
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                            .padding(end = 12.dp),
+                    )
                 }
             }
         }

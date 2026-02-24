@@ -24,9 +24,27 @@ class FieldParser {
         textResult: ExtractionResult.Success,
         tables: List<ExtractedTable> = emptyList(),
     ): ReferralFields {
-        // Reconstruct page-level text strings from word-level TextBlocks
+        // Reconstruct page-level text with line breaks preserved.
+        // Group TextBlocks by Y-coordinate (same line), join blocks on the same
+        // line with spaces, and separate lines with newlines. This matches how
+        // pdfplumber's extract_text() works in the Python reference scripts.
+        val lineYTolerance = 2.0f
         val pageTexts = textResult.pages.map { page ->
-            page.textBlocks.joinToString(" ") { it.text }
+            page.textBlocks
+                .sortedWith(compareBy({ it.boundingBox.y }, { it.boundingBox.x }))
+                .fold(mutableListOf<MutableList<TextBlock>>()) { lines, block ->
+                    val lastLine = lines.lastOrNull()
+                    val lastY = lastLine?.lastOrNull()?.boundingBox?.y
+                    if (lastY != null && Math.abs(block.boundingBox.y - lastY) < lineYTolerance) {
+                        lastLine.add(block)
+                    } else {
+                        lines.add(mutableListOf(block))
+                    }
+                    lines
+                }
+                .joinToString("\n") { line ->
+                    line.joinToString(" ") { it.text }
+                }
         }
 
         // Extract from each source
@@ -35,6 +53,33 @@ class FieldParser {
         val tableFields = extractTableFields(tables)
         val invoiceFields = extractInvoiceFields(pageTexts)
         val phoneFromCell = extractPhone(pageTexts)
+
+        // Diagnostic: which extraction stages found data (no PHI values)
+        val headerHit = headerFields.caseId != null
+        val caseHit = caseFields.caseNumberFullFooter != null
+        val tableHit = tableFields.city != null || tableFields.services.isNotEmpty()
+        val invoiceHit = invoiceFields.federalTaxId != null || invoiceFields.requestId != null
+        val phoneHit = phoneFromCell != null
+        println("[FieldParser] Source hits — header: $headerHit, case-footer: $caseHit, table: $tableHit, invoice: $invoiceHit, cell-phone: $phoneHit")
+
+        if (!headerHit) {
+            val hasCaseIdLabel = pageTexts.any { "Case ID:" in it }
+            val hasAuthLabel = pageTexts.any { "Authorization #:" in it }
+            val hasDateLabel = pageTexts.any { "Date:" in it }
+            val hasRELabel = pageTexts.any { "RE:" in it }
+            println("[FieldParser]   Header miss detail — 'Case ID:' present: $hasCaseIdLabel, 'Authorization #:' present: $hasAuthLabel, 'Date:' present: $hasDateLabel, 'RE:' present: $hasRELabel")
+        }
+        if (!caseHit) {
+            val hasAssigned = pageTexts.any { "Assigned" in it }
+            val hasDCPS = pageTexts.any { "DCPS" in it }
+            println("[FieldParser]   Footer miss detail — 'Assigned' present: $hasAssigned, 'DCPS' present: $hasDCPS")
+        }
+        if (!invoiceHit) {
+            val hasFedTax = pageTexts.any { "Federal Tax ID" in it }
+            val hasVendor = pageTexts.any { "Vendor Number" in it }
+            val hasRQID = pageTexts.any { "RQID" in it }
+            println("[FieldParser]   Invoice miss detail — 'Federal Tax ID' present: $hasFedTax, 'Vendor Number' present: $hasVendor, 'RQID' present: $hasRQID")
+        }
 
         // Merge with priority: header > table > invoice > fallback
         // Start with lowest priority and override with higher priority sources
@@ -117,7 +162,7 @@ class FieldParser {
      * Looks for: CASE-NUMBER/ Assigned NNNN null/ DCPS / DCC-NUMBER
      */
     internal fun extractCaseNumberComponents(pageTexts: List<String>): CaseFields {
-        val footerRegex = Regex("""^(\S+)/\s*Assigned\s+(\d+)\s+null/\s*DCPS\s*/\s*(\S+)""")
+        val footerRegex = Regex("""^(\S+)/\s*Assigned\s+(\d+)\s+null/\s*DCPS\s*/\s*(\S+)""", RegexOption.MULTILINE)
 
         for (text in pageTexts) {
             val match = footerRegex.find(text)
