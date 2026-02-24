@@ -1,0 +1,262 @@
+package tech.carbonworks.snc.batchreferralparser.output
+
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import tech.carbonworks.snc.batchreferralparser.extraction.Confidence
+import tech.carbonworks.snc.batchreferralparser.extraction.ParsedField
+import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
+import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
+import java.io.File
+import java.io.FileInputStream
+import java.time.LocalDateTime
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+/**
+ * Tests for [SpreadsheetWriter] covering XLSX output generation.
+ *
+ * Uses JUnit 5 [TempDir] for isolated file system access. Each test writes
+ * a spreadsheet and reads it back with Apache POI to verify content.
+ */
+class SpreadsheetWriterTest {
+
+    @TempDir
+    lateinit var tempDir: File
+
+    // -------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------
+
+    /** Open the first .xlsx file in [tempDir] as an [XSSFWorkbook]. */
+    private fun openWorkbook(file: File): XSSFWorkbook {
+        return FileInputStream(file).use { XSSFWorkbook(it) }
+    }
+
+    /** Read a cell as a string; returns empty string for blank/missing cells. */
+    private fun cellText(workbook: XSSFWorkbook, row: Int, col: Int): String {
+        val sheet = workbook.getSheetAt(0)
+        val r = sheet.getRow(row) ?: return ""
+        val c = r.getCell(col) ?: return ""
+        return c.stringCellValue
+    }
+
+    /** Build a fully-populated [ReferralFields] with known test values. */
+    private fun sampleReferral(
+        firstName: String = "Jane",
+        middleName: String = "M",
+        lastName: String = "Doe",
+        lowConfidence: Boolean = false,
+    ): ReferralFields {
+        val conf = if (lowConfidence) Confidence.LOW else Confidence.HIGH
+        return ReferralFields(
+            firstName = ParsedField(firstName, conf),
+            middleName = ParsedField(middleName, conf),
+            lastName = ParsedField(lastName, conf),
+            caseId = ParsedField("CASE-001", Confidence.HIGH),
+            authorizationNumber = ParsedField("AUTH-12345", Confidence.HIGH),
+            requestId = ParsedField("REQ-999", Confidence.HIGH),
+            dateOfIssue = ParsedField("02/01/2026", Confidence.HIGH),
+            dob = ParsedField("05/15/1990", Confidence.HIGH),
+            applicantName = ParsedField("John Doe", Confidence.HIGH),
+            appointmentDate = ParsedField("03/01/2026", Confidence.HIGH),
+            appointmentTime = ParsedField("10:00 AM", Confidence.HIGH),
+            streetAddress = ParsedField("123 Main St", Confidence.HIGH),
+            city = ParsedField("Anytown", Confidence.HIGH),
+            state = ParsedField("CA", Confidence.HIGH),
+            zipCode = ParsedField("90210", Confidence.HIGH),
+            phone = ParsedField("555-123-4567", Confidence.HIGH),
+            services = listOf(
+                ServiceLine(cptCode = "96130", description = "Psych eval"),
+                ServiceLine(cptCode = "96131", description = "Add'l hour"),
+            ),
+            servicesConfidence = Confidence.HIGH,
+            federalTaxId = ParsedField("12-3456789", Confidence.HIGH),
+            vendorNumber = ParsedField("V-1234", Confidence.HIGH),
+            caseNumberFullFooter = ParsedField("FULL-CASE-001", Confidence.HIGH),
+            assignedCode = ParsedField("AC-01", Confidence.HIGH),
+            dccNumber = ParsedField("DCC-555", Confidence.HIGH),
+        )
+    }
+
+    private val fixedTimestamp = LocalDateTime.of(2026, 2, 23, 14, 30, 45)
+
+    // -------------------------------------------------------------------
+    // Test 1: Single referral — correct column headings and one data row
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `single referral produces correct column headings and one data row`() {
+        val referral = sampleReferral()
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // Header row (row 0)
+            val headerRow = sheet.getRow(0)
+            SpreadsheetWriter.COLUMN_HEADINGS.forEachIndexed { col, expectedHeading ->
+                assertEquals(expectedHeading, headerRow.getCell(col).stringCellValue)
+            }
+
+            // Exactly one data row (row 1) — last row index should be 1
+            assertEquals(1, sheet.lastRowNum)
+
+            // Spot-check data values
+            assertEquals("Jane", cellText(wb, 1, 0))
+            assertEquals("M", cellText(wb, 1, 1))
+            assertEquals("Doe", cellText(wb, 1, 2))
+            assertEquals("CASE-001", cellText(wb, 1, 3))
+            assertEquals("AUTH-12345", cellText(wb, 1, 4))
+            assertEquals("02/01/2026", cellText(wb, 1, 6))  // Date of Issue
+            assertEquals("Anytown", cellText(wb, 1, 12))     // City
+            assertEquals("CA", cellText(wb, 1, 13))           // State
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 2: Multiple referrals produce multiple rows
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `multiple referrals produce multiple rows`() {
+        val referrals = listOf(
+            sampleReferral(firstName = "Alice"),
+            sampleReferral(firstName = "Bob"),
+            sampleReferral(firstName = "Carol"),
+        )
+        val file = SpreadsheetWriter.write(referrals, tempDir, fixedTimestamp)
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // Header + 3 data rows
+            assertEquals(3, sheet.lastRowNum)
+            assertEquals("Alice", cellText(wb, 1, 0))
+            assertEquals("Bob", cellText(wb, 2, 0))
+            assertEquals("Carol", cellText(wb, 3, 0))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 3: Empty list produces headers-only spreadsheet
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `empty list produces headers-only spreadsheet`() {
+        val file = SpreadsheetWriter.write(emptyList(), tempDir, fixedTimestamp)
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // Header row present
+            val headerRow = sheet.getRow(0)
+            assertEquals("First Name", headerRow.getCell(0).stringCellValue)
+            assertEquals(
+                SpreadsheetWriter.COLUMN_HEADINGS.size,
+                headerRow.lastCellNum.toInt(),
+            )
+
+            // No data rows — lastRowNum is 0 (only the header)
+            assertEquals(0, sheet.lastRowNum)
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 4: Low confidence flag set correctly
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `low confidence flag set correctly`() {
+        val highConfReferral = sampleReferral(lowConfidence = false)
+        val lowConfReferral = sampleReferral(firstName = "Lowconf", lowConfidence = true)
+
+        val file = SpreadsheetWriter.write(
+            listOf(highConfReferral, lowConfReferral),
+            tempDir,
+            fixedTimestamp,
+        )
+
+        val flagCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("Low Confidence Flag")
+
+        openWorkbook(file).use { wb ->
+            // Row 1: high confidence — flag should be blank
+            assertEquals("", cellText(wb, 1, flagCol))
+
+            // Row 2: low confidence — flag should be "YES"
+            assertEquals("YES", cellText(wb, 2, flagCol))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 5: Filename matches patient-referrals-*.xlsx pattern
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `filename matches patient-referrals pattern`() {
+        val file = SpreadsheetWriter.write(emptyList(), tempDir, fixedTimestamp)
+
+        assertEquals("patient-referrals-2026-02-23-143045.xlsx", file.name)
+        assertTrue(file.name.matches(Regex("patient-referrals-\\d{4}-\\d{2}-\\d{2}-\\d{6}\\.xlsx")))
+        assertTrue(file.exists())
+    }
+
+    // -------------------------------------------------------------------
+    // Test 6: Services column flattens CPT codes
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `services column flattens CPT codes`() {
+        val referral = sampleReferral()
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
+
+        val servicesCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("Services")
+
+        openWorkbook(file).use { wb ->
+            assertEquals("96130, 96131", cellText(wb, 1, servicesCol))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 7 (bonus): Header row is bold and frozen
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `header row is bold and frozen`() {
+        val file = SpreadsheetWriter.write(listOf(sampleReferral()), tempDir, fixedTimestamp)
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // Check bold font on header cell
+            val headerCell = sheet.getRow(0).getCell(0)
+            val font = wb.getFontAt(headerCell.cellStyle.fontIndex)
+            assertTrue(font.bold, "Header font should be bold")
+
+            // Check freeze pane at row 1
+            val paneInfo = sheet.paneInformation
+            assertTrue(paneInfo != null, "Freeze pane should be set")
+            assertEquals(1, paneInfo.horizontalSplitPosition.toInt())
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 8 (bonus): Services with empty list produces empty cell
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `empty services list produces blank services cell`() {
+        val referral = ReferralFields(
+            firstName = ParsedField.high("Test"),
+            services = emptyList(),
+        )
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
+
+        val servicesCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("Services")
+
+        openWorkbook(file).use { wb ->
+            // Empty services = empty string = no cell created
+            assertEquals("", cellText(wb, 1, servicesCol))
+        }
+    }
+}
