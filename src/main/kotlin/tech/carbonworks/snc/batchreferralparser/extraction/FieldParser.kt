@@ -10,8 +10,15 @@ package tech.carbonworks.snc.batchreferralparser.extraction
  * confidence scores.
  *
  * Merge priority: header > table > invoice > fallback (phone).
+ *
+ * @param lineYTolerance vertical tolerance in PDF user-space units for reconstructing
+ *        lines from text blocks. Wider values merge more aggressively, which helps
+ *        when PDFBox extracts header labels and values at slightly different Y offsets.
+ *        Default is 5.0f (widened from the original 2.0f to handle real-world PDFs).
  */
-class FieldParser {
+class FieldParser(
+    private val lineYTolerance: Float = 5.0f,
+) {
 
     /**
      * Parse all referral fields from the given extraction result and tables.
@@ -25,9 +32,7 @@ class FieldParser {
         tables: List<ExtractedTable> = emptyList(),
     ): ReferralFields {
         // Reconstruct page-level text strings from word-level TextBlocks
-        val pageTexts = textResult.pages.map { page ->
-            page.textBlocks.joinToString(" ") { it.text }
-        }
+        val pageTexts = reconstructPageTexts(textResult)
 
         // Extract from each source
         val headerFields = extractHeaderBlock(pageTexts)
@@ -41,6 +46,53 @@ class FieldParser {
         return mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell)
     }
 
+    /**
+     * Reconstruct page-level text strings from word-level TextBlocks.
+     *
+     * Groups text blocks by Y coordinate (within [lineYTolerance]), sorts each line
+     * left-to-right, and joins with spaces. Lines are separated by newlines.
+     * This produces much better text reconstruction than a flat join, especially
+     * when header labels and values sit at slightly different vertical offsets.
+     */
+    fun reconstructPageTexts(
+        textResult: ExtractionResult.Success,
+    ): List<String> {
+        return textResult.pages.map { page ->
+            reconstructPageText(page.textBlocks)
+        }
+    }
+
+    /**
+     * Reconstruct a single page's text from its text blocks using line-aware grouping.
+     */
+    private fun reconstructPageText(textBlocks: List<TextBlock>): String {
+        if (textBlocks.isEmpty()) return ""
+
+        // Group blocks into lines by Y coordinate
+        val lines = mutableListOf<MutableList<TextBlock>>()
+        val sortedByY = textBlocks.sortedWith(compareBy({ it.boundingBox.y }, { it.boundingBox.x }))
+
+        var currentLine = mutableListOf(sortedByY[0])
+        var currentY = sortedByY[0].boundingBox.y
+
+        for (i in 1 until sortedByY.size) {
+            val block = sortedByY[i]
+            if (Math.abs(block.boundingBox.y - currentY) < lineYTolerance) {
+                currentLine.add(block)
+            } else {
+                lines.add(currentLine)
+                currentLine = mutableListOf(block)
+                currentY = block.boundingBox.y
+            }
+        }
+        lines.add(currentLine)
+
+        // Sort each line left-to-right and join
+        return lines.joinToString("\n") { line ->
+            line.sortedBy { it.boundingBox.x }.joinToString(" ") { it.text }
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Header block extraction
     // -----------------------------------------------------------------------
@@ -48,51 +100,107 @@ class FieldParser {
     /**
      * Extract fields from the appointment authorization header block.
      *
-     * Looks for the pattern:
-     *   Date: ... Case ID: ... RE: ... DOB: ... Applicant: ... Authorization #: ...
+     * First tries a combined regex across the full text (with DOT_MATCHES_ALL to
+     * handle multi-line headers). If that fails, falls back to extracting each
+     * field independently using individual regexes.
+     *
+     * Also searches across ALL pages and tries concatenating all page texts, so
+     * headers split across pages can still be matched.
      */
     internal fun extractHeaderBlock(pageTexts: List<String>): HeaderFields {
+        // Combined regex — works across newlines via DOT_MATCHES_ALL
         val headerRegex = Regex(
-            """Date:\s*(.+?)\s*Case ID:\s*(.+?)\s*RE:\s*(.+?)\s*DOB:\s*(.+?)\s*Applicant:\s*(.+?)\s*Authorization #:\s*(\S+)"""
+            """Date:\s*(.+?)\s*Case ID:\s*(.+?)\s*RE:\s*(.+?)\s*DOB:\s*(.+?)\s*Applicant:\s*(.+?)\s*Authorization #:\s*(\S+)""",
+            RegexOption.DOT_MATCHES_ALL,
         )
 
+        // Try each page individually
         for (text in pageTexts) {
-            if ("Case ID:" !in text || "Authorization #:" !in text) continue
-
-            val match = headerRegex.find(text) ?: continue
-
-            val dateOfIssue = match.groupValues[1].trim()
-            val caseId = match.groupValues[2].trim()
-            val reName = match.groupValues[3].trim()
-            val dob = match.groupValues[4].trim()
-            val applicantName = match.groupValues[5].trim()
-            val authorizationNumber = match.groupValues[6].trim()
-
-            // Parse RE: field into name components
-            val nameParts = reName.split(Regex("\\s+"))
-            val firstName: String?
-            val middleName: String?
-            val lastName: String?
-
-            when {
-                nameParts.size >= 3 -> {
-                    firstName = nameParts[0]
-                    middleName = nameParts.subList(1, nameParts.size - 1).joinToString(" ")
-                    lastName = nameParts.last()
-                }
-                nameParts.size == 2 -> {
-                    firstName = nameParts[0]
-                    middleName = null
-                    lastName = nameParts[1]
-                }
-                else -> {
-                    firstName = reName
-                    middleName = null
-                    lastName = null
-                }
+            val match = headerRegex.find(text)
+            if (match != null) {
+                return buildHeaderFromCombinedMatch(match)
             }
+        }
 
-            return HeaderFields(
+        // Try concatenating all pages (header split across pages)
+        if (pageTexts.size > 1) {
+            val allText = pageTexts.joinToString("\n")
+            val match = headerRegex.find(allText)
+            if (match != null) {
+                return buildHeaderFromCombinedMatch(match)
+            }
+        }
+
+        // Fallback: extract each field independently across all pages
+        return extractHeaderFieldsIndividually(pageTexts)
+    }
+
+    /**
+     * Build [HeaderFields] from a successful combined regex match.
+     */
+    private fun buildHeaderFromCombinedMatch(match: MatchResult): HeaderFields {
+        val dateOfIssue = match.groupValues[1].trim()
+        val caseId = match.groupValues[2].trim()
+        val reName = match.groupValues[3].trim()
+        val dob = match.groupValues[4].trim()
+        val applicantName = match.groupValues[5].trim()
+        val authorizationNumber = match.groupValues[6].trim()
+
+        val (firstName, middleName, lastName) = parseNameParts(reName)
+
+        return HeaderFields(
+            dateOfIssue = dateOfIssue,
+            caseId = caseId,
+            firstName = firstName,
+            middleName = middleName,
+            lastName = lastName,
+            dob = dob,
+            applicantName = applicantName,
+            authorizationNumber = authorizationNumber,
+        )
+    }
+
+    /**
+     * Extract header fields individually when the combined regex fails.
+     *
+     * Each field is searched independently across all pages. This handles PDFs
+     * where only some fields are present, or fields appear on different pages.
+     */
+    private fun extractHeaderFieldsIndividually(pageTexts: List<String>): HeaderFields {
+        val allText = pageTexts.joinToString("\n")
+
+        val dateRegex = Regex("""Date:\s*(\S+)""")
+        val caseIdRegex = Regex("""Case ID:\s*(\S+)""")
+        val reRegex = Regex("""RE:\s*(.+?)(?:\s*DOB:|\s*Applicant:|\s*Authorization\s*#:|\s*$)""",
+            RegexOption.DOT_MATCHES_ALL)
+        val dobRegex = Regex("""DOB:\s*(\S+)""")
+        val applicantRegex = Regex("""Applicant:\s*(.+?)(?:\s*Authorization\s*#:|\s*$)""",
+            RegexOption.DOT_MATCHES_ALL)
+        val authRegex = Regex("""Authorization\s*#:\s*(\S+)""")
+
+        val dateOfIssue = dateRegex.find(allText)?.groupValues?.get(1)?.trim()
+        val caseId = caseIdRegex.find(allText)?.groupValues?.get(1)?.trim()
+        val dob = dobRegex.find(allText)?.groupValues?.get(1)?.trim()
+        val authorizationNumber = authRegex.find(allText)?.groupValues?.get(1)?.trim()
+
+        val reName = reRegex.find(allText)?.groupValues?.get(1)?.trim()
+        val applicantName = applicantRegex.find(allText)?.groupValues?.get(1)?.trim()
+
+        var firstName: String? = null
+        var middleName: String? = null
+        var lastName: String? = null
+        if (reName != null) {
+            val parts = parseNameParts(reName)
+            firstName = parts.first
+            middleName = parts.second
+            lastName = parts.third
+        }
+
+        // Only return fields if we found at least one
+        return if (listOfNotNull(dateOfIssue, caseId, dob, authorizationNumber, reName, applicantName).isEmpty()) {
+            HeaderFields()
+        } else {
+            HeaderFields(
                 dateOfIssue = dateOfIssue,
                 caseId = caseId,
                 firstName = firstName,
@@ -103,8 +211,25 @@ class FieldParser {
                 authorizationNumber = authorizationNumber,
             )
         }
+    }
 
-        return HeaderFields()
+    /**
+     * Parse a full name string into (first, middle, last) components.
+     */
+    private fun parseNameParts(reName: String): Triple<String?, String?, String?> {
+        // Collapse any internal whitespace (newlines, multiple spaces)
+        val cleanName = reName.replace(Regex("""\s+"""), " ").trim()
+        val nameParts = cleanName.split(" ")
+
+        return when {
+            nameParts.size >= 3 -> Triple(
+                nameParts[0],
+                nameParts.subList(1, nameParts.size - 1).joinToString(" "),
+                nameParts.last(),
+            )
+            nameParts.size == 2 -> Triple(nameParts[0], null, nameParts[1])
+            else -> Triple(cleanName, null, null)
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -114,13 +239,38 @@ class FieldParser {
     /**
      * Extract case number components from footer text.
      *
-     * Looks for: CASE-NUMBER/ Assigned NNNN null/ DCPS / DCC-NUMBER
+     * Looks for: CASE-NUMBER/ Assigned NNNN [null/] [DCPS|agency] / DCC-NUMBER
+     *
+     * The regex is flexible: allows varied whitespace (including newlines),
+     * makes `null/` optional, and makes the agency code (DCPS) optional to
+     * handle different PDF formats.
      */
     internal fun extractCaseNumberComponents(pageTexts: List<String>): CaseFields {
-        val footerRegex = Regex("""^(\S+)/\s*Assigned\s+(\d+)\s+null/\s*DCPS\s*/\s*(\S+)""")
+        // Flexible footer regex:
+        // - \s+ between components (matches spaces and newlines)
+        // - (?:null/\s*)? makes "null/" optional
+        // - (?:\S+\s*/\s*)? makes the agency code (DCPS) optional
+        val footerRegex = Regex(
+            """(\S+)/\s*Assigned\s+(\d+)\s+(?:null/\s*)?(?:\S+\s*/\s*)?(\S+)""",
+            RegexOption.MULTILINE,
+        )
 
+        // Search each page individually
         for (text in pageTexts) {
             val match = footerRegex.find(text)
+            if (match != null) {
+                return CaseFields(
+                    caseNumberFullFooter = match.groupValues[1].trim(),
+                    assignedCode = match.groupValues[2].trim(),
+                    dccNumber = match.groupValues[3].trim(),
+                )
+            }
+        }
+
+        // Try across all pages concatenated
+        if (pageTexts.size > 1) {
+            val allText = pageTexts.joinToString("\n")
+            val match = footerRegex.find(allText)
             if (match != null) {
                 return CaseFields(
                     caseNumberFullFooter = match.groupValues[1].trim(),
@@ -318,6 +468,10 @@ class FieldParser {
      *
      * Looks for: Federal Tax ID Number, Vendor Number, Authorization Number,
      * RQID, Pay to, On/At schedule.
+     *
+     * All patterns are case-insensitive and support alternate label variations
+     * (e.g., "Federal Tax ID" vs "Federal Tax ID Number:", "Fed Tax ID:").
+     * Whitespace between label and value is flexible (including newlines).
      */
     internal fun extractInvoiceFields(pageTexts: List<String>): InvoiceFields {
         var federalTaxId: String? = null
@@ -325,24 +479,45 @@ class FieldParser {
         var authorizationNumberInvoice: String? = null
         var requestId: String? = null
 
-        for (text in pageTexts) {
+        // Search each page, then try concatenated text
+        val textsToSearch = if (pageTexts.size > 1) {
+            pageTexts + listOf(pageTexts.joinToString("\n"))
+        } else {
+            pageTexts
+        }
+
+        for (text in textsToSearch) {
             if (federalTaxId == null) {
-                val m = Regex("""Federal Tax ID Number:\s*(\d+)""").find(text)
+                // Match: "Federal Tax ID Number:", "Federal Tax ID:", "Fed Tax ID:", etc.
+                val m = Regex(
+                    """(?:Federal\s+Tax\s+ID|Fed\.?\s+Tax\s+ID)(?:\s+Number)?\s*:?\s*(\d+)""",
+                    RegexOption.IGNORE_CASE,
+                ).find(text)
                 if (m != null) federalTaxId = m.groupValues[1]
             }
 
             if (vendorNumber == null) {
-                val m = Regex("""Vendor Number:\s*(\S+)""").find(text)
+                val m = Regex(
+                    """Vendor\s+Number\s*:\s*(\S+)""",
+                    RegexOption.IGNORE_CASE,
+                ).find(text)
                 if (m != null) vendorNumber = m.groupValues[1]
             }
 
             if (authorizationNumberInvoice == null) {
-                val m = Regex("""Authorization Number:\s*(\S+)""").find(text)
+                val m = Regex(
+                    """Authorization\s+Number\s*:\s*(\S+)""",
+                    RegexOption.IGNORE_CASE,
+                ).find(text)
                 if (m != null) authorizationNumberInvoice = m.groupValues[1]
             }
 
             if (requestId == null) {
-                val m = Regex("""RQID:(\S+)""").find(text)
+                // Match "RQID:RQ-42" or "RQID: RQ-42" (with or without space)
+                val m = Regex(
+                    """RQID\s*:\s*(\S+)""",
+                    RegexOption.IGNORE_CASE,
+                ).find(text)
                 if (m != null) requestId = m.groupValues[1]
             }
         }
@@ -550,4 +725,50 @@ class FieldParser {
         val appointmentDate: String? = null,
         val appointmentTime: String? = null,
     )
+
+    // -----------------------------------------------------------------------
+    // Diagnostic utilities
+    // -----------------------------------------------------------------------
+
+    companion object {
+        /**
+         * Produce a sanitized diagnostic text dump from an extraction result.
+         *
+         * Shows page number, line count, and which field labels were found on each page.
+         * Does NOT include actual field values (PHI constraint).
+         *
+         * Example output:
+         *   [Page 1] 15 lines -- labels found: Date, Case ID, RE, DOB, Authorization #
+         *   [Page 2] 8 lines -- labels found: (none)
+         *   [Page 3] 12 lines -- labels found: Federal Tax ID Number, Vendor Number, RQID
+         *
+         * @param textResult the successful extraction result to diagnose
+         * @param lineYTolerance tolerance for reconstructing lines (default 5.0f)
+         * @return multi-line diagnostic string (safe to log — contains no PHI)
+         */
+        fun dumpPageTexts(
+            textResult: ExtractionResult.Success,
+            lineYTolerance: Float = 5.0f,
+        ): String {
+            val parser = FieldParser(lineYTolerance)
+            val pageTexts = parser.reconstructPageTexts(textResult)
+
+            val knownLabels = listOf(
+                "Date:", "Case ID:", "RE:", "DOB:", "Applicant:",
+                "Authorization #:", "Authorization Number:",
+                "Federal Tax ID Number:", "Federal Tax ID:",
+                "Fed Tax ID:", "Vendor Number:", "RQID:",
+                "Claimant Information", "Date and Time",
+                "Services Authorized", "Code:", "CELL #",
+                "Assigned",
+            )
+
+            return pageTexts.mapIndexed { index, text ->
+                val lineCount = if (text.isBlank()) 0 else text.lines().size
+                val foundLabels = knownLabels.filter { label -> label in text }
+                val labelsStr = if (foundLabels.isEmpty()) "(none)" else foundLabels.joinToString(", ")
+                "[Page ${index + 1}] $lineCount lines -- labels found: $labelsStr"
+            }.joinToString("\n")
+        }
+    }
 }
