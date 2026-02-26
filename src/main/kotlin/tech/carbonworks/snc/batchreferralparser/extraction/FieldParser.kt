@@ -273,10 +273,12 @@ class FieldParser(
         val caseId = match.groupValues[2].trim()
         val reName = match.groupValues[3].trim()
         val dob = match.groupValues[4].trim()
-        val applicantName = match.groupValues[5].trim()
+        val rawApplicantName = match.groupValues[5].trim()
         val authorizationNumber = match.groupValues[6].trim()
 
         val (firstName, middleName, lastName) = parseNameParts(reName)
+        // B11 fix: apply CamelCase splitting to applicant name
+        val applicantName = splitCamelCaseName(rawApplicantName)
 
         return HeaderFields(
             dateOfIssue = dateOfIssue,
@@ -299,7 +301,10 @@ class FieldParser(
     private fun extractHeaderFieldsIndividually(pageTexts: List<String>): HeaderFields {
         val allText = pageTexts.joinToString("\n")
 
-        val dateRegex = Regex("""Date:\s*(\S+)""")
+        // B9 fix: require a date-like pattern after "Date:" to avoid capturing
+        // nearby form instructions like "Do not write in this space".
+        // Accepts: "MM/DD/YYYY", "Month DD, YYYY", "Month D, YYYY"
+        val dateRegex = Regex("""Date:\s*(\d{1,2}/\d{1,2}/\d{2,4}|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s*\d{4})""")
         val caseIdRegex = Regex("""Case ID:\s*(\S+)""")
         val reRegex = Regex("""RE:\s*(.+?)(?:\s*DOB:|\s*Applicant:|\s*Authorization\s*#:|\s*$)""",
             RegexOption.DOT_MATCHES_ALL)
@@ -314,7 +319,9 @@ class FieldParser(
         val authorizationNumber = authRegex.find(allText)?.groupValues?.get(1)?.trim()
 
         val reName = reRegex.find(allText)?.groupValues?.get(1)?.trim()
+        // B11 fix: apply CamelCase splitting to applicant name
         val applicantName = applicantRegex.find(allText)?.groupValues?.get(1)?.trim()
+            ?.let { splitCamelCaseName(it) }
 
         var firstName: String? = null
         var middleName: String? = null
@@ -344,11 +351,24 @@ class FieldParser(
     }
 
     /**
-     * Parse a name string into (firstName, middleName, lastName) components.
+     * Split a CamelCase name string into space-separated words.
      *
-     * Handles camelCase-like concatenation where PDFBox merges name parts without
-     * spaces (e.g., "JohnMichaelSmith") by inserting spaces before uppercase letters
-     * that follow lowercase letters.
+     * PDFBox sometimes concatenates adjacent text blocks without spaces, producing
+     * names like "JohnSmith" instead of "John Smith". This inserts a space before
+     * each uppercase letter that follows a lowercase letter.
+     *
+     * Examples:
+     *   "JaneSmith" -> "Jane Smith"
+     *   "JohnMichaelDoe" -> "John Michael Doe"
+     *   "ALLCAPS" -> "ALLCAPS" (unchanged — no lowercase-to-uppercase transition)
+     *   "Already Spaced" -> "Already Spaced" (unchanged)
+     */
+    internal fun splitCamelCaseName(name: String): String {
+        return name.replace(Regex("""(?<=[a-z])(?=[A-Z])"""), " ")
+    }
+
+    /**
+     * Parse a full name string into (first, middle, last) components.
      */
     internal fun parseNameParts(reName: String): Triple<String?, String?, String?> {
         // If the name has no spaces but has internal uppercase transitions
@@ -375,16 +395,6 @@ class FieldParser(
         }
     }
 
-    /**
-     * Insert spaces before uppercase letters that follow a lowercase letter.
-     * Handles camelCase-like name concatenation from PDFBox.
-     *
-     * Example: "JohnMichaelSmith" -> "John Michael Smith"
-     */
-    internal fun splitCamelCaseName(name: String): String {
-        return name.replace(Regex("([a-z])([A-Z])"), "$1 $2")
-    }
-
     // -----------------------------------------------------------------------
     // Case number components (footer pattern)
     // -----------------------------------------------------------------------
@@ -398,13 +408,16 @@ class FieldParser(
      * should not be captured. The regex stops the DCC capture at the next / or end of text.
      */
     internal fun extractCaseNumberComponents(pageTexts: List<String>): CaseFields {
-        // More robust footer regex:
-        // 1. Case number: non-slash token before "/ Assigned"
-        // 2. Assigned code: digits after "Assigned"
-        // 3. Optional "null/" and optional agency code + "/"
-        // 4. DCC number: next non-slash, non-whitespace token, stopping before "/" or end
+        // B10 fix: flexible footer regex that handles spaces around slashes.
+        // Real PDF footer text from PDFBox may have varied whitespace around "/" separators.
+        // Example: "CASENUMBER/ Assigned 9106 null/ DCPS / REQUESTID / OMB No. 0960-0555 / 98022179"
+        // - \s*/\s* or \s*/ between components allows spaces around slashes
+        // - (?:null\s*/\s*)? makes "null/" or "null /" optional
+        // - (?:[A-Z]+\s*/\s*)? makes the agency code (DCPS /) optional
+        // - (\S+) captures the request ID / DCC number before the next " /" or end-of-line
         val footerRegex = Regex(
-            """(\S+)/\s*Assigned\s+(\d+)\s+(?:null/\s*)?(?:[A-Z]+\s*/\s*)?(\S+?)(?:\s*/|\s*$)"""
+            """(\S+)\s*/\s*Assigned\s+(\d+)\s+(?:null\s*/\s*)?(?:[A-Z]+\s*/\s*)?(\S+)""",
+            RegexOption.MULTILINE,
         )
 
         // Search each page individually

@@ -1117,4 +1117,179 @@ class FieldParserTest {
         assertEquals("JANE SMITH", result.fields.applicantName)
         assertEquals("AUTH-ABCD-1234", result.fields.authorizationNumber)
     }
+
+    // ===================================================================
+    // B9: Date of Issue parses to wrong value ("Donotwrite...")
+    // ===================================================================
+
+    @Test
+    fun `B9 date of issue does not capture Do-not-write instruction text`() {
+        // Simulates PDFBox output where "Date:" label and "Do not write..." form
+        // instruction text are on nearby lines, and individual fallback is used.
+        // Before the fix, the dateRegex captured "Donotwriteintheblocks..." as the date.
+        val input = multiLineTextResult(
+            "Date:",
+            "Do not write in the blocks below - For DDS USE ONLY",
+            "Some other content",
+        )
+
+        val result = parser.parse(input)
+
+        // The date field should be null — "Do not write..." is not a valid date
+        assertNull(result.fields.dateOfIssue,
+            "Date of Issue should be null when only 'Do not write' text follows the Date: label")
+    }
+
+    @Test
+    fun `B9 date of issue extracts MM-DD-YYYY format correctly`() {
+        val input = multiLineTextResult(
+            "Date: 09/15/2024",
+            "Do not write in the blocks below - For DDS USE ONLY",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("09/15/2024", result.fields.dateOfIssue)
+    }
+
+    @Test
+    fun `B9 date of issue extracts month-name format correctly`() {
+        // This is the real format seen in the sample PDFs
+        val input = multiLineTextResult(
+            "Date: August 13, 2024",
+            "Do not write in the blocks below - For DDS USE ONLY",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("August 13, 2024", result.fields.dateOfIssue)
+    }
+
+    @Test
+    fun `B9 date of issue rejects concatenated instruction text`() {
+        // Simulates the worst case: PDFBox concatenates "Date:" with the instruction
+        // text on the same line without spaces (as reported in the bug)
+        val input = textResult(
+            "Date: Donotwriteintheblocksbelow Case ID: ABC-123"
+        )
+
+        val result = parser.parse(input)
+
+        // The individual fallback date regex should NOT match "Donotwrite..."
+        assertNull(result.fields.dateOfIssue,
+            "Date of Issue should be null for non-date text like 'Donotwrite...'")
+        // But Case ID should still be extracted
+        assertEquals("ABC-123", result.fields.caseId)
+    }
+
+    // ===================================================================
+    // B10: Footer pattern does not match real PDF footer text
+    // ===================================================================
+
+    @Test
+    fun `B10 footer matches real PDF text with spaces around slashes`() {
+        // Real docling-extracted footer text (with sanitized values):
+        // "CASENUMBER/ Assigned 9106 null/ DCPS / REQUESTID / OMB No. 0960-0555 / 98022179"
+        val input = textResult(
+            "BHA-12345-CE/ Assigned 9106 null/ DCPS / DCC-9999 / OMB No. 0960-0555 / 98022179"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("BHA-12345-CE", result.fields.caseNumberFullFooter)
+        assertEquals("9106", result.fields.assignedCode)
+        assertEquals("DCC-9999", result.fields.dccNumber)
+    }
+
+    @Test
+    fun `B10 footer matches when slashes have spaces on both sides`() {
+        // PDFBox may add spaces before and after slashes
+        val input = textResult(
+            "BHA-77777-CE / Assigned 4321 null / DCPS / DCC-8888"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("BHA-77777-CE", result.fields.caseNumberFullFooter)
+        assertEquals("4321", result.fields.assignedCode)
+        assertEquals("DCC-8888", result.fields.dccNumber)
+    }
+
+    @Test
+    fun `B10 footer matches with extra trailing fields after request ID`() {
+        // The real footer has "/ OMB No. ..." after the request ID
+        val input = multiLineTextResult(
+            "BHA-55555-CE/ Assigned 9106 null/ DCPS / REQ-1234 / OMB No. 0960-0555 / 98022179",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("BHA-55555-CE", result.fields.caseNumberFullFooter)
+        assertEquals("9106", result.fields.assignedCode)
+        assertEquals("REQ-1234", result.fields.dccNumber)
+    }
+
+    // ===================================================================
+    // B11: Applicant name not separated with spaces
+    // ===================================================================
+
+    @Test
+    fun `B11 applicant name splits CamelCase into spaced words`() {
+        // When PDFBox concatenates name blocks without spaces: "JaneSmith"
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 Applicant: JaneSmith Authorization #: AUTH-999"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Jane Smith", result.fields.applicantName,
+            "CamelCase applicant name should be split into spaced words")
+    }
+
+    @Test
+    fun `B11 applicant name with three CamelCase parts`() {
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 Applicant: JaneMarieDoe Authorization #: AUTH-999"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Jane Marie Doe", result.fields.applicantName,
+            "Three-part CamelCase applicant name should be fully split")
+    }
+
+    @Test
+    fun `B11 already-spaced applicant name is unchanged`() {
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 Applicant: Jane Smith Authorization #: AUTH-999"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Jane Smith", result.fields.applicantName,
+            "Already-spaced applicant name should remain unchanged")
+    }
+
+    @Test
+    fun `B11 applicant name split works in individual fallback path`() {
+        // Only applicant and auth fields — triggers individual fallback, not combined regex
+        val input = textResult(
+            "Applicant: JohnDoe Authorization #: AUTH-SOLO"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("John Doe", result.fields.applicantName,
+            "CamelCase applicant name should be split even in individual fallback path")
+    }
+
+    @Test
+    fun `splitCamelCaseName handles edge cases`() {
+        assertEquals("Jane Smith", parser.splitCamelCaseName("JaneSmith"))
+        assertEquals("John Michael Doe", parser.splitCamelCaseName("JohnMichaelDoe"))
+        assertEquals("ALLCAPS", parser.splitCamelCaseName("ALLCAPS"))
+        assertEquals("Already Spaced", parser.splitCamelCaseName("Already Spaced"))
+        assertEquals("a", parser.splitCamelCaseName("a"))
+        assertEquals("", parser.splitCamelCaseName(""))
+    }
 }
