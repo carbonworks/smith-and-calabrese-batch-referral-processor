@@ -1,9 +1,7 @@
 package tech.carbonworks.snc.batchreferralparser.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,13 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.HorizontalScrollbar
-import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,8 +31,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
+import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
-import tech.carbonworks.snc.batchreferralparser.ui.components.CwAccentButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwCard
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
@@ -55,8 +49,8 @@ import java.awt.Desktop
 import java.io.File
 
 /**
- * Results screen: displays extracted data preview, error summary, warnings summary,
- * and save-to-XLSX action.
+ * Results screen: displays extracted data as per-PDF referral cards, error summary,
+ * warnings summary, and save-to-XLSX action.
  *
  * @param results the list of processing results (successes and failures)
  * @param onStartOver callback to return to the file selection screen
@@ -247,14 +241,13 @@ fun ResultsScreen(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Data preview table
+        // Data preview — per-PDF referral cards
         SectionHeader(text = "Data Preview")
 
-        CwCard(
-            modifier = Modifier.weight(1f),
-        ) {
-            if (referralFields.isEmpty()) {
-                println("[Results] Table: referralFields is EMPTY -- showing 'No data to preview'")
+        if (successResults.isEmpty()) {
+            CwCard(
+                modifier = Modifier.weight(1f),
+            ) {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(32.dp),
                     contentAlignment = Alignment.Center,
@@ -265,77 +258,15 @@ fun ResultsScreen(
                         color = SoftGray,
                     )
                 }
-            } else {
-                val horizontalScroll = rememberScrollState()
-                val columnHeadings = SpreadsheetWriter.COLUMN_HEADINGS
-                val rowData = referralFields.map { extractRowValues(it) }
-                println("[Results] Table: ${rowData.size} row(s), ${columnHeadings.size} column(s)")
-                for ((i, row) in rowData.withIndex()) {
-                    val nonEmpty = row.count { it.isNotEmpty() }
-                    val populatedCols = row.withIndex()
-                        .filter { it.value.isNotEmpty() }
-                        .joinToString(", ") { "[${it.index}] ${columnHeadings[it.index]}" }
-                    println("[Results]   Row $i: $nonEmpty/${row.size} non-empty -- columns: $populatedCols")
-                }
-
-                val verticalScroll = rememberScrollState()
-
-                Box(modifier = Modifier.fillMaxSize()) {
-                    SelectionContainer(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(end = 12.dp, bottom = 12.dp),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .horizontalScroll(horizontalScroll)
-                                .verticalScroll(verticalScroll),
-                        ) {
-                            // Header row
-                            Row(
-                                modifier = Modifier
-                                    .background(LightGray.copy(alpha = 0.4f))
-                                    .padding(horizontal = 4.dp),
-                            ) {
-                                // Row number column
-                                TableHeaderCell(text = "#", width = 40)
-                                for (heading in columnHeadings) {
-                                    TableHeaderCell(text = heading, width = 140)
-                                }
-                            }
-
-                            // Data rows
-                            for ((rowIndex, row) in rowData.withIndex()) {
-                                Row(
-                                    modifier = Modifier
-                                        .background(CleanWhite)
-                                        .padding(horizontal = 4.dp),
-                                ) {
-                                    TableDataCell(
-                                        text = "${rowIndex + 1}",
-                                        width = 40,
-                                    )
-                                    for (value in row) {
-                                        TableDataCell(
-                                            text = value,
-                                            width = 140,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Visible, draggable scrollbars
-                    VerticalScrollbar(
-                        adapter = rememberScrollbarAdapter(verticalScroll),
-                        modifier = Modifier.align(Alignment.CenterEnd),
-                    )
-                    HorizontalScrollbar(
-                        adapter = rememberScrollbarAdapter(horizontalScroll),
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                            .padding(end = 12.dp),
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(successResults) { result ->
+                    ReferralCard(
+                        processedReferral = result,
                     )
                 }
             }
@@ -386,6 +317,301 @@ fun ResultsScreen(
     }
 }
 
+/**
+ * A single referral card showing extracted data from one PDF.
+ *
+ * Layout:
+ * - Header: source filename + "Open PDF" link
+ * - Body: left column (patient metadata) + right column (services)
+ * - Footer: invoice/case footer fields
+ */
+@Composable
+private fun ReferralCard(
+    processedReferral: ProcessedReferral,
+) {
+    val fields = processedReferral.fields ?: return
+    val file = processedReferral.file
+
+    CwCard {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Card header — filename + Open PDF link
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = file.name,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DeepInk,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                OpenPdfLink(file = file)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = LightGray, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Body — patient metadata (left) + services (right)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // Left side — patient metadata (~60%)
+                Column(modifier = Modifier.weight(0.6f)) {
+                    PatientMetadataSection(fields = fields)
+                }
+
+                // Right side — services (~40%)
+                Column(modifier = Modifier.weight(0.4f)) {
+                    ServicesSection(services = fields.services)
+                }
+            }
+
+            // Footer — invoice/case fields (only if any are present)
+            val hasFooterFields = listOf(
+                fields.federalTaxId,
+                fields.vendorNumber,
+                fields.caseNumberFullFooter,
+                fields.assignedCode,
+                fields.dccNumber,
+            ).any { !it.isNullOrEmpty() }
+
+            if (hasFooterFields) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = LightGray, thickness = 1.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+                FooterSection(fields = fields)
+            }
+        }
+    }
+}
+
+/**
+ * Clickable "Open PDF" text that opens the file in the OS default PDF reader.
+ * Handles missing Desktop support gracefully.
+ */
+@Composable
+private fun OpenPdfLink(file: File) {
+    val desktopSupported = remember {
+        try {
+            Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    if (desktopSupported) {
+        Text(
+            text = "Open PDF",
+            fontSize = 13.sp,
+            color = BrandGreen,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.clickable {
+                try {
+                    Desktop.getDesktop().open(file)
+                } catch (e: Exception) {
+                    println("[Results] Failed to open PDF: ${e.message}")
+                }
+            },
+        )
+    }
+}
+
+/**
+ * Patient metadata displayed as label/value pairs, skipping empty fields.
+ */
+@Composable
+private fun PatientMetadataSection(fields: ReferralFields) {
+    // Build full name from parts
+    val fullName = listOfNotNull(
+        fields.firstName,
+        fields.middleName,
+        fields.lastName,
+    ).filter { it.isNotEmpty() }.joinToString(" ")
+
+    // Build address line
+    val addressParts = listOfNotNull(
+        fields.streetAddress,
+    ).filter { it.isNotEmpty() }
+    val cityStateZip = listOfNotNull(
+        fields.city,
+        fields.state,
+    ).filter { it.isNotEmpty() }.joinToString(", ").let { csz ->
+        if (csz.isNotEmpty() && !fields.zipCode.isNullOrEmpty()) {
+            "$csz ${fields.zipCode}"
+        } else if (!fields.zipCode.isNullOrEmpty()) {
+            fields.zipCode
+        } else {
+            csz
+        }
+    }
+
+    val metadataFields = buildList {
+        if (fullName.isNotEmpty()) add("Claimant" to fullName)
+        if (!fields.dob.isNullOrEmpty()) add("DOB" to fields.dob)
+        if (!fields.caseId.isNullOrEmpty()) add("Case ID" to fields.caseId)
+        if (!fields.authorizationNumber.isNullOrEmpty()) add("Authorization #" to fields.authorizationNumber)
+        if (!fields.requestId.isNullOrEmpty()) add("Request ID" to fields.requestId)
+        if (!fields.dateOfIssue.isNullOrEmpty()) add("Date of Issue" to fields.dateOfIssue)
+        if (!fields.applicantName.isNullOrEmpty()) add("Applicant" to fields.applicantName)
+        if (!fields.appointmentDate.isNullOrEmpty()) add("Appointment" to buildString {
+            append(fields.appointmentDate)
+            if (!fields.appointmentTime.isNullOrEmpty()) {
+                append(" at ")
+                append(fields.appointmentTime)
+            }
+        })
+        if (addressParts.isNotEmpty()) add("Address" to addressParts.joinToString(", "))
+        if (cityStateZip.isNotEmpty()) add("" to cityStateZip)
+        if (!fields.phone.isNullOrEmpty()) add("Phone" to fields.phone)
+    }
+
+    for ((label, value) in metadataFields) {
+        MetadataRow(label = label, value = value)
+    }
+}
+
+/**
+ * A single label/value row in the metadata section.
+ */
+@Composable
+private fun MetadataRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        if (label.isNotEmpty()) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = SoftGray,
+                modifier = Modifier.width(100.dp),
+            )
+        } else {
+            // Continuation line (e.g., city/state/zip under address)
+            Spacer(modifier = Modifier.width(100.dp))
+        }
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = DeepInk,
+        )
+    }
+}
+
+/**
+ * Services authorized section showing CPT code, description, and fee per service.
+ */
+@Composable
+private fun ServicesSection(services: List<ServiceLine>) {
+    Text(
+        text = "Services Authorized",
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        color = DeepInk,
+        modifier = Modifier.padding(bottom = 6.dp),
+    )
+
+    if (services.isEmpty()) {
+        Text(
+            text = "No services found",
+            fontSize = 12.sp,
+            color = SoftGray,
+        )
+    } else {
+        for ((index, service) in services.withIndex()) {
+            if (index > 0) {
+                Spacer(modifier = Modifier.height(4.dp))
+                HorizontalDivider(color = LightGray.copy(alpha = 0.6f), thickness = 0.5.dp)
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+            ServiceItem(service = service)
+        }
+    }
+}
+
+/**
+ * A single service line item display.
+ */
+@Composable
+private fun ServiceItem(service: ServiceLine) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = service.cptCode,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                fontFamily = FontFamily.Monospace,
+                color = DeepInk,
+            )
+            if (!service.fee.isNullOrEmpty()) {
+                Text(
+                    text = service.fee,
+                    fontSize = 13.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = DeepInk,
+                )
+            }
+        }
+        if (!service.description.isNullOrEmpty()) {
+            Text(
+                text = service.description,
+                fontSize = 11.sp,
+                color = SoftGray,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/**
+ * Footer section showing invoice/case fields in a subtle secondary style.
+ */
+@Composable
+private fun FooterSection(fields: ReferralFields) {
+    val footerFields = buildList {
+        if (!fields.federalTaxId.isNullOrEmpty()) add("Federal Tax ID" to fields.federalTaxId)
+        if (!fields.vendorNumber.isNullOrEmpty()) add("Vendor Number" to fields.vendorNumber)
+        if (!fields.caseNumberFullFooter.isNullOrEmpty()) add("Case Number" to fields.caseNumberFullFooter)
+        if (!fields.assignedCode.isNullOrEmpty()) add("Assigned Code" to fields.assignedCode)
+        if (!fields.dccNumber.isNullOrEmpty()) add("DCC Number" to fields.dccNumber)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
+    ) {
+        for ((label, value) in footerFields) {
+            Column {
+                Text(
+                    text = label,
+                    fontSize = 11.sp,
+                    color = SoftGray,
+                )
+                Text(
+                    text = value,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = DeepInk,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun SummaryCard(
     label: String,
@@ -412,79 +638,6 @@ private fun SummaryCard(
             )
         }
     }
-}
-
-@Composable
-private fun TableHeaderCell(text: String, width: Int) {
-    Box(
-        modifier = Modifier
-            .width(width.dp)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
-    ) {
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = DeepInk,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
-private fun TableDataCell(
-    text: String,
-    width: Int,
-    backgroundColor: Color = Color.Transparent,
-) {
-    Box(
-        modifier = Modifier
-            .width(width.dp)
-            .background(backgroundColor)
-            .padding(horizontal = 4.dp, vertical = 6.dp),
-    ) {
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            fontFamily = FontFamily.Monospace,
-            color = DeepInk,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/**
- * Extract display values from a ReferralFields in the same order as SpreadsheetWriter.COLUMN_HEADINGS.
- */
-private fun extractRowValues(referral: ReferralFields): List<String> {
-    val services = referral.services.joinToString(", ") { it.cptCode }
-
-    return listOf(
-        referral.firstName.orEmpty(),
-        referral.middleName.orEmpty(),
-        referral.lastName.orEmpty(),
-        referral.caseId.orEmpty(),
-        referral.authorizationNumber.orEmpty(),
-        referral.requestId.orEmpty(),
-        referral.dateOfIssue.orEmpty(),
-        referral.dob.orEmpty(),
-        referral.applicantName.orEmpty(),
-        referral.appointmentDate.orEmpty(),
-        referral.appointmentTime.orEmpty(),
-        referral.streetAddress.orEmpty(),
-        referral.city.orEmpty(),
-        referral.state.orEmpty(),
-        referral.zipCode.orEmpty(),
-        referral.phone.orEmpty(),
-        services,
-        referral.federalTaxId.orEmpty(),
-        referral.vendorNumber.orEmpty(),
-        referral.caseNumberFullFooter.orEmpty(),
-        referral.assignedCode.orEmpty(),
-        referral.dccNumber.orEmpty(),
-    )
 }
 
 /**
