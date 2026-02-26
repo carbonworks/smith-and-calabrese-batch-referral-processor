@@ -58,28 +58,33 @@ class FieldParserTest {
     }
 
     /**
-     * Build an [ExtractionResult.Success] where text blocks are placed on
-     * multiple Y coordinates within the same page, simulating multi-line
-     * PDF extraction output.
+     * Build an [ExtractionResult.Success] from lines of text, where each line
+     * is placed at a different Y coordinate to simulate PDFBox producing text
+     * blocks at different vertical positions on the page.
      *
-     * @param lines list of text strings, each placed on a different Y coordinate
-     * @param ySpacing vertical spacing between lines in PDF units
+     * Each string in [lines] represents a separate line. Words within a line
+     * share the same Y coordinate; different lines have Y offsets of 20 units.
+     * This helper is critical for testing cross-line extraction scenarios.
+     *
+     * @param pageNumber the page number for all text blocks (default 1)
+     * @param lines the text lines, each at a different Y coordinate
      */
     private fun multiLineTextResult(
         vararg lines: String,
-        ySpacing: Float = 15f,
+        pageNumber: Int = 1,
     ): ExtractionResult.Success {
-        val allBlocks = mutableListOf<TextBlock>()
+        val blocks = mutableListOf<TextBlock>()
         for ((lineIndex, line) in lines.withIndex()) {
             val words = line.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            val yCoord = 100f + lineIndex * 20f
             for ((wordIndex, word) in words.withIndex()) {
-                allBlocks.add(
+                blocks.add(
                     TextBlock(
                         text = word,
-                        pageNumber = 1,
+                        pageNumber = pageNumber,
                         boundingBox = BoundingBox(
                             x = wordIndex * 50f,
-                            y = 100f + lineIndex * ySpacing,
+                            y = yCoord,
                             width = word.length * 6f,
                             height = 12f,
                         ),
@@ -89,11 +94,11 @@ class FieldParserTest {
             }
         }
         val page = PageInfo(
-            pageNumber = 1,
+            pageNumber = pageNumber,
             width = 612f,
             height = 792f,
-            hasText = allBlocks.isNotEmpty(),
-            textBlocks = allBlocks,
+            hasText = blocks.isNotEmpty(),
+            textBlocks = blocks,
         )
         return ExtractionResult.Success(pages = listOf(page), sourceFile = "test.pdf")
     }
@@ -794,5 +799,322 @@ class FieldParserTest {
         val footerWarnings = result.warnings.filter { it.stage == "footer" }
         assertTrue(footerWarnings.isNotEmpty(), "Should have footer warning when 'Assigned' label is present")
         assertEquals("Case Number (Footer)", footerWarnings[0].field)
+    }
+
+    // ===================================================================
+    // Bug regression tests (WP-12)
+    // ===================================================================
+
+    // -------------------------------------------------------------------
+    // B2: Full name concatenated into firstName without spaces
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `B2 - camelCase name is split into first middle last`() {
+        // PDFBox produces "John", "Michael", "Smith" as separate text blocks at
+        // slightly different Y positions that cause them to merge into a single
+        // token "JohnMichaelSmith" during header matching
+        val input = textResult(
+            "Date: August 13, 2024 Case ID: BHA-12345-CE RE: JohnMichaelSmith DOB: August 1, 2015 Applicant: JANE SMITH Authorization #: AUTH-ABCD-1234"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("John", result.fields.firstName)
+        assertEquals("Michael", result.fields.middleName)
+        assertEquals("Smith", result.fields.lastName)
+    }
+
+    @Test
+    fun `B2 - splitCamelCaseName handles various patterns`() {
+        assertEquals("John Michael Smith", parser.splitCamelCaseName("JohnMichaelSmith"))
+        assertEquals("Alice Johnson", parser.splitCamelCaseName("AliceJohnson"))
+        assertEquals("JOHN", parser.splitCamelCaseName("JOHN")) // All caps unchanged
+        assertEquals("john", parser.splitCamelCaseName("john")) // All lower unchanged
+    }
+
+    @Test
+    fun `B2 - name blocks at different Y positions still parse correctly`() {
+        // Simulate PDFBox producing name parts at slightly different Y coordinates
+        // that get reconstructed into separate lines, then collapsed by header matching
+        val input = multiLineTextResult(
+            "Date: August 13, 2024 Case ID: BHA-12345-CE",
+            "RE: JOHN MICHAEL SMITH DOB: August 1, 2015",
+            "Applicant: JANE SMITH Authorization #: AUTH-ABCD-1234"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("JOHN", result.fields.firstName)
+        assertEquals("MICHAEL", result.fields.middleName)
+        assertEquals("SMITH", result.fields.lastName)
+        assertEquals("BHA-12345-CE", result.fields.caseId)
+        assertEquals("AUTH-ABCD-1234", result.fields.authorizationNumber)
+    }
+
+    // -------------------------------------------------------------------
+    // B3: Case ID not extracted when split across lines
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `B3 - case ID extracted when Case and ID are on different lines`() {
+        // PDFBox splits "Case" and "ID:" across text blocks at different Y positions
+        val input = multiLineTextResult(
+            "Date: August 13, 2024 Case",
+            "ID: BHA-12345-CE RE: JOHN SMITH",
+            "DOB: August 1, 2015 Applicant: JANE SMITH Authorization #: AUTH-ABCD-1234"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("BHA-12345-CE", result.fields.caseId)
+    }
+
+    @Test
+    fun `B3 - case ID fallback extracts from concatenated all-pages text`() {
+        // Case ID appears on a page without the full header pattern,
+        // so the individual fallback is needed
+        val input = multiLineTextResult(
+            "Some unrelated text on page",
+            "Case ID: BHA-99999-CE",
+            "More unrelated text follows here"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("BHA-99999-CE", result.fields.caseId)
+    }
+
+    // -------------------------------------------------------------------
+    // B4: Request ID not extracted when RQID split across lines
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `B4 - RQID extracted when label and value are on different lines`() {
+        val input = multiLineTextResult(
+            "Federal Tax ID Number: 923618220",
+            "RQID:",
+            "RQ-348145"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("RQ-348145", result.fields.requestId)
+    }
+
+    @Test
+    fun `B4 - RQID extracted when concatenated with no space`() {
+        // Docling shows "RQID:RQ-348145" as a single text element
+        val input = textResult(
+            "RQID:RQ-348145"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("RQ-348145", result.fields.requestId)
+    }
+
+    @Test
+    fun `B4 - RQID extracted with space between colon and value`() {
+        val input = textResult(
+            "RQID: RQ-348145"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("RQ-348145", result.fields.requestId)
+    }
+
+    // -------------------------------------------------------------------
+    // B6: Street address not extracted when state and zip concatenated
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `B6 - claimant cell with no space between state and zip`() {
+        val tables = tableWith(
+            "Claimant Information JOHN DOE 123 MAIN ST ANYTOWN, MD21201 410-555-1234"
+        )
+        val input = textResult("")
+
+        val result = parser.parse(input, tables)
+
+        assertEquals("JOHN DOE", parser.parseClaimantCell(
+            "Claimant Information JOHN DOE 123 MAIN ST ANYTOWN, MD21201 410-555-1234"
+        ).nameFromTable)
+        assertEquals("123 MAIN ST", result.fields.streetAddress)
+        assertEquals("ANYTOWN", result.fields.city)
+        assertEquals("MD", result.fields.state)
+        assertEquals("21201", result.fields.zipCode)
+        assertEquals("410-555-1234", result.fields.phone)
+    }
+
+    @Test
+    fun `B6 - claimant cell with three-part name and no space state-zip`() {
+        val tables = tableWith(
+            "Claimant Information JOHN MICHAEL SMITH 123 MAIN ST ANYTOWN, MD21201 410-555-1234"
+        )
+        val input = textResult("")
+
+        val result = parser.parse(input, tables)
+
+        assertEquals("123 MAIN ST", result.fields.streetAddress)
+        assertEquals("ANYTOWN", result.fields.city)
+        assertEquals("MD", result.fields.state)
+        assertEquals("21201", result.fields.zipCode)
+        assertEquals("410-555-1234", result.fields.phone)
+    }
+
+    @Test
+    fun `B6 - claimant cell with zip plus four`() {
+        val tables = tableWith(
+            "Claimant Information JOHN DOE 456 OAK AVE SPRINGFIELD, VA22150-1234 703-555-6789"
+        )
+        val input = textResult("")
+
+        val result = parser.parse(input, tables)
+
+        assertEquals("456 OAK AVE", result.fields.streetAddress)
+        assertEquals("SPRINGFIELD", result.fields.city)
+        assertEquals("VA", result.fields.state)
+        assertEquals("22150-1234", result.fields.zipCode)
+    }
+
+    // -------------------------------------------------------------------
+    // B7: Federal Tax ID and Vendor Number cross-line label extraction
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `B7 - federal tax id extracted when value on next line`() {
+        val input = multiLineTextResult(
+            "Federal Tax ID Number:",
+            "923618220",
+            "Vendor Number:",
+            "V-5678"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("923618220", result.fields.federalTaxId)
+        assertEquals("V-5678", result.fields.vendorNumber)
+    }
+
+    @Test
+    fun `B7 - vendor number extracted when value on next line`() {
+        val input = multiLineTextResult(
+            "some text above",
+            "Vendor Number:",
+            "V-5678",
+            "Authorization Number:",
+            "AUTH-ABCD-1234"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("V-5678", result.fields.vendorNumber)
+        assertEquals("AUTH-ABCD-1234", result.fields.authorizationNumber)
+    }
+
+    @Test
+    fun `B7 - authorization number extracted when value on next line`() {
+        val input = multiLineTextResult(
+            "Authorization Number:",
+            "AUTH-ABCD-1234",
+            "RQID:RQ-348145"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("AUTH-ABCD-1234", result.fields.authorizationNumber)
+        assertEquals("RQ-348145", result.fields.requestId)
+    }
+
+    @Test
+    fun `B7 - all invoice fields extract from realistic multi-line layout`() {
+        // Simulates the real docling output where each label/value is on its own line
+        val input = multiLineTextResult(
+            "Federal Tax ID Number: 923618220",
+            "Vendor Number:",
+            "923618220",
+            "Authorization Number:",
+            "AUTH-ABCD-1234",
+            "RQID:RQ-348145"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("923618220", result.fields.federalTaxId)
+        assertEquals("923618220", result.fields.vendorNumber)
+        assertEquals("AUTH-ABCD-1234", result.fields.authorizationNumber)
+        assertEquals("RQ-348145", result.fields.requestId)
+    }
+
+    // -------------------------------------------------------------------
+    // B8: Footer case number, assigned code, DCC number not extracted
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `B8 - footer with trailing OMB and number extracts correctly`() {
+        // Full footer with trailing /-separated components that should not be captured
+        val input = textResult(
+            "BHA-12345-CE/ Assigned 9106 null/ DCPS / DCC-9876 / OMB No. 0960-0555 / 98022179"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("BHA-12345-CE", result.fields.caseNumberFullFooter)
+        assertEquals("9106", result.fields.assignedCode)
+        assertEquals("DCC-9876", result.fields.dccNumber)
+    }
+
+    @Test
+    fun `B8 - footer without null and agency still extracts`() {
+        // Simpler footer without "null/" or agency code
+        val input = textResult(
+            "CASE-789/ Assigned 4321 DCC-5555 / OMB No. 0960-0555"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("CASE-789", result.fields.caseNumberFullFooter)
+        assertEquals("4321", result.fields.assignedCode)
+        assertEquals("DCC-5555", result.fields.dccNumber)
+    }
+
+    @Test
+    fun `B8 - footer as multi-line text still extracts`() {
+        // Footer split across lines should still work after collapse
+        val input = multiLineTextResult(
+            "BHA-12345-CE/ Assigned 9106 null/ DCPS /",
+            "DCC-9876 / OMB No. 0960-0555 / 98022179"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("BHA-12345-CE", result.fields.caseNumberFullFooter)
+        assertEquals("9106", result.fields.assignedCode)
+        assertEquals("DCC-9876", result.fields.dccNumber)
+    }
+
+    // -------------------------------------------------------------------
+    // Integration: docling-style full page header extraction
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `header extracts from docling-style single text element`() {
+        // Matches the real docling output format from the reference JSON
+        val input = textResult(
+            "Date: August 13, 2024 Case ID: BHA-12345-CE RE: JOHN MICHAEL SMITH DOB: August 1, 2015 Applicant: JANE SMITH Authorization #: AUTH-ABCD-1234"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("August 13, 2024", result.fields.dateOfIssue)
+        assertEquals("BHA-12345-CE", result.fields.caseId)
+        assertEquals("JOHN", result.fields.firstName)
+        assertEquals("MICHAEL", result.fields.middleName)
+        assertEquals("SMITH", result.fields.lastName)
+        assertEquals("August 1, 2015", result.fields.dob)
+        assertEquals("JANE SMITH", result.fields.applicantName)
+        assertEquals("AUTH-ABCD-1234", result.fields.authorizationNumber)
     }
 }
