@@ -15,6 +15,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import java.awt.Dimension
 import tech.carbonworks.snc.batchreferralparser.ui.screens.FileProcessingState
+import tech.carbonworks.snc.batchreferralparser.ui.screens.HelpScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.MainScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessedReferral
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessingScreen
@@ -30,6 +31,7 @@ enum class Screen {
     FILE_SELECTION,
     PROCESSING,
     RESULTS,
+    HELP,
 }
 
 fun main() = application {
@@ -67,6 +69,7 @@ fun App(window: java.awt.Window? = null) {
                             processingResults = emptyList()
                             currentScreen = Screen.PROCESSING
                         },
+                        onHelp = { currentScreen = Screen.HELP },
                         window = window,
                     )
                 }
@@ -99,6 +102,12 @@ fun App(window: java.awt.Window? = null) {
                             processingResults = emptyList()
                             currentScreen = Screen.FILE_SELECTION
                         },
+                    )
+                }
+
+                Screen.HELP -> {
+                    HelpScreen(
+                        onBack = { currentScreen = Screen.FILE_SELECTION },
                     )
                 }
             }

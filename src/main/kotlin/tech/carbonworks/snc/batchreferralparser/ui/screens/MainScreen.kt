@@ -109,6 +109,7 @@ fun MainScreen(
     files: List<File>,
     onFilesChanged: (List<File>) -> Unit,
     onProcess: () -> Unit,
+    onHelp: () -> Unit = {},
     window: java.awt.Window?,
 ) {
     var isDragOver by remember { mutableStateOf(false) }
@@ -191,17 +192,29 @@ fun MainScreen(
             .padding(32.dp),
     ) {
         // Header
-        Text(
-            text = "S&C Batch Referral Processor",
-            style = MaterialTheme.typography.headlineSmall,
-            color = DeepInk,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Select PDF referral files to extract structured data",
-            style = MaterialTheme.typography.bodyMedium,
-            color = SoftGray,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "S&C Batch Referral Processor",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = DeepInk,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Select PDF referral files to extract structured data",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SoftGray,
+                )
+            }
+            CwSecondaryButton(
+                text = "? Help",
+                onClick = onHelp,
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
