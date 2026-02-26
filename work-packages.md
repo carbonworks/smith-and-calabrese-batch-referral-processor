@@ -126,7 +126,7 @@ Build the Compose Desktop UI for the complete batch processing workflow:
 
 ## WP-6: Packaging — jpackage Installer
 
-**Status:** ready
+**Status:** done
 **Owns:** packaging config in `build.gradle.kts` (jpackage section), installer resources
 **Reads:** `docs/build-plan.md` (Section 10, D1 spec)
 **Touches:** none
@@ -142,6 +142,61 @@ Create distributable installers:
 6. No "install Java first" requirement — JRE is bundled
 
 **Acceptance:** .msi installs on Windows and runs the application. Bundled JRE — no external Java needed. App icon and window title show CW branding.
+
+---
+
+## WP-7: Remove Confidence Scoring (E2)
+
+**Status:** done
+**Owns:** `ReferralFields.kt`, `SpreadsheetWriter.kt`, `SpreadsheetWriterTest.kt`
+**Touches:** `FieldParser.kt`, `ResultsScreen.kt`, `ProcessingScreen.kt`
+**Depends on:** WP-1
+
+**Scope:**
+Remove the per-field confidence system — fields become plain `String?` instead of `ParsedField<String>`:
+1. Remove `Confidence` enum and `ParsedField` wrapper from `ReferralFields.kt`
+2. Delete `ConfidenceBadge.kt` composable
+3. Remove "Low Confidence Flag" column from XLSX output
+4. Remove confidence-colored UI highlighting from `ResultsScreen.kt`
+5. Simplify `FieldParser` merge logic
+
+**Acceptance:** All fields are `String?`. No confidence UI or XLSX column. Tests pass.
+
+---
+
+## WP-8: Remember Last File Picker Directory (E1)
+
+**Status:** done
+**Owns:** `MainScreen.kt`
+**Depends on:** WP-4
+
+**Scope:**
+Persist the last-used file picker directory across sessions:
+1. Use Java Preferences API to store/restore directory path
+2. Apply saved directory to JFileChooser on open
+3. Save directory after both file picker selection and drag-and-drop
+
+**Acceptance:** File picker opens to the last-used directory on subsequent launches.
+
+---
+
+## WP-9: Harden Field Extraction Regex Patterns (B1)
+
+**Status:** done
+**Owns:** `FieldParser.kt`, `FieldParserTest.kt`
+**Depends on:** WP-7
+
+**Scope:**
+Fix missing patient metadata extraction by hardening all regex patterns:
+1. Multi-line header matching with `DOT_MATCHES_ALL` and individual field fallbacks
+2. Case-insensitive invoice labels with alternate label variations
+3. Flexible footer regex with optional `null/` and agency code
+4. Cross-page search for all patterns
+5. Configurable `lineYTolerance` constructor parameter
+6. `dumpPageTexts()` PHI-safe diagnostic utility
+7. `reconstructPageTexts()` for proper line-grouped text reconstruction
+
+**Acceptance:** Header, invoice, and footer fields extract from test PDFs. 23 unit tests pass covering all patterns.
 
 ---
 

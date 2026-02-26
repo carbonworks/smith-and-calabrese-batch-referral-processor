@@ -138,50 +138,23 @@ Deliverable documents for Tyler and future maintainers.
 
 ## Bugs
 
-### B1. Most patient metadata fields not extracted
+### ~~B1. Most patient metadata fields not extracted~~ ✓ RESOLVED (WP-9)
 
-Only 7/23 fields are populated from test PDFs. The table-extracted fields work (Appointment Date, Appointment Time, City, State, ZIP, Phone, Services) but header, invoice, and footer fields are all empty:
-
-- **Header block** (First Name, Last Name, Case ID, DOB, Applicant, Authorization #, Date of Issue) — regex pattern `Date: ... Case ID: ... RE: ... DOB: ... Applicant: ... Authorization #:` not matching. Diagnostic logging shows whether the labels are present but the full pattern fails.
-- **Invoice fields** (Federal Tax ID, Vendor Number, Request ID) — regex patterns for `Federal Tax ID Number:`, `Vendor Number:`, `RQID:` not matching.
-- **Footer fields** (Case Number, Assigned Code, DCC Number) — `Assigned ... DCPS` pattern not matching.
-
-Line-structure reconstruction was added (Y-coordinate grouping with newlines) and footer regex was updated with MULTILINE flag, but fields are still not captured. Next steps:
-- Run with diagnostic `[FieldParser]` logging to identify whether labels exist in the text
-- If labels are present but regexes fail, the patterns need tuning for the actual PDF text layout
-- If labels are absent, the text extraction pipeline may need adjustment (e.g., word gap threshold, line tolerance)
-
-**Severity**: High — core extraction functionality
-**Depends on**: #2
+Fixed by hardening all regex patterns: multi-line header matching with DOT_MATCHES_ALL, individual field fallbacks, case-insensitive invoice labels, flexible footer regex with optional `null/` and agency code, cross-page search, configurable lineYTolerance, and `dumpPageTexts()` diagnostic utility.
 
 ---
 
 ## Enhancements
 
-### E1. Remember last file picker directory
+### ~~E1. Remember last file picker directory~~ ✓ RESOLVED (WP-8)
 
-Store the folder location of the most recently selected file and use it as the default directory when opening the file picker.
-
-- Persist across app sessions (e.g., Java Preferences API or a small config file)
-- On first launch or if the stored path no longer exists, fall back to the user's home directory
-- Update the stored path whenever files are selected via the file picker or drag-and-drop
-
-**Depends on**: #4
-**Priority**: Low — quality-of-life improvement
+Implemented via Java Preferences API. File picker and drag-and-drop both save/restore the last-used directory.
 
 ---
 
-### E2. Remove confidence scoring
+### ~~E2. Remove confidence scoring~~ ✓ RESOLVED (WP-7)
 
-Remove the per-field confidence system (HIGH/MEDIUM/LOW). The extraction algorithms are deterministic regex patterns, not fuzzy or ML-based — a field either matches or it doesn't. Confidence adds complexity without value.
-
-- Remove `Confidence` enum and `ParsedField` wrapper; fields become plain `String?`
-- Remove confidence-based UI highlighting (orange row/cell tinting, `ConfidenceBadge`)
-- Remove "Low Confidence Flag" column from XLSX output
-- Simplify `ReferralFields` and `FieldParser` merge logic
-
-**Depends on**: #2, #4
-**Priority**: Medium — reduces code complexity
+Removed `Confidence` enum, `ParsedField` wrapper, `ConfidenceBadge` composable, "Low Confidence Flag" XLSX column, and confidence-colored UI highlighting. All fields are now plain `String?`.
 
 ---
 
@@ -209,4 +182,4 @@ Tyler's input on field priorities and spreadsheet layout affects items #2, #3, a
 
 ---
 
-*Last updated: 2026-02-23*
+*Last updated: 2026-02-24*
