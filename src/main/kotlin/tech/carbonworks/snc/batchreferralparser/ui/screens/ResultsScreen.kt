@@ -45,6 +45,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.FilePathText
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
@@ -54,7 +55,8 @@ import java.awt.Desktop
 import java.io.File
 
 /**
- * Results screen: displays extracted data preview, error summary, and save-to-XLSX action.
+ * Results screen: displays extracted data preview, error summary, warnings summary,
+ * and save-to-XLSX action.
  *
  * @param results the list of processing results (successes and failures)
  * @param onStartOver callback to return to the file selection screen
@@ -66,17 +68,21 @@ fun ResultsScreen(
 ) {
     println("[Results] ResultsScreen composed with ${results.size} result(s)")
     for ((i, r) in results.withIndex()) {
-        println("[Results]   [$i] file=${r.file.name} fields=${r.fields != null} error=${r.error}")
+        val warnCount = r.warnings.size
+        println("[Results]   [$i] file=${r.file.name} fields=${r.fields != null} error=${r.error} warnings=$warnCount")
     }
 
     val successResults = results.filter { it.fields != null }
     val errorResults = results.filter { it.error != null }
+    val warningResults = results.filter { it.warnings.isNotEmpty() }
+    val totalWarnings = results.sumOf { it.warnings.size }
     val referralFields = successResults.mapNotNull { it.fields }
-    println("[Results] successResults=${successResults.size}, errorResults=${errorResults.size}, referralFields=${referralFields.size}")
+    println("[Results] successResults=${successResults.size}, errorResults=${errorResults.size}, warningResults=${warningResults.size}, totalWarnings=$totalWarnings, referralFields=${referralFields.size}")
 
     var saveMessage by remember { mutableStateOf<String?>(null) }
     var saveError by remember { mutableStateOf<String?>(null) }
     var errorsExpanded by remember { mutableStateOf(false) }
+    var warningsExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -92,7 +98,7 @@ fun ResultsScreen(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = buildSummaryText(successResults.size, errorResults.size),
+            text = buildSummaryText(successResults.size, errorResults.size, totalWarnings),
             style = MaterialTheme.typography.bodyMedium,
             color = SoftGray,
         )
@@ -113,6 +119,12 @@ fun ResultsScreen(
                 label = "Successful",
                 value = "${successResults.size}",
                 valueColor = BrandGreen,
+                modifier = Modifier.weight(1f),
+            )
+            SummaryCard(
+                label = "Warnings",
+                value = "$totalWarnings",
+                valueColor = if (totalWarnings > 0) BrandOrange else SoftGray,
                 modifier = Modifier.weight(1f),
             )
             SummaryCard(
@@ -171,7 +183,68 @@ fun ResultsScreen(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // Warnings summary (expandable)
+        if (warningResults.isNotEmpty()) {
+            CwCard {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { warningsExpanded = !warningsExpanded },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        SectionHeader(
+                            text = "Warnings ($totalWarnings)",
+                        )
+                        Text(
+                            text = if (warningsExpanded) "Collapse" else "Expand",
+                            fontSize = 13.sp,
+                            color = DeepInk,
+                        )
+                    }
+                    if (warningsExpanded) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        for (result in warningResults) {
+                            // File name header for this group
+                            Text(
+                                text = result.file.name,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = DeepInk,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+                            )
+                            for (warning in result.warnings) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 2.dp, horizontal = 12.dp),
+                                    verticalAlignment = Alignment.Top,
+                                ) {
+                                    Text(
+                                        text = "[${warning.stage}]",
+                                        fontSize = 11.sp,
+                                        fontFamily = FontFamily.Monospace,
+                                        color = BrandOrange,
+                                        modifier = Modifier.width(64.dp),
+                                    )
+                                    Text(
+                                        text = "${warning.field}: ${warning.message}",
+                                        fontSize = 12.sp,
+                                        color = SoftGray,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
         // Data preview table
@@ -181,7 +254,7 @@ fun ResultsScreen(
             modifier = Modifier.weight(1f),
         ) {
             if (referralFields.isEmpty()) {
-                println("[Results] Table: referralFields is EMPTY — showing 'No data to preview'")
+                println("[Results] Table: referralFields is EMPTY -- showing 'No data to preview'")
                 Box(
                     modifier = Modifier.fillMaxSize().padding(32.dp),
                     contentAlignment = Alignment.Center,
@@ -202,7 +275,7 @@ fun ResultsScreen(
                     val populatedCols = row.withIndex()
                         .filter { it.value.isNotEmpty() }
                         .joinToString(", ") { "[${it.index}] ${columnHeadings[it.index]}" }
-                    println("[Results]   Row $i: $nonEmpty/${row.size} non-empty — columns: $populatedCols")
+                    println("[Results]   Row $i: $nonEmpty/${row.size} non-empty -- columns: $populatedCols")
                 }
 
                 val verticalScroll = rememberScrollState()
@@ -446,10 +519,13 @@ private fun saveToXlsx(
     }
 }
 
-private fun buildSummaryText(successCount: Int, errorCount: Int): String {
+private fun buildSummaryText(successCount: Int, errorCount: Int, warningCount: Int): String {
     val parts = mutableListOf<String>()
     if (successCount > 0) {
         parts.add("$successCount successful extraction${if (successCount != 1) "s" else ""}")
+    }
+    if (warningCount > 0) {
+        parts.add("$warningCount warning${if (warningCount != 1) "s" else ""}")
     }
     if (errorCount > 0) {
         parts.add("$errorCount failed")

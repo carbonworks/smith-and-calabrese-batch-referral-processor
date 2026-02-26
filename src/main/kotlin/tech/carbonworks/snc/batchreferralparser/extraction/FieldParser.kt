@@ -24,14 +24,15 @@ class FieldParser(
      *
      * @param textResult successful PDF text extraction containing word-level text blocks
      * @param tables structured table data extracted from the PDF
-     * @return populated [ReferralFields] with extracted field values
+     * @return [ParseResult] containing populated [ReferralFields] and any extraction warnings
      */
     fun parse(
         textResult: ExtractionResult.Success,
         tables: List<ExtractedTable> = emptyList(),
-    ): ReferralFields {
+    ): ParseResult {
         // Reconstruct page-level text strings from word-level TextBlocks
         val pageTexts = reconstructPageTexts(textResult)
+        val warnings = mutableListOf<ParsingWarning>()
 
         // Extract from each source
         val headerFields = extractHeaderBlock(pageTexts)
@@ -40,36 +41,79 @@ class FieldParser(
         val invoiceFields = extractInvoiceFields(pageTexts)
         val phoneFromCell = extractPhone(pageTexts)
 
-        // Diagnostic: which extraction stages found data (no PHI values)
+        // Collect warnings for header stage
         val headerHit = headerFields.caseId != null
-        val caseHit = caseFields.caseNumberFullFooter != null
-        val tableHit = tableFields.city != null || tableFields.services.isNotEmpty()
-        val invoiceHit = invoiceFields.federalTaxId != null || invoiceFields.requestId != null
-        val phoneHit = phoneFromCell != null
-        println("[FieldParser] Source hits — header: $headerHit, case-footer: $caseHit, table: $tableHit, invoice: $invoiceHit, cell-phone: $phoneHit")
-
         if (!headerHit) {
             val hasCaseIdLabel = pageTexts.any { "Case ID:" in it }
             val hasAuthLabel = pageTexts.any { "Authorization #:" in it }
             val hasDateLabel = pageTexts.any { "Date:" in it }
             val hasRELabel = pageTexts.any { "RE:" in it }
-            println("[FieldParser]   Header miss detail — 'Case ID:' present: $hasCaseIdLabel, 'Authorization #:' present: $hasAuthLabel, 'Date:' present: $hasDateLabel, 'RE:' present: $hasRELabel")
+            if (hasCaseIdLabel) {
+                warnings.add(ParsingWarning("Case ID", "header", "Label found but pattern did not match"))
+            }
+            if (hasAuthLabel && headerFields.authorizationNumber == null) {
+                warnings.add(ParsingWarning("Authorization #", "header", "Label found but pattern did not match"))
+            }
+            if (hasDateLabel && headerFields.dateOfIssue == null) {
+                warnings.add(ParsingWarning("Date of Issue", "header", "Label found but pattern did not match"))
+            }
+            if (hasRELabel && headerFields.firstName == null) {
+                warnings.add(ParsingWarning("RE (Name)", "header", "Label found but pattern did not match"))
+            }
         }
+
+        // Collect warnings for footer stage
+        val caseHit = caseFields.caseNumberFullFooter != null
         if (!caseHit) {
             val hasAssigned = pageTexts.any { "Assigned" in it }
             val hasDCPS = pageTexts.any { "DCPS" in it }
-            println("[FieldParser]   Footer miss detail — 'Assigned' present: $hasAssigned, 'DCPS' present: $hasDCPS")
+            if (hasAssigned || hasDCPS) {
+                warnings.add(ParsingWarning("Case Number (Footer)", "footer", "Footer labels found but pattern did not match"))
+            }
         }
+
+        // Collect warnings for invoice stage
+        val invoiceHit = invoiceFields.federalTaxId != null || invoiceFields.requestId != null
         if (!invoiceHit) {
             val hasFedTax = pageTexts.any { "Federal Tax ID" in it }
             val hasVendor = pageTexts.any { "Vendor Number" in it }
             val hasRQID = pageTexts.any { "RQID" in it }
-            println("[FieldParser]   Invoice miss detail — 'Federal Tax ID' present: $hasFedTax, 'Vendor Number' present: $hasVendor, 'RQID' present: $hasRQID")
+            if (hasFedTax) {
+                warnings.add(ParsingWarning("Federal Tax ID", "invoice", "Label found but pattern did not match"))
+            }
+            if (hasVendor) {
+                warnings.add(ParsingWarning("Vendor Number", "invoice", "Label found but pattern did not match"))
+            }
+            if (hasRQID) {
+                warnings.add(ParsingWarning("Request ID", "invoice", "Label found but pattern did not match"))
+            }
+        }
+
+        // Collect warnings for table stage
+        if (tables.isNotEmpty()) {
+            val hasClaimantCell = tables.any { table ->
+                table.cells.any { it.content.startsWith("Claimant Information") }
+            }
+            val hasDateTimeCell = tables.any { table ->
+                table.cells.any { "Date and Time" in it.content }
+            }
+            val hasServicesCell = tables.any { table ->
+                table.cells.any { "Services Authorized" in it.content || "Code:" in it.content }
+            }
+            if (hasClaimantCell && tableFields.city == null && tableFields.phone == null) {
+                warnings.add(ParsingWarning("Claimant Info", "table", "Cell found but address/phone pattern did not match"))
+            }
+            if (hasDateTimeCell && tableFields.appointmentDate == null && tableFields.appointmentTime == null) {
+                warnings.add(ParsingWarning("Appointment Date/Time", "table", "Cell found but date/time pattern did not match"))
+            }
+            if (hasServicesCell && tableFields.services.isEmpty()) {
+                warnings.add(ParsingWarning("Services", "table", "Cell found but service code pattern did not match"))
+            }
         }
 
         // Merge with priority: header > table > invoice > fallback
-        // Start with lowest priority and override with higher priority sources
-        return mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell)
+        val fields = mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell)
+        return ParseResult(fields = fields, warnings = warnings)
     }
 
     /**

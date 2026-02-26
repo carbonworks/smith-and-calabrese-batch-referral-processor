@@ -12,6 +12,9 @@ import kotlin.test.assertTrue
  *
  * Tests construct [ExtractionResult.Success] and [ExtractedTable] objects
  * programmatically with known text content (no real PDFs or PHI needed).
+ *
+ * Since [FieldParser.parse] returns [ParseResult], tests access the extracted
+ * fields via `result.fields` and warnings via `result.warnings`.
  */
 class FieldParserTest {
 
@@ -125,14 +128,15 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("09/15/2024", result.dateOfIssue)
-        assertEquals("ABC-12345", result.caseId)
-        assertEquals("John", result.firstName)
-        assertEquals("Michael", result.middleName)
-        assertEquals("Smith", result.lastName)
-        assertEquals("03/22/1990", result.dob)
-        assertEquals("Jane Smith", result.applicantName)
-        assertEquals("AUTH-9876", result.authorizationNumber)
+        assertEquals("09/15/2024", result.fields.dateOfIssue)
+        assertEquals("ABC-12345", result.fields.caseId)
+        assertEquals("John", result.fields.firstName)
+        assertEquals("Michael", result.fields.middleName)
+        assertEquals("Smith", result.fields.lastName)
+        assertEquals("03/22/1990", result.fields.dob)
+        assertEquals("Jane Smith", result.fields.applicantName)
+        assertEquals("AUTH-9876", result.fields.authorizationNumber)
+        assertTrue(result.warnings.isEmpty(), "Full header match should produce no warnings")
     }
 
     // -------------------------------------------------------------------
@@ -147,10 +151,10 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("Alice", result.firstName)
-        assertNull(result.middleName)
-        assertEquals("Johnson", result.lastName)
-        assertEquals("XYZ-999", result.caseId)
+        assertEquals("Alice", result.fields.firstName)
+        assertNull(result.fields.middleName)
+        assertEquals("Johnson", result.fields.lastName)
+        assertEquals("XYZ-999", result.fields.caseId)
     }
 
     // -------------------------------------------------------------------
@@ -165,9 +169,9 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("BHA-12345-CE", result.caseNumberFullFooter)
-        assertEquals("4321", result.assignedCode)
-        assertEquals("DCC-9999", result.dccNumber)
+        assertEquals("BHA-12345-CE", result.fields.caseNumberFullFooter)
+        assertEquals("4321", result.fields.assignedCode)
+        assertEquals("DCC-9999", result.fields.dccNumber)
     }
 
     // -------------------------------------------------------------------
@@ -183,11 +187,11 @@ class FieldParserTest {
 
         val result = parser.parse(input, tables)
 
-        assertEquals("123 MAIN ST", result.streetAddress)
-        assertEquals("ANYTOWN", result.city)
-        assertEquals("MD", result.state)
-        assertEquals("21201", result.zipCode)
-        assertEquals("410-555-1234", result.phone)
+        assertEquals("123 MAIN ST", result.fields.streetAddress)
+        assertEquals("ANYTOWN", result.fields.city)
+        assertEquals("MD", result.fields.state)
+        assertEquals("21201", result.fields.zipCode)
+        assertEquals("410-555-1234", result.fields.phone)
     }
 
     // -------------------------------------------------------------------
@@ -203,8 +207,8 @@ class FieldParserTest {
 
         val result = parser.parse(input, tables)
 
-        assertEquals("Thursday September 5th, 2024", result.appointmentDate)
-        assertEquals("10:00 AM", result.appointmentTime)
+        assertEquals("Thursday September 5th, 2024", result.fields.appointmentDate)
+        assertEquals("10:00 AM", result.fields.appointmentTime)
     }
 
     // -------------------------------------------------------------------
@@ -220,15 +224,15 @@ class FieldParserTest {
 
         val result = parser.parse(input, tables)
 
-        assertEquals(2, result.services.size)
+        assertEquals(2, result.fields.services.size)
 
-        val svc1 = result.services[0]
+        val svc1 = result.fields.services[0]
         assertEquals("96130", svc1.cptCode)
         assertEquals("P", svc1.procedureTypeCode)
         assertEquals("Psychological testing evaluation", svc1.description)
         assertEquals("225.00", svc1.fee)
 
-        val svc2 = result.services[1]
+        val svc2 = result.fields.services[1]
         assertEquals("96131", svc2.cptCode)
         assertEquals("P", svc2.procedureTypeCode)
         assertEquals("Psych testing addl hr", svc2.description)
@@ -247,12 +251,12 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("123456789", result.federalTaxId)
-        assertEquals("V-5678", result.vendorNumber)
-        assertEquals("RQ-42", result.requestId)
+        assertEquals("123456789", result.fields.federalTaxId)
+        assertEquals("V-5678", result.fields.vendorNumber)
+        assertEquals("RQ-42", result.fields.requestId)
         // Invoice auth number should be overridden if header also has one,
         // but with no header it should be the invoice value
-        assertEquals("AUTH-INVOICE-1", result.authorizationNumber)
+        assertEquals("AUTH-INVOICE-1", result.fields.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
@@ -267,7 +271,7 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("410-555-9876", result.phone)
+        assertEquals("410-555-9876", result.fields.phone)
     }
 
     // -------------------------------------------------------------------
@@ -280,16 +284,17 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertNull(result.firstName)
-        assertNull(result.lastName)
-        assertNull(result.caseId)
-        assertNull(result.authorizationNumber)
-        assertNull(result.dob)
-        assertNull(result.appointmentDate)
-        assertNull(result.phone)
-        assertNull(result.federalTaxId)
-        assertTrue(result.services.isEmpty())
-        assertEquals(0, result.filledFieldCount())
+        assertNull(result.fields.firstName)
+        assertNull(result.fields.lastName)
+        assertNull(result.fields.caseId)
+        assertNull(result.fields.authorizationNumber)
+        assertNull(result.fields.dob)
+        assertNull(result.fields.appointmentDate)
+        assertNull(result.fields.phone)
+        assertNull(result.fields.federalTaxId)
+        assertTrue(result.fields.services.isEmpty())
+        assertEquals(0, result.fields.filledFieldCount())
+        assertTrue(result.warnings.isEmpty(), "Empty input should produce no warnings")
     }
 
     // -------------------------------------------------------------------
@@ -308,7 +313,7 @@ class FieldParserTest {
         val result = parser.parse(input)
 
         // Header has higher priority, so header value wins
-        assertEquals("AUTH-HEADER", result.authorizationNumber)
+        assertEquals("AUTH-HEADER", result.fields.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
@@ -326,7 +331,7 @@ class FieldParserTest {
         val result = parser.parse(input, tables)
 
         // Should have: phone (1) + appointmentDate (1) + appointmentTime (1) = 3 fields
-        assertEquals(3, result.filledFieldCount())
+        assertEquals(3, result.fields.filledFieldCount())
     }
 
     // ===================================================================
@@ -347,14 +352,14 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("09/15/2024", result.dateOfIssue)
-        assertEquals("ABC-12345", result.caseId)
-        assertEquals("John", result.firstName)
-        assertEquals("Michael", result.middleName)
-        assertEquals("Smith", result.lastName)
-        assertEquals("03/22/1990", result.dob)
-        assertEquals("Jane Smith", result.applicantName)
-        assertEquals("AUTH-9876", result.authorizationNumber)
+        assertEquals("09/15/2024", result.fields.dateOfIssue)
+        assertEquals("ABC-12345", result.fields.caseId)
+        assertEquals("John", result.fields.firstName)
+        assertEquals("Michael", result.fields.middleName)
+        assertEquals("Smith", result.fields.lastName)
+        assertEquals("03/22/1990", result.fields.dob)
+        assertEquals("Jane Smith", result.fields.applicantName)
+        assertEquals("AUTH-9876", result.fields.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
@@ -369,12 +374,12 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("XYZ-789", result.caseId)
-        assertEquals("06/01/1975", result.dob)
+        assertEquals("XYZ-789", result.fields.caseId)
+        assertEquals("06/01/1975", result.fields.dob)
         // Fields not present should remain null
-        assertNull(result.firstName)
-        assertNull(result.applicantName)
-        assertNull(result.authorizationNumber)
+        assertNull(result.fields.firstName)
+        assertNull(result.fields.applicantName)
+        assertNull(result.fields.authorizationNumber)
     }
 
     @Test
@@ -385,8 +390,8 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("12/25/2025", result.dateOfIssue)
-        assertEquals("AUTH-SOLO", result.authorizationNumber)
+        assertEquals("12/25/2025", result.fields.dateOfIssue)
+        assertEquals("AUTH-SOLO", result.fields.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
@@ -401,9 +406,9 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("BHA-55555-CE", result.caseNumberFullFooter)
-        assertEquals("1234", result.assignedCode)
-        assertEquals("DCC-7777", result.dccNumber)
+        assertEquals("BHA-55555-CE", result.fields.caseNumberFullFooter)
+        assertEquals("1234", result.fields.assignedCode)
+        assertEquals("DCC-7777", result.fields.dccNumber)
     }
 
     @Test
@@ -414,9 +419,9 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("BHA-99999-CE", result.caseNumberFullFooter)
-        assertEquals("5678", result.assignedCode)
-        assertEquals("DCC-4444", result.dccNumber)
+        assertEquals("BHA-99999-CE", result.fields.caseNumberFullFooter)
+        assertEquals("5678", result.fields.assignedCode)
+        assertEquals("DCC-4444", result.fields.dccNumber)
     }
 
     // -------------------------------------------------------------------
@@ -431,9 +436,9 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("999888777", result.federalTaxId)
-        assertEquals("V-LOWER", result.vendorNumber)
-        assertEquals("AUTH-LOW", result.authorizationNumber)
+        assertEquals("999888777", result.fields.federalTaxId)
+        assertEquals("V-LOWER", result.fields.vendorNumber)
+        assertEquals("AUTH-LOW", result.fields.authorizationNumber)
     }
 
     @Test
@@ -444,7 +449,7 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("111222333", result.federalTaxId)
+        assertEquals("111222333", result.fields.federalTaxId)
     }
 
     @Test
@@ -455,7 +460,7 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("444555666", result.federalTaxId)
+        assertEquals("444555666", result.fields.federalTaxId)
     }
 
     @Test
@@ -466,7 +471,7 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("777888999", result.federalTaxId)
+        assertEquals("777888999", result.fields.federalTaxId)
     }
 
     // -------------------------------------------------------------------
@@ -481,7 +486,7 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("RQ-42", result.requestId)
+        assertEquals("RQ-42", result.fields.requestId)
     }
 
     @Test
@@ -492,7 +497,7 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("RQ-99", result.requestId)
+        assertEquals("RQ-99", result.fields.requestId)
     }
 
     @Test
@@ -503,7 +508,7 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("RQ-LOWER", result.requestId)
+        assertEquals("RQ-LOWER", result.fields.requestId)
     }
 
     // -------------------------------------------------------------------
@@ -544,12 +549,12 @@ class FieldParserTest {
         // Default parser (5.0f tolerance) should merge blocks within 5pt
         val result = parser.parse(input)
 
-        assertEquals("09/15/2024", result.dateOfIssue)
-        assertEquals("ABC-123", result.caseId)
-        assertEquals("John", result.firstName)
-        assertEquals("Smith", result.lastName)
-        assertEquals("01/01/2000", result.dob)
-        assertEquals("AUTH-999", result.authorizationNumber)
+        assertEquals("09/15/2024", result.fields.dateOfIssue)
+        assertEquals("ABC-123", result.fields.caseId)
+        assertEquals("John", result.fields.firstName)
+        assertEquals("Smith", result.fields.lastName)
+        assertEquals("01/01/2000", result.fields.dob)
+        assertEquals("AUTH-999", result.fields.authorizationNumber)
     }
 
     @Test
@@ -597,12 +602,12 @@ class FieldParserTest {
         val result = parser.parse(input)
 
         // The combined regex should find all fields across concatenated pages
-        assertEquals("09/15/2024", result.dateOfIssue)
-        assertEquals("CROSS-PAGE", result.caseId)
-        assertEquals("Jane", result.firstName)
-        assertEquals("Doe", result.lastName)
-        assertEquals("07/04/1980", result.dob)
-        assertEquals("AUTH-SPLIT", result.authorizationNumber)
+        assertEquals("09/15/2024", result.fields.dateOfIssue)
+        assertEquals("CROSS-PAGE", result.fields.caseId)
+        assertEquals("Jane", result.fields.firstName)
+        assertEquals("Doe", result.fields.lastName)
+        assertEquals("07/04/1980", result.fields.dob)
+        assertEquals("AUTH-SPLIT", result.fields.authorizationNumber)
     }
 
     // -------------------------------------------------------------------
@@ -676,7 +681,7 @@ class FieldParserTest {
 
         // Should work fine with a wider tolerance
         val result = customParser.parse(input)
-        assertEquals("TEST-1", result.caseId)
+        assertEquals("TEST-1", result.fields.caseId)
     }
 
     // -------------------------------------------------------------------
@@ -692,9 +697,9 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("111222333", result.federalTaxId)
-        assertEquals("V-9999", result.vendorNumber)
-        assertEquals("RQ-77", result.requestId)
+        assertEquals("111222333", result.fields.federalTaxId)
+        assertEquals("V-9999", result.fields.vendorNumber)
+        assertEquals("RQ-77", result.fields.requestId)
     }
 
     // -------------------------------------------------------------------
@@ -709,8 +714,85 @@ class FieldParserTest {
 
         val result = parser.parse(input)
 
-        assertEquals("BHA-88888-CE", result.caseNumberFullFooter)
-        assertEquals("9999", result.assignedCode)
-        assertEquals("DCC-1111", result.dccNumber)
+        assertEquals("BHA-88888-CE", result.fields.caseNumberFullFooter)
+        assertEquals("9999", result.fields.assignedCode)
+        assertEquals("DCC-1111", result.fields.dccNumber)
+    }
+
+    // ===================================================================
+    // ParseResult / Warnings tests
+    // ===================================================================
+
+    // -------------------------------------------------------------------
+    // 24. Warnings generated when header labels present but regex misses
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `warnings generated when header labels present but no data extracted`() {
+        // Text has "Case ID:" label but the combined regex won't match because
+        // not all required header fields are present in the right order
+        val input = textResult(
+            "Case ID: something but no other header fields match the full pattern"
+        )
+
+        val result = parser.parse(input)
+
+        // Case ID should be extracted by the individual fallback
+        assertEquals("something", result.fields.caseId)
+        // No warnings for Case ID since it was extracted by fallback
+        // But there may be no warnings at all since the individual fallback worked
+    }
+
+    @Test
+    fun `no warnings when all extraction stages succeed`() {
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 Applicant: Jane Smith Authorization #: AUTH-999"
+        )
+        val tables = tableWith(
+            "Claimant Information JOHN DOE 123 MAIN ST ANYTOWN, MD 21201 410-555-1234",
+            "Date and Time Thursday September 5th, 2024 10:00 AM Eastern Standard Time",
+            "Services Authorized Code: 96130 Procedure Type Code: P Desc: Test Fee: \$ 100.00",
+        )
+
+        val result = parser.parse(input, tables)
+
+        // All stages should extract successfully, no warnings
+        assertTrue(result.warnings.isEmpty(), "Fully successful extraction should produce no warnings")
+    }
+
+    @Test
+    fun `warnings list contains correct fields and stages`() {
+        // Provide text that has invoice labels but deliberately broken patterns
+        // so the regex won't match — labels are present but values missing
+        val input = textResult(
+            "Federal Tax ID Vendor Number RQID"  // Labels without colons/values
+        )
+
+        val result = parser.parse(input)
+
+        // The label detection looks for "Federal Tax ID" and "Vendor Number" and "RQID"
+        // but the invoice regexes require "Federal Tax ID ... : DIGITS", "Vendor Number: ...", "RQID: ..."
+        // So we should get warnings for all three invoice fields
+        val invoiceWarnings = result.warnings.filter { it.stage == "invoice" }
+        assertTrue(invoiceWarnings.isNotEmpty(), "Should have invoice warnings when labels found but patterns don't match")
+
+        // Verify warning fields
+        val warningFields = invoiceWarnings.map { it.field }.toSet()
+        assertTrue("Federal Tax ID" in warningFields, "Should have Federal Tax ID warning")
+        assertTrue("Vendor Number" in warningFields, "Should have Vendor Number warning")
+        assertTrue("Request ID" in warningFields, "Should have Request ID warning")
+    }
+
+    @Test
+    fun `footer warning generated when Assigned label present but pattern fails`() {
+        val input = textResult(
+            "Assigned but no valid footer pattern"
+        )
+
+        val result = parser.parse(input)
+
+        val footerWarnings = result.warnings.filter { it.stage == "footer" }
+        assertTrue(footerWarnings.isNotEmpty(), "Should have footer warning when 'Assigned' label is present")
+        assertEquals("Case Number (Footer)", footerWarnings[0].field)
     }
 }

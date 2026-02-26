@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.carbonworks.snc.batchreferralparser.extraction.ExtractionResult
 import tech.carbonworks.snc.batchreferralparser.extraction.FieldParser
+import tech.carbonworks.snc.batchreferralparser.extraction.ParsingWarning
 import tech.carbonworks.snc.batchreferralparser.extraction.PdfTextExtractor
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.TableExtractor
@@ -46,11 +47,13 @@ import java.io.File
  * @param file the source PDF file
  * @param fields the extracted referral fields (null if extraction failed)
  * @param error error message if extraction failed (null on success)
+ * @param warnings structured warnings from parsing stages
  */
 data class ProcessedReferral(
     val file: File,
     val fields: ReferralFields?,
     val error: String?,
+    val warnings: List<ParsingWarning> = emptyList(),
 )
 
 /**
@@ -60,6 +63,7 @@ data class FileProcessingState(
     val file: File,
     val status: FileStatus = FileStatus.PENDING,
     val error: String? = null,
+    val warningCount: Int = 0,
 )
 
 /**
@@ -114,11 +118,12 @@ fun ProcessingScreen(
                         val tables = tableExtractor.extract(file)
                         println("[Pipeline]   Table extraction OK: ${tables.size} table(s)")
 
-                        val fields = fieldParser.parse(success, tables)
-                        val filled = fields.filledFieldCount()
-                        println("[Pipeline]   Field parsing OK: $filled field(s) extracted")
+                        val parseResult = fieldParser.parse(success, tables)
+                        val filled = parseResult.fields.filledFieldCount()
+                        val warnCount = parseResult.warnings.size
+                        println("[Pipeline]   Field parsing OK: $filled field(s) extracted, $warnCount warning(s)")
 
-                        ProcessedReferral(file, fields, null)
+                        ProcessedReferral(file, parseResult.fields, null, parseResult.warnings)
                     }
                 } catch (e: Exception) {
                     println("[Pipeline]   EXCEPTION: ${e.message}")
@@ -133,12 +138,16 @@ fun ProcessingScreen(
             results.add(result)
 
             val status = if (result.error != null) FileStatus.ERROR else FileStatus.SUCCESS
-            onFileStateUpdate(index, FileProcessingState(file, status, result.error))
+            onFileStateUpdate(
+                index,
+                FileProcessingState(file, status, result.error, result.warnings.size),
+            )
         }
 
         val successCount = results.count { it.error == null }
         val errorCount = results.count { it.error != null }
-        println("[Pipeline] Batch complete: $successCount succeeded, $errorCount failed")
+        val totalWarnings = results.sumOf { it.warnings.size }
+        println("[Pipeline] Batch complete: $successCount succeeded, $errorCount failed, $totalWarnings warning(s)")
 
         onComplete(results)
     }
@@ -228,13 +237,21 @@ fun ProcessingScreen(
                             text = when (state.status) {
                                 FileStatus.PENDING -> "Waiting"
                                 FileStatus.PROCESSING -> "Extracting..."
-                                FileStatus.SUCCESS -> "Done"
+                                FileStatus.SUCCESS -> {
+                                    if (state.warningCount > 0) {
+                                        "Done (${state.warningCount} warning${if (state.warningCount != 1) "s" else ""})"
+                                    } else {
+                                        "Done"
+                                    }
+                                }
                                 FileStatus.ERROR -> "Failed"
                             },
                             fontSize = 12.sp,
                             color = when (state.status) {
                                 FileStatus.PROCESSING -> BrandOrange
-                                FileStatus.SUCCESS -> BrandGreen
+                                FileStatus.SUCCESS -> {
+                                    if (state.warningCount > 0) BrandOrange else BrandGreen
+                                }
                                 else -> SoftGray
                             },
                         )
