@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
+import tech.carbonworks.snc.batchreferralparser.util.PhiMask
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwAccentButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwCard
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
@@ -172,7 +173,7 @@ fun ResultsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = result.error ?: "Unknown error",
+                                    text = PhiMask.maskDisplay(result.error ?: "Unknown error"),
                                     fontSize = 12.sp,
                                     color = SoftGray,
                                     maxLines = 2,
@@ -232,7 +233,7 @@ fun ResultsScreen(
                                         modifier = Modifier.width(64.dp),
                                     )
                                     Text(
-                                        text = "${warning.field}: ${warning.message}",
+                                        text = "${warning.field}: ${PhiMask.maskDisplay(warning.message)}",
                                         fontSize = 12.sp,
                                         color = SoftGray,
                                         maxLines = 2,
@@ -457,6 +458,7 @@ private fun TableDataCell(
 
 /**
  * Extract display values from a ReferralFields in the same order as SpreadsheetWriter.COLUMN_HEADINGS.
+ * Values are masked through [PhiMask] when debug masking is enabled.
  */
 private fun extractRowValues(referral: ReferralFields): List<String> {
     val services = referral.services.joinToString(", ") { it.cptCode }
@@ -484,7 +486,7 @@ private fun extractRowValues(referral: ReferralFields): List<String> {
         referral.caseNumberFullFooter.orEmpty(),
         referral.assignedCode.orEmpty(),
         referral.dccNumber.orEmpty(),
-    )
+    ).map { PhiMask.maskDisplay(it) }
 }
 
 /**
