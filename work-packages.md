@@ -297,7 +297,7 @@ Replace horizontal-scroll data table with per-PDF card layout:
 
 ## WP-15: Fix Remaining Extraction Bugs (B9, B10, B11)
 
-**Status:** in-progress
+**Status:** done
 **Owns:** `FieldParser.kt`, `FieldParserTest.kt`
 **Depends on:** WP-12
 
@@ -313,7 +313,7 @@ Fix three extraction bugs identified from real PDF testing:
 
 ## WP-16: PHI-Safe Debug Masking (E6)
 
-**Status:** in-progress
+**Status:** done
 **Owns:** `PhiMask.kt` (NEW), `BuildConfig.kt` (NEW)
 **Touches:** `ResultsScreen.kt`, `ProcessingScreen.kt`
 **Depends on:** WP-14

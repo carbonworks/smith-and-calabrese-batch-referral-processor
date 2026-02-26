@@ -255,38 +255,21 @@ Complete rewrite of ResultsScreen data preview. Replaced horizontal-scroll table
 
 Each referral card includes an "Open PDF" link that opens the source file in the OS default PDF reader via `Desktop.getDesktop().open(file)` with graceful fallback.
 
-### B9. Date of Issue parses to wrong value ("Donotwrite...")
+### ~~B9. Date of Issue parses to wrong value ("Donotwrite...")~~ ✓ RESOLVED (WP-15)
 
-The Date of Issue field extracts the wrong text from the PDF. Instead of the actual date (e.g., "August 13, 2024"), the extracted value starts with "Donotwrite" — likely a form instruction or watermark text near the date field that the regex captures instead of the date value.
-
-**To investigate**: Run `FieldParser.dumpPageTexts()` to see what text appears near the "Date:" label. The regex is probably matching a nearby "Do not write in this space" instruction that appears at a similar Y coordinate or in an adjacent text block.
-
-**Severity**: High — date of issue is a core field and the wrong value cascades into the XLSX date cell (which will fail to parse or show garbage)
-**File**: `FieldParser.kt` (header extraction / `dateOfIssue` regex)
+Fixed by replacing greedy `\S+` date capture with a date-specific regex requiring `MM/DD/YYYY` or `Month DD, YYYY` format, preventing capture of "Do not write in the blocks below" form instruction text.
 
 ---
 
-### B10. Footer pattern does not match real PDF footer text
+### ~~B10. Footer pattern does not match real PDF footer text~~ ✓ RESOLVED (WP-15)
 
-Warning `[footer] Case Number (Footer): Footer labels found but pattern did not match` is produced during real PDF processing. The WP-12 footer regex fix (B8) handles the trailing `/ OMB No. ...` components in the docling reference, but the actual PDFBox-reconstructed footer text apparently has a different structure that the pattern still doesn't match.
-
-This means `caseNumberFullFooter`, `assignedCode`, and `dccNumber` are still not extracting from real PDFs despite the B8 fix passing unit tests.
-
-**To investigate**: Run `FieldParser.dumpPageTexts()` against a real PDF and find the actual footer line. Compare it to the regex pattern `(\S+)/\s*Assigned\s+(\d+)\s+(?:null/\s*)?(?:[A-Z]+\s*/\s*)?(\S+?)(?:\s*/|\s*$)`. The discrepancy is likely whitespace, line breaks, or unexpected characters between the slash-separated components as reconstructed by PDFBox.
-
-**Severity**: High — footer fields (case number, assigned code, DCC number) not extracting
-**File**: `FieldParser.kt` (`extractCaseNumberComponents`)
+Fixed by making footer regex flexible with `\s*/\s*` around slash separators instead of `/ `, matching real PDFBox whitespace variations in footer text.
 
 ---
 
-### B11. Applicant name not separated into first/middle/last with spaces
+### ~~B11. Applicant name not separated into first/middle/last with spaces~~ ✓ RESOLVED (WP-15)
 
-The `applicantName` field value does not have spaces between first, middle, and last name components. Similar to B2 (which fixed `firstName`/`middleName`/`lastName` from the `RE:` header line), the applicant name extracted from the "Applicant:" field likely suffers from the same concatenation issue — either PDFBox text blocks are merged without spacing during line reconstruction, or the regex captures a run of characters without word boundaries.
-
-**To investigate**: Check `dumpPageTexts()` output for the "Applicant:" field area. May need the same `splitCamelCaseName()` treatment applied to the applicant name, or the regex capturing the value may need adjustment.
-
-**Severity**: Medium — affects claimant identification
-**File**: `FieldParser.kt` (applicant name extraction)
+Fixed by applying `splitCamelCaseName()` to applicant name in both combined and individual header extraction paths, inserting spaces at lowercase-to-uppercase transitions.
 
 ---
 
@@ -305,23 +288,10 @@ PDF processing takes noticeably longer than it should. Potential causes:
 
 ---
 
-### E6. PHI-safe debug mode with data masking
+### ~~E6. PHI-safe debug mode with data masking~~ ✓ RESOLVED (WP-16)
 
-Add a debug mode that masks all extracted field values in the UI and logs. Masking rule: for each word, show the first character and replace the rest with asterisks. Single-character words are fully masked (`*`). Examples:
-- `"Jane"` → `"J***"`
-- `"123 Main Street"` → `"1** M*** S*****"`
-- `"05/15/1990"` → `"0*/**/1***"`
-
-Debug mode should be the default for all non-release builds. Release builds will be configured separately at a later time.
-
-**Implementation notes**:
-- Add a `maskValue(text: String): String` utility function
-- Apply masking in the UI display layer (ResultsScreen card fields, ProcessingScreen logs) — do NOT mask the underlying `ReferralFields` data or XLSX output
-- Gate on a build configuration flag (e.g., Gradle `buildType` or a compile-time constant) — debug = masked, release = unmasked
-- Pipeline logging (`ParsingWarning` messages, `dumpPageTexts()`) should also use masked values when in debug mode
-
-**Severity**: High — required for PHI-safe development and testing workflows
-**Files**: New masking utility, `ResultsScreen.kt`, `ProcessingScreen.kt`, build config
+Added `PhiMask` utility with `maskValue()`/`maskDisplay()` and `BuildConfig.DEBUG` flag. All field values displayed in ResultsScreen (metadata rows, service items, footer fields) and ProcessingScreen error messages are masked when `DEBUG = true`. XLSX output and underlying data are unmasked.
+- `"05/15/1990"` → `"0*********"`
 
 ---
 
