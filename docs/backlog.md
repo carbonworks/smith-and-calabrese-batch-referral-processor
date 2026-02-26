@@ -203,127 +203,57 @@ Removed `Confidence` enum, `ParsedField` wrapper, `ConfidenceBadge` composable, 
 
 Replaced println diagnostics with structured `ParsingWarning` and `ParseResult` types. FieldParser.parse() returns warnings when labels are detected but patterns fail. ProcessingScreen shows per-file warning count; ResultsScreen has expandable warnings section grouped by file.
 
-### B2. Full name concatenated into firstName without spaces
+### ~~B2. Full name concatenated into firstName without spaces~~ ✓ RESOLVED (WP-12)
 
-When the header regex matches, `parseNameParts()` correctly splits into first/middle/last. But when name parts arrive from PDFBox as separate text blocks at different X/Y coordinates, `reconstructPageText()` may join them without proper spacing, producing `"FirstMiddleLast"` in the `firstName` field with `middleName` and `lastName` null.
-
-Root cause: the `RE:` individual fallback regex `RE:\s*(.+?)(?:\s*DOB:|\s*Applicant:|\s*Authorization\s*#:|\s*$)` may capture a run of text blocks that were joined without spaces during line reconstruction (Y-tolerance too tight for the actual PDF, or the blocks span multiple reconstructed lines).
-
-Additionally, some PDFBox extractions may produce the header block as one continuous string (confirmed by docling line 3046) where the combined regex works, but others produce word-level blocks at slightly different Y offsets that don't merge into one line.
-
-**To investigate**: Run `FieldParser.dumpPageTexts()` against real PDFs to see how names appear in the reconstructed text. Fix may involve widening `lineYTolerance`, fixing space insertion in `reconstructPageText()`, or post-processing the name field to insert spaces before uppercase letters.
-
-**Severity**: High — affects claimant identification
-**File**: `FieldParser.kt` (line reconstruction + `parseNameParts()`)
+Fixed by adding `splitCamelCaseName()` post-processing that inserts spaces before uppercase letters in concatenated name strings, plus improved name parsing in `parseNameParts()`.
 
 ---
 
-### B3. Case ID not extracted
+### ~~B3. Case ID not extracted~~ ✓ RESOLVED (WP-12)
 
-The individual fallback regex `Case ID:\s*(\S+)` only captures one non-whitespace token. If the case number contains spaces or is on a different line from the "Case ID:" label, it won't match or will truncate.
-
-Docling reference shows the case number as `{{{CASE-NUMBER}}}` (a single hyphenated token), which the `\S+` pattern should match. If it's still not extracting, the issue is likely that PDFBox text reconstruction places "Case" and "ID:" on different lines, so the label itself isn't matched.
-
-**To investigate**: Check `dumpPageTexts()` output for whether "Case ID:" appears as a single string or is split across lines.
-
-**Severity**: High — core case identification
-**File**: `FieldParser.kt` (`extractHeaderFieldsIndividually`)
+Fixed with cross-line extraction via `extractCrossLineValue()` — searches for the "Case ID:" label and looks at the next non-empty line for the value when the label and value are on separate lines.
 
 ---
 
-### B4. Request ID not extracted
+### ~~B4. Request ID not extracted~~ ✓ RESOLVED (WP-12)
 
-The RQID regex `RQID\s*:\s*(\S+)` should match `RQID:{{{REQUEST-ID}}}` from docling line 2613. If PDFBox splits "RQID:" and the value onto different lines, the `\S+` capture fails because it doesn't cross line boundaries.
-
-**To investigate**: Check if PDFBox reconstructs "RQID:" and the ID value on the same line.
-
-**Severity**: Medium — needed for case tracking
-**File**: `FieldParser.kt` (`extractInvoiceFields`)
+Fixed with cross-line RQID extraction. The regex now handles both same-line `RQID:value` and separate-line patterns where the value follows the label on the next line.
 
 ---
 
-### B5. Date of Issue extracted as text, not as a date
+### ~~B5. Date of Issue extracted as text, not as a date~~ ✓ RESOLVED (WP-13)
 
-`dateOfIssue` is stored as `String?` and rendered as-is (e.g., "August 13, 2024"). The XLSX output writes it as a text cell, not an Excel date cell.
-
-The fix should parse the date string into a `LocalDate` using common formats (`"MMMM d, yyyy"`, `"MM/dd/yyyy"`, etc.) and write it as an Excel date-formatted cell in `SpreadsheetWriter`. The preview table can continue displaying the text representation.
-
-**Severity**: Medium — affects downstream spreadsheet usability
-**Files**: `SpreadsheetWriter.kt` (date cell formatting), possibly `ReferralFields.kt` (add parsed date field)
+Fixed in `SpreadsheetWriter` with `tryParseDate()` that parses multiple date formats (`"MMMM d, yyyy"`, `"M/d/yyyy"`, weekday-prefixed dates with ordinal suffixes) and writes as Excel date cells. Unparseable dates fall back to text cells.
 
 ---
 
-### B6. Street address not extracted
+### ~~B6. Street address not extracted~~ ✓ RESOLVED (WP-12)
 
-The claimant table cell parsing relies on a heuristic that finds a street address by looking for a word starting with a digit after the name. Docling shows the claimant cell as: `"Claimant Information FIRST MIDDLE LAST STREET-ADDRESS CITY, STATE ZIP PHONE"`.
-
-If PDFBox doesn't extract the table cell or if the address doesn't start with a digit (e.g., "PO BOX" or suite-only addresses), the heuristic fails. Also, docling line 3398 shows `{{{STATE}}}{{{ZIP-CODE}}}` with no space between state and zip, which may break the `([A-Z]{2})\s*(\d{5})` pattern.
-
-**To investigate**: Verify Tabula-java is producing the claimant table cell. If the cell text exists, debug the `parseClaimantCell()` address-splitting heuristic against the actual text. May need to handle missing space before zip code.
-
-**Severity**: High — address is key patient metadata
-**File**: `FieldParser.kt` (`parseClaimantCell`)
+Fixed by improving `parseClaimantCell()` to handle missing space between state and zip code (`{{{STATE}}}{{{ZIP-CODE}}}` pattern) and better address-splitting heuristics.
 
 ---
 
-### B7. Federal Tax ID, Vendor Number not extracted
+### ~~B7. Federal Tax ID, Vendor Number not extracted~~ ✓ RESOLVED (WP-12)
 
-Docling shows invoice fields are on **separate lines** from their values:
-- Line 2748: `"Authorization Number:"` (label only)
-- Line 2775: `"{{{AUTHORIZATION-NUMBER}}}"` (value only)
-- Line 2802: `"Vendor Number:"` (label only)
-- Line 2829: `"923618220"` (value only)
-
-The current regexes like `Vendor\s+Number\s*:\s*(\S+)` require the value on the **same line** as the label. When PDFBox produces these as separate text blocks on different Y coordinates, the label and value end up on different reconstructed lines.
-
-Exception: `Federal Tax ID Number: 923618220` appears on a single line (docling line 1748), so that one may extract when it's on the same page. But the separate "Vendor Number:" / value pattern fails.
-
-**Fix**: Make invoice regexes cross-line-aware by allowing `\s+` (which matches newlines) between label and value, or by searching for the label and then looking at the next non-empty line for the value.
-
-**Severity**: High — needed for invoice processing
-**File**: `FieldParser.kt` (`extractInvoiceFields`)
+Fixed with `extractCrossLineValue()` for invoice fields. Labels and values on separate lines are now matched by searching for the label and extracting the value from the next non-empty line.
 
 ---
 
-### B8. Footer case number, assigned code, DCC number not extracted
+### ~~B8. Footer case number, assigned code, DCC number not extracted~~ ✓ RESOLVED (WP-12)
 
-Docling line 3350 shows the footer as: `"{{{CASE-NUMBER}}}/ Assigned 9106 null/ DCPS / {{{REQUEST-ID}}} / OMB No. 0960-0555 / 98022179"`
-
-The regex `(\S+)/\s*Assigned\s+(\d+)\s+(?:null/\s*)?(?:\S+\s*/\s*)?(\S+)` has two problems:
-1. The third capture group `(\S+)` greedily matches the first non-whitespace token after the optional agency, which would be `{{{REQUEST-ID}}}`. But additional `/`-separated components follow (`OMB No.`, `98022179`), and the regex may match a wrong trailing token depending on greediness.
-2. If PDFBox splits this across lines, the pattern won't span the line break.
-
-Additionally, the Python reference extracted `dcc_number` field maps to `{{{REQUEST-ID}}}` in the footer position, but the current regex group naming calls it `dccNumber`, which may be confusing since the RQID field also contains the request ID.
-
-**To investigate**: Verify the footer text appears as a single line in PDFBox output. Adjust regex to handle the extra trailing `/ OMB No. ...` components.
-
-**Severity**: High — affects case tracking and routing
-**File**: `FieldParser.kt` (`extractCaseNumberComponents`)
+Fixed with improved footer regex `(\S+)/\s*Assigned\s+(\d+)\s+(?:null/\s*)?(?:[A-Z]+\s*/\s*)?(\S+?)(?:\s*/|\s*$)` that handles trailing `/ OMB No. ...` components.
 
 ---
 
-### E4. Replace data table with per-PDF card layout
+### ~~E4. Replace data table with per-PDF card layout~~ ✓ RESOLVED (WP-14)
 
-Replace the current tabular data preview on ResultsScreen with a per-PDF card layout:
-- One card per processed PDF
-- **Left column**: Patient metadata stacked vertically as a text block (name, DOB, case ID, address, phone, etc.)
-- **Right column**: Individual service authorizations stacked vertically with visual separation between items (CPT code, description, fee per service)
-- Each card should include a link/button to open the source PDF in the OS default PDF viewer (`Desktop.getDesktop().open(file)`)
-- Scrollable list of cards for multi-file batches
-
-This replaces the horizontal-scroll spreadsheet-style table that requires scrolling to see populated columns.
-
-**Severity**: Medium — significantly improves usability
-**Files**: `ResultsScreen.kt` (major rewrite of data preview section)
+Complete rewrite of ResultsScreen data preview. Replaced horizontal-scroll table with per-PDF card layout: patient metadata stacked vertically on the left (60%), service authorizations on the right (40%), with visual separation between items. Scrollable list for multi-file batches.
 
 ---
 
-### E5. Add "Open PDF" link per referral in results
+### ~~E5. Add "Open PDF" link per referral in results~~ ✓ RESOLVED (WP-14)
 
-Each referral result card should have a clickable link or button that opens the source PDF file in the OS default PDF reader application using `Desktop.getDesktop().open(file)`.
-
-**Severity**: Low — convenience feature, dependent on E4 card layout
-**Files**: `ResultsScreen.kt`
+Each referral card includes an "Open PDF" link that opens the source file in the OS default PDF reader via `Desktop.getDesktop().open(file)` with graceful fallback.
 
 ---
 
@@ -337,4 +267,4 @@ Tyler's input on field priorities and spreadsheet layout affects items #2, #3, a
 
 ---
 
-*Last updated: 2026-02-26*
+*Last updated: 2026-02-27*

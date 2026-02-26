@@ -238,6 +238,63 @@ Dedicated Help screen with usage instructions and support contact:
 
 ---
 
+## WP-12: Fix Extraction Regex Bugs (B2–B8)
+
+**Status:** done
+**Owns:** `FieldParser.kt`, `FieldParserTest.kt`
+**Depends on:** WP-10
+
+**Scope:**
+Fix 7 extraction bugs identified from real PDF testing:
+1. B2: CamelCase name splitting via `splitCamelCaseName()` post-processing
+2. B3: Cross-line Case ID extraction via `extractCrossLineValue()`
+3. B4: Cross-line RQID extraction for same-line and separate-line patterns
+4. B5: (Handled by WP-13 — date formatting in SpreadsheetWriter)
+5. B6: Improved `parseClaimantCell()` for no-space state/zip patterns
+6. B7: Cross-line invoice field extraction (Federal Tax ID, Vendor Number)
+7. B8: Footer regex handling trailing `/ OMB No. ...` components
+8. `extractFallbackFields()` for fallback extraction of remaining fields
+
+**Acceptance:** 16 new regression tests using realistic multi-line TextBlock inputs. 70 total FieldParser tests pass.
+
+---
+
+## WP-13: Date Formatting in XLSX Output (B5)
+
+**Status:** done
+**Owns:** `SpreadsheetWriter.kt`, `SpreadsheetWriterTest.kt`
+**Depends on:** WP-3
+
+**Scope:**
+Write date fields as Excel date cells instead of text:
+1. `tryParseDate()` parses multiple formats: `"MMMM d, yyyy"`, `"M/d/yyyy"`, weekday-prefixed dates
+2. Strip weekday prefixes and ordinal suffixes before parsing
+3. Date columns (Date of Issue, DOB, Appointment Date) written as numeric date cells
+4. Unparseable dates fall back to text cells
+
+**Acceptance:** 4 new date tests (date of issue, DOB, unparseable fallback, weekday prefix). 12 total SpreadsheetWriter tests pass.
+
+---
+
+## WP-14: Results Card Layout & Open PDF (E4, E5)
+
+**Status:** done
+**Owns:** `ResultsScreen.kt`
+**Depends on:** WP-10
+
+**Scope:**
+Replace horizontal-scroll data table with per-PDF card layout:
+1. `ReferralCard` composable — one card per processed PDF
+2. Patient metadata stacked vertically on left (60% width)
+3. Service authorizations stacked vertically on right (40% width)
+4. `OpenPdfLink` — opens source PDF in OS default viewer via `Desktop.getDesktop().open(file)`
+5. Scrollable card list for multi-file batches
+6. Removed: `TableHeaderCell`, `TableDataCell`, `extractRowValues()`, `SelectionContainer`
+
+**Acceptance:** Per-PDF cards display all extracted fields. Open PDF link functional. Scrollable for batch results.
+
+---
+
 ## Dependency Graph
 
 ```
@@ -245,7 +302,9 @@ WP-0 (PDF Text Extraction) ──> WP-1 (Field Parsing) ──┬──> WP-3 (X
                                                         │                          │
 WP-2 (Table Extraction) ───────────────────────────────┘                          ├──> WP-4 (Desktop UI) ──> WP-6 (Packaging)
                                                                                    │
-WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback)
+WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback) ──┬──> WP-12 (Fix Regex Bugs)
+                                                                                   └──> WP-14 (Results Cards)
+WP-3 (XLSX Output) ──> WP-13 (Date Formatting)
 WP-8 (Remember Directory)
 WP-11 (Help Screen)
 ```
@@ -259,3 +318,4 @@ WP-11 (Help Screen)
 **Wave 5** (after WP-4, parallel): WP-6, WP-7, WP-8
 **Wave 6** (after WP-7): WP-9
 **Wave 7** (after WP-9, parallel): WP-10, WP-11
+**Wave 8** (after WP-10, parallel): WP-12, WP-13, WP-14
