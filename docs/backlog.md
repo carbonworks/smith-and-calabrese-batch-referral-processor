@@ -255,6 +255,35 @@ Complete rewrite of ResultsScreen data preview. Replaced horizontal-scroll table
 
 Each referral card includes an "Open PDF" link that opens the source file in the OS default PDF reader via `Desktop.getDesktop().open(file)` with graceful fallback.
 
+### B9. Date of Issue parses to wrong value ("Donotwrite...")
+
+The Date of Issue field extracts the wrong text from the PDF. Instead of the actual date (e.g., "August 13, 2024"), the extracted value starts with "Donotwrite" — likely a form instruction or watermark text near the date field that the regex captures instead of the date value.
+
+**To investigate**: Run `FieldParser.dumpPageTexts()` to see what text appears near the "Date:" label. The regex is probably matching a nearby "Do not write in this space" instruction that appears at a similar Y coordinate or in an adjacent text block.
+
+**Severity**: High — date of issue is a core field and the wrong value cascades into the XLSX date cell (which will fail to parse or show garbage)
+**File**: `FieldParser.kt` (header extraction / `dateOfIssue` regex)
+
+---
+
+### E6. PHI-safe debug mode with data masking
+
+Add a debug mode that masks all extracted field values in the UI and logs. Masking rule: for each word, show the first character and replace the rest with asterisks. Single-character words are fully masked (`*`). Examples:
+- `"Jane"` → `"J***"`
+- `"123 Main Street"` → `"1** M*** S*****"`
+- `"05/15/1990"` → `"0*/**/1***"`
+
+Debug mode should be the default for all non-release builds. Release builds will be configured separately at a later time.
+
+**Implementation notes**:
+- Add a `maskValue(text: String): String` utility function
+- Apply masking in the UI display layer (ResultsScreen card fields, ProcessingScreen logs) — do NOT mask the underlying `ReferralFields` data or XLSX output
+- Gate on a build configuration flag (e.g., Gradle `buildType` or a compile-time constant) — debug = masked, release = unmasked
+- Pipeline logging (`ParsingWarning` messages, `dumpPageTexts()`) should also use masked values when in debug mode
+
+**Severity**: High — required for PHI-safe development and testing workflows
+**Files**: New masking utility, `ResultsScreen.kt`, `ProcessingScreen.kt`, build config
+
 ---
 
 ## Cross-cutting: Tyler Feedback
