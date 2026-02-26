@@ -286,8 +286,8 @@ class SpreadsheetWriterTest {
     @Test
     fun `date of issue written as Excel date cell`() {
         val referral = ReferralFields(
-            firstName = ParsedField.high("Test"),
-            dateOfIssue = ParsedField.high("August 13, 2024"),
+            firstName = ("Test"),
+            dateOfIssue = ("August 13, 2024"),
         )
         val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
 
@@ -311,8 +311,8 @@ class SpreadsheetWriterTest {
     @Test
     fun `dob written as Excel date cell`() {
         val referral = ReferralFields(
-            firstName = ParsedField.high("Test"),
-            dob = ParsedField.high("09/15/1990"),
+            firstName = ("Test"),
+            dob = ("09/15/1990"),
         )
         val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
 
@@ -336,8 +336,8 @@ class SpreadsheetWriterTest {
     @Test
     fun `unparseable date falls back to text`() {
         val referral = ReferralFields(
-            firstName = ParsedField.high("Test"),
-            dateOfIssue = ParsedField.high("some unparseable text"),
+            firstName = ("Test"),
+            dateOfIssue = ("some unparseable text"),
         )
         val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
 
@@ -360,8 +360,8 @@ class SpreadsheetWriterTest {
     @Test
     fun `appointment date with weekday prefix parses to date cell`() {
         val referral = ReferralFields(
-            firstName = ParsedField.high("Test"),
-            appointmentDate = ParsedField.high("Thursday September 5th, 2024"),
+            firstName = ("Test"),
+            appointmentDate = ("Thursday September 5th, 2024"),
         )
         val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
 
