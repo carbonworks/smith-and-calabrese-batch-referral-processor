@@ -295,6 +295,40 @@ Replace horizontal-scroll data table with per-PDF card layout:
 
 ---
 
+## WP-15: Fix Remaining Extraction Bugs (B9, B10, B11)
+
+**Status:** in-progress
+**Owns:** `FieldParser.kt`, `FieldParserTest.kt`
+**Depends on:** WP-12
+
+**Scope:**
+Fix three extraction bugs identified from real PDF testing:
+1. B9: Date of Issue regex captures "Donotwrite..." form instruction instead of actual date
+2. B10: Footer regex doesn't match real PDFBox-reconstructed footer text (spaces around slashes)
+3. B11: Applicant name missing spaces between first/middle/last — apply `splitCamelCaseName()` or fix capture regex
+
+**Acceptance:** New regression tests for each bug. All FieldParser tests pass.
+
+---
+
+## WP-16: PHI-Safe Debug Masking (E6)
+
+**Status:** in-progress
+**Owns:** `PhiMask.kt` (NEW), `BuildConfig.kt` (NEW)
+**Touches:** `ResultsScreen.kt`, `ProcessingScreen.kt`
+**Depends on:** WP-14
+
+**Scope:**
+Add data masking for PHI-safe development:
+1. `maskValue()` utility — first char of each word visible, rest asterisked
+2. `BuildConfig.DEBUG` compile-time flag — debug=masked, release=unmasked
+3. Apply masking in ResultsScreen card fields and ProcessingScreen display
+4. Do NOT mask underlying ReferralFields data or XLSX output
+
+**Acceptance:** All displayed field values masked in debug builds. XLSX output unaffected. Existing tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
@@ -302,8 +336,8 @@ WP-0 (PDF Text Extraction) ──> WP-1 (Field Parsing) ──┬──> WP-3 (X
                                                         │                          │
 WP-2 (Table Extraction) ───────────────────────────────┘                          ├──> WP-4 (Desktop UI) ──> WP-6 (Packaging)
                                                                                    │
-WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback) ──┬──> WP-12 (Fix Regex Bugs)
-                                                                                   └──> WP-14 (Results Cards)
+WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback) ──┬──> WP-12 (Fix Regex Bugs) ──> WP-15 (Fix B9/B10/B11)
+                                                                                   └──> WP-14 (Results Cards) ──> WP-16 (Debug Masking)
 WP-3 (XLSX Output) ──> WP-13 (Date Formatting)
 WP-8 (Remember Directory)
 WP-11 (Help Screen)
@@ -319,3 +353,4 @@ WP-11 (Help Screen)
 **Wave 6** (after WP-7): WP-9
 **Wave 7** (after WP-9, parallel): WP-10, WP-11
 **Wave 8** (after WP-10, parallel): WP-12, WP-13, WP-14
+**Wave 9** (after WP-12/WP-14, parallel): WP-15, WP-16
