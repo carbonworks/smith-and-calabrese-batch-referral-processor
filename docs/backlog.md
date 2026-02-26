@@ -255,15 +255,23 @@ Complete rewrite of ResultsScreen data preview. Replaced horizontal-scroll table
 
 Each referral card includes an "Open PDF" link that opens the source file in the OS default PDF reader via `Desktop.getDesktop().open(file)` with graceful fallback.
 
-### ~~B9. Date of Issue parses to wrong value ("Donotwrite...")~~ ✓ RESOLVED (WP-15)
+### ~~B9. Date of Issue parses to wrong value ("Donotwrite...")~~ PARTIALLY RESOLVED (WP-15)
 
-Fixed by replacing greedy `\S+` date capture with a date-specific regex requiring `MM/DD/YYYY` or `Month DD, YYYY` format, preventing capture of "Do not write in the blocks below" form instruction text.
+WP-15 replaced the greedy `\S+` with a date-specific regex, but the warning `[header] Date of Issue: ...` still fires on real PDFs. The extracted value looks like an entire sentence rather than a date. The real PDFBox text near the "Date:" label has a different structure than the unit test fixtures — the actual text needs to be captured via `dumpPageTexts()` to build a matching regex.
+
+**Status**: Open — needs `dumpPageTexts()` output from a real PDF to diagnose
+**Severity**: High
+**File**: `FieldParser.kt`
 
 ---
 
-### ~~B10. Footer pattern does not match real PDF footer text~~ ✓ RESOLVED (WP-15)
+### ~~B10. Footer pattern does not match real PDF footer text~~ PARTIALLY RESOLVED (WP-15)
 
-Fixed by making footer regex flexible with `\s*/\s*` around slash separators instead of `/ `, matching real PDFBox whitespace variations in footer text.
+WP-15 made the footer regex flexible with `\s*/\s*` around slashes, but the warning `[footer] Case Number (Footer): ...` still fires on real PDFs. The extracted value looks like an entire sentence/number rather than the expected case number. The real PDFBox footer reconstruction differs from the unit test fixtures.
+
+**Status**: Open — needs `dumpPageTexts()` output from a real PDF to diagnose
+**Severity**: High
+**File**: `FieldParser.kt` (`extractCaseNumberComponents`)
 
 ---
 
