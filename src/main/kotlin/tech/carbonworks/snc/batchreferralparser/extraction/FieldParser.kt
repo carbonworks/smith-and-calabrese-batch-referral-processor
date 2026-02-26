@@ -13,6 +13,11 @@ package tech.carbonworks.snc.batchreferralparser.extraction
  */
 class FieldParser {
 
+    companion object {
+        /** Y-coordinate tolerance for grouping text blocks on the same line. */
+        private const val LINE_Y_TOLERANCE = 3f
+    }
+
     /**
      * Parse all referral fields from the given extraction result and tables.
      *
@@ -24,9 +29,10 @@ class FieldParser {
         textResult: ExtractionResult.Success,
         tables: List<ExtractedTable> = emptyList(),
     ): ReferralFields {
-        // Reconstruct page-level text strings from word-level TextBlocks
+        // Reconstruct page-level text strings from word-level TextBlocks.
+        // Group blocks by Y-coordinate into lines, then join lines with newlines.
         val pageTexts = textResult.pages.map { page ->
-            page.textBlocks.joinToString(" ") { it.text }
+            reconstructPageText(page.textBlocks)
         }
 
         // Extract from each source
@@ -36,9 +42,49 @@ class FieldParser {
         val invoiceFields = extractInvoiceFields(pageTexts)
         val phoneFromCell = extractPhone(pageTexts)
 
+        // Individual fallback extraction across concatenated all-pages text
+        // for fields that may not be found by their primary extractor
+        val allText = pageTexts.joinToString("\n")
+        val fallbackFields = extractFallbackFields(allText, headerFields, invoiceFields)
+
         // Merge with priority: header > table > invoice > fallback
         // Start with lowest priority and override with higher priority sources
-        return mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell)
+        return mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell, fallbackFields)
+    }
+
+    /**
+     * Reconstruct page text from text blocks, grouping by Y-coordinate into lines.
+     *
+     * Blocks within [LINE_Y_TOLERANCE] of each other are considered the same line
+     * and joined with spaces. Different lines are separated by newlines. This preserves
+     * the line structure of the original PDF layout, which is critical for cross-line
+     * regex matching.
+     */
+    internal fun reconstructPageText(textBlocks: List<TextBlock>): String {
+        if (textBlocks.isEmpty()) return ""
+
+        // Sort blocks by Y coordinate first (top to bottom), then X (left to right)
+        val sorted = textBlocks.sortedWith(compareBy({ it.boundingBox.y }, { it.boundingBox.x }))
+
+        val lines = mutableListOf<MutableList<TextBlock>>()
+        var currentLine = mutableListOf(sorted.first())
+        var currentY = sorted.first().boundingBox.y
+
+        for (i in 1 until sorted.size) {
+            val block = sorted[i]
+            if (kotlin.math.abs(block.boundingBox.y - currentY) <= LINE_Y_TOLERANCE) {
+                currentLine.add(block)
+            } else {
+                lines.add(currentLine)
+                currentLine = mutableListOf(block)
+                currentY = block.boundingBox.y
+            }
+        }
+        lines.add(currentLine)
+
+        return lines.joinToString("\n") { line ->
+            line.joinToString(" ") { it.text }
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -50,16 +96,24 @@ class FieldParser {
      *
      * Looks for the pattern:
      *   Date: ... Case ID: ... RE: ... DOB: ... Applicant: ... Authorization #: ...
+     *
+     * The header regex uses [\s\S] to handle cross-line matches when text blocks
+     * are reconstructed with newlines between different Y-coordinate groups.
      */
     internal fun extractHeaderBlock(pageTexts: List<String>): HeaderFields {
+        // Use [\s\S] instead of . so the pattern matches across newlines
         val headerRegex = Regex(
-            """Date:\s*(.+?)\s*Case ID:\s*(.+?)\s*RE:\s*(.+?)\s*DOB:\s*(.+?)\s*Applicant:\s*(.+?)\s*Authorization #:\s*(\S+)"""
+            """Date:[\s\S]*?(\S[\s\S]*?)\s*Case\s+ID:\s*(\S+)[\s\S]*?RE:\s*([\s\S]*?)\s*DOB:\s*([\s\S]*?)\s*Applicant:\s*([\s\S]*?)\s*Authorization\s*#:\s*(\S+)"""
         )
 
         for (text in pageTexts) {
-            if ("Case ID:" !in text || "Authorization #:" !in text) continue
+            if ("Case" !in text || "Authorization" !in text) continue
 
-            val match = headerRegex.find(text) ?: continue
+            // Collapse the page text to a single line for header matching,
+            // since the header is logically one block but may span multiple Y-coords
+            val collapsed = text.replace('\n', ' ').replace(Regex("\\s+"), " ")
+
+            val match = headerRegex.find(collapsed) ?: continue
 
             val dateOfIssue = match.groupValues[1].trim()
             val caseId = match.groupValues[2].trim()
@@ -69,35 +123,14 @@ class FieldParser {
             val authorizationNumber = match.groupValues[6].trim()
 
             // Parse RE: field into name components
-            val nameParts = reName.split(Regex("\\s+"))
-            val firstName: String?
-            val middleName: String?
-            val lastName: String?
-
-            when {
-                nameParts.size >= 3 -> {
-                    firstName = nameParts[0]
-                    middleName = nameParts.subList(1, nameParts.size - 1).joinToString(" ")
-                    lastName = nameParts.last()
-                }
-                nameParts.size == 2 -> {
-                    firstName = nameParts[0]
-                    middleName = null
-                    lastName = nameParts[1]
-                }
-                else -> {
-                    firstName = reName
-                    middleName = null
-                    lastName = null
-                }
-            }
+            val nameResult = parseNameParts(reName)
 
             return HeaderFields(
                 dateOfIssue = dateOfIssue,
                 caseId = caseId,
-                firstName = firstName,
-                middleName = middleName,
-                lastName = lastName,
+                firstName = nameResult.first,
+                middleName = nameResult.second,
+                lastName = nameResult.third,
                 dob = dob,
                 applicantName = applicantName,
                 authorizationNumber = authorizationNumber,
@@ -107,6 +140,45 @@ class FieldParser {
         return HeaderFields()
     }
 
+    /**
+     * Parse a name string into (firstName, middleName, lastName) components.
+     *
+     * Handles camelCase-like concatenation where PDFBox merges name parts without
+     * spaces (e.g., "JohnMichaelSmith") by inserting spaces before uppercase letters
+     * that follow lowercase letters.
+     */
+    internal fun parseNameParts(reName: String): Triple<String?, String?, String?> {
+        // If the name has no spaces but has internal uppercase transitions
+        // (e.g., "JohnMichaelSmith"), insert spaces before each uppercase
+        // letter following a lowercase letter.
+        val normalized = if (" " !in reName && reName.length > 1) {
+            splitCamelCaseName(reName)
+        } else {
+            reName
+        }
+
+        val nameParts = normalized.split(Regex("\\s+"))
+        return when {
+            nameParts.size >= 3 -> Triple(
+                nameParts[0],
+                nameParts.subList(1, nameParts.size - 1).joinToString(" "),
+                nameParts.last(),
+            )
+            nameParts.size == 2 -> Triple(nameParts[0], null, nameParts[1])
+            else -> Triple(normalized, null, null)
+        }
+    }
+
+    /**
+     * Insert spaces before uppercase letters that follow a lowercase letter.
+     * Handles camelCase-like name concatenation from PDFBox.
+     *
+     * Example: "JohnMichaelSmith" -> "John Michael Smith"
+     */
+    internal fun splitCamelCaseName(name: String): String {
+        return name.replace(Regex("([a-z])([A-Z])"), "$1 $2")
+    }
+
     // -----------------------------------------------------------------------
     // Case number components (footer pattern)
     // -----------------------------------------------------------------------
@@ -114,13 +186,25 @@ class FieldParser {
     /**
      * Extract case number components from footer text.
      *
-     * Looks for: CASE-NUMBER/ Assigned NNNN null/ DCPS / DCC-NUMBER
+     * Looks for: CASE-NUMBER/ Assigned NNNN [null/] [AGENCY /] DCC-NUMBER [/ trailing...]
+     *
+     * The footer may contain trailing /-separated components like OMB numbers that
+     * should not be captured. The regex stops the DCC capture at the next / or end of text.
      */
     internal fun extractCaseNumberComponents(pageTexts: List<String>): CaseFields {
-        val footerRegex = Regex("""^(\S+)/\s*Assigned\s+(\d+)\s+null/\s*DCPS\s*/\s*(\S+)""")
+        // More robust footer regex:
+        // 1. Case number: non-slash token before "/ Assigned"
+        // 2. Assigned code: digits after "Assigned"
+        // 3. Optional "null/" and optional agency code + "/"
+        // 4. DCC number: next non-slash, non-whitespace token, stopping before "/" or end
+        val footerRegex = Regex(
+            """(\S+)/\s*Assigned\s+(\d+)\s+(?:null/\s*)?(?:[A-Z]+\s*/\s*)?(\S+?)(?:\s*/|\s*$)"""
+        )
 
         for (text in pageTexts) {
-            val match = footerRegex.find(text)
+            // Collapse newlines for footer matching since the footer is one logical line
+            val collapsed = text.replace('\n', ' ')
+            val match = footerRegex.find(collapsed)
             if (match != null) {
                 return CaseFields(
                     caseNumberFullFooter = match.groupValues[1].trim(),
@@ -316,8 +400,13 @@ class FieldParser {
     /**
      * Extract fields from the invoice section (typically page 3).
      *
-     * Looks for: Federal Tax ID Number, Vendor Number, Authorization Number,
-     * RQID, Pay to, On/At schedule.
+     * Looks for: Federal Tax ID Number, Vendor Number, Authorization Number, RQID.
+     *
+     * Handles cross-line extraction where a label (e.g., "Vendor Number:") appears
+     * on one line and the value on the next. Uses two strategies:
+     * 1. Same-line regex with \s* that handles space-separated label:value
+     * 2. Cross-line fallback that finds the label and captures the first non-empty
+     *    token on the following line
      */
     internal fun extractInvoiceFields(pageTexts: List<String>): InvoiceFields {
         var federalTaxId: String? = null
@@ -327,23 +416,42 @@ class FieldParser {
 
         for (text in pageTexts) {
             if (federalTaxId == null) {
+                // Same-line match (label and value on same line or space-separated)
                 val m = Regex("""Federal Tax ID Number:\s*(\d+)""").find(text)
-                if (m != null) federalTaxId = m.groupValues[1]
+                if (m != null) {
+                    federalTaxId = m.groupValues[1]
+                } else {
+                    // Cross-line fallback: label on one line, value on the next
+                    federalTaxId = extractCrossLineValue(text, "Federal Tax ID Number:")
+                }
             }
 
             if (vendorNumber == null) {
-                val m = Regex("""Vendor Number:\s*(\S+)""").find(text)
-                if (m != null) vendorNumber = m.groupValues[1]
+                val m = Regex("""Vendor\s+Number:\s*(\S+)""").find(text)
+                if (m != null) {
+                    vendorNumber = m.groupValues[1]
+                } else {
+                    vendorNumber = extractCrossLineValue(text, "Vendor Number:")
+                }
             }
 
             if (authorizationNumberInvoice == null) {
-                val m = Regex("""Authorization Number:\s*(\S+)""").find(text)
-                if (m != null) authorizationNumberInvoice = m.groupValues[1]
+                val m = Regex("""Authorization\s+Number:\s*(\S+)""").find(text)
+                if (m != null) {
+                    authorizationNumberInvoice = m.groupValues[1]
+                } else {
+                    authorizationNumberInvoice = extractCrossLineValue(text, "Authorization Number:")
+                }
             }
 
             if (requestId == null) {
-                val m = Regex("""RQID:(\S+)""").find(text)
-                if (m != null) requestId = m.groupValues[1]
+                // RQID may have no space, optional space, or newline between : and value
+                val m = Regex("""RQID\s*:\s*(\S+)""").find(text)
+                if (m != null) {
+                    requestId = m.groupValues[1]
+                } else {
+                    requestId = extractCrossLineValue(text, "RQID:")
+                }
             }
         }
 
@@ -353,6 +461,44 @@ class FieldParser {
             authorizationNumberInvoice = authorizationNumberInvoice,
             requestId = requestId,
         )
+    }
+
+    /**
+     * Extract a value that appears on the line following the given label.
+     *
+     * When PDFBox produces a label and its value as separate text blocks at different
+     * Y coordinates, the reconstructed page text has them on separate lines. This
+     * method finds the label in the text and captures the first non-empty token on
+     * the following line.
+     *
+     * @param text the full page text (may contain newlines)
+     * @param label the label to search for (e.g., "Vendor Number:")
+     * @return the first token on the line following the label, or null if not found
+     */
+    internal fun extractCrossLineValue(text: String, label: String): String? {
+        val lines = text.split('\n')
+        for (i in 0 until lines.size - 1) {
+            if (label in lines[i]) {
+                // Check if value is on the same line after the label
+                val afterLabel = lines[i].substringAfter(label).trim()
+                if (afterLabel.isNotEmpty()) {
+                    return afterLabel.split(Regex("\\s+")).first()
+                }
+                // Value is on the next line
+                val nextLine = lines[i + 1].trim()
+                if (nextLine.isNotEmpty()) {
+                    return nextLine.split(Regex("\\s+")).first()
+                }
+            }
+        }
+        // Check the last line for same-line match
+        if (lines.isNotEmpty() && label in lines.last()) {
+            val afterLabel = lines.last().substringAfter(label).trim()
+            if (afterLabel.isNotEmpty()) {
+                return afterLabel.split(Regex("\\s+")).first()
+            }
+        }
+        return null
     }
 
     // -----------------------------------------------------------------------
@@ -372,6 +518,45 @@ class FieldParser {
     }
 
     // -----------------------------------------------------------------------
+    // Fallback individual field extraction
+    // -----------------------------------------------------------------------
+
+    /**
+     * Extract individual fields from concatenated all-pages text as a fallback.
+     *
+     * This runs after the primary extractors and only fills fields that were
+     * not found by their primary source. Handles cases where PDFBox splits
+     * labels across text blocks (e.g., "Case" and "ID:" on different lines).
+     */
+    internal fun extractFallbackFields(
+        allText: String,
+        headerFields: HeaderFields,
+        invoiceFields: InvoiceFields,
+    ): FallbackFields {
+        var caseId: String? = null
+        var requestId: String? = null
+
+        // B3: Case ID fallback — handle "Case" and "ID:" potentially split
+        if (headerFields.caseId == null) {
+            val collapsed = allText.replace('\n', ' ')
+            val m = Regex("""Case\s+ID:\s*(\S+)""").find(collapsed)
+            if (m != null) caseId = m.groupValues[1]
+        }
+
+        // B4: RQID fallback — search across all pages with cross-line support
+        if (invoiceFields.requestId == null) {
+            val collapsed = allText.replace('\n', ' ')
+            val m = Regex("""RQID\s*:\s*(\S+)""").find(collapsed)
+            if (m != null) requestId = m.groupValues[1]
+        }
+
+        return FallbackFields(
+            caseId = caseId,
+            requestId = requestId,
+        )
+    }
+
+    // -----------------------------------------------------------------------
     // Field merging
     // -----------------------------------------------------------------------
 
@@ -387,6 +572,7 @@ class FieldParser {
         headerFields: HeaderFields,
         caseFields: CaseFields,
         phoneFromCell: String?,
+        fallbackFields: FallbackFields = FallbackFields(),
     ): ReferralFields {
         // Start with invoice (lowest priority for overlapping fields)
         var firstName: ParsedField<String> = ParsedField.notFound()
@@ -409,6 +595,10 @@ class FieldParser {
         var servicesConfidence: Confidence? = null
         var federalTaxId: ParsedField<String> = ParsedField.notFound()
         var vendorNumber: ParsedField<String> = ParsedField.notFound()
+
+        // Fallback fields (LOW priority — last resort individual pattern matching)
+        fallbackFields.caseId?.let { caseId = ParsedField.low(it) }
+        fallbackFields.requestId?.let { requestId = ParsedField.low(it) }
 
         // Invoice fields (LOW-MEDIUM priority for overlap fields, MEDIUM for invoice-specific)
         invoiceFields.federalTaxId?.let { federalTaxId = ParsedField.medium(it) }
@@ -549,5 +739,10 @@ class FieldParser {
     internal data class AppointmentInfo(
         val appointmentDate: String? = null,
         val appointmentTime: String? = null,
+    )
+
+    internal data class FallbackFields(
+        val caseId: String? = null,
+        val requestId: String? = null,
     )
 }
