@@ -279,6 +279,32 @@ This means `caseNumberFullFooter`, `assignedCode`, and `dccNumber` are still not
 
 ---
 
+### B11. Applicant name not separated into first/middle/last with spaces
+
+The `applicantName` field value does not have spaces between first, middle, and last name components. Similar to B2 (which fixed `firstName`/`middleName`/`lastName` from the `RE:` header line), the applicant name extracted from the "Applicant:" field likely suffers from the same concatenation issue — either PDFBox text blocks are merged without spacing during line reconstruction, or the regex captures a run of characters without word boundaries.
+
+**To investigate**: Check `dumpPageTexts()` output for the "Applicant:" field area. May need the same `splitCamelCaseName()` treatment applied to the applicant name, or the regex capturing the value may need adjustment.
+
+**Severity**: Medium — affects claimant identification
+**File**: `FieldParser.kt` (applicant name extraction)
+
+---
+
+### B12. Parsing performance is slower than expected
+
+PDF processing takes noticeably longer than it should. Potential causes:
+- Tabula-java table detection scanning all pages (expensive even when no tables found)
+- `dumpPageTexts()` running in non-debug builds
+- Redundant full-text searches across all pages for each field
+- `reconstructPageText()` rebuilding text on every extraction call
+
+**To investigate**: Profile a batch run to identify the bottleneck. Tabula-java is the most likely culprit — it does heavy analysis even on pages without tables.
+
+**Severity**: Medium — noticeable UX impact during batch processing
+**File**: Pipeline orchestration (`ProcessingScreen.kt`, `FieldParser.kt`, `TableExtractor.kt`)
+
+---
+
 ### E6. PHI-safe debug mode with data masking
 
 Add a debug mode that masks all extracted field values in the UI and logs. Masking rule: for each word, show the first character and replace the rest with asterisks. Single-character words are fully masked (`*`). Examples:
