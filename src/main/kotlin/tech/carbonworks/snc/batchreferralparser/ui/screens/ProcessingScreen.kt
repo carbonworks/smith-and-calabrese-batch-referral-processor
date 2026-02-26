@@ -36,6 +36,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.FileStatus
 import tech.carbonworks.snc.batchreferralparser.ui.components.StatusIcon
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
+import tech.carbonworks.snc.batchreferralparser.util.PhiMask
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
@@ -225,7 +226,7 @@ fun ProcessingScreen(
                             FilePathText(path = state.file.name)
                             if (state.error != null) {
                                 Text(
-                                    text = state.error,
+                                    text = PhiMask.maskDisplay(state.error),
                                     fontSize = 12.sp,
                                     color = SoftGray,
                                     maxLines = 2,

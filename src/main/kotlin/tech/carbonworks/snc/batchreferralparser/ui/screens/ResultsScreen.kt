@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
+import tech.carbonworks.snc.batchreferralparser.util.PhiMask
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwCard
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
@@ -166,7 +167,7 @@ fun ResultsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = result.error ?: "Unknown error",
+                                    text = PhiMask.maskDisplay(result.error ?: "Unknown error"),
                                     fontSize = 12.sp,
                                     color = SoftGray,
                                     maxLines = 2,
@@ -226,7 +227,7 @@ fun ResultsScreen(
                                         modifier = Modifier.width(64.dp),
                                     )
                                     Text(
-                                        text = "${warning.field}: ${warning.message}",
+                                        text = "${warning.field}: ${PhiMask.maskDisplay(warning.message)}",
                                         fontSize = 12.sp,
                                         color = SoftGray,
                                         maxLines = 2,
@@ -500,7 +501,7 @@ private fun MetadataRow(label: String, value: String) {
             Spacer(modifier = Modifier.width(100.dp))
         }
         Text(
-            text = value,
+            text = PhiMask.maskDisplay(value),
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             color = DeepInk,
@@ -550,7 +551,7 @@ private fun ServiceItem(service: ServiceLine) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = service.cptCode,
+                text = PhiMask.maskDisplay(service.cptCode),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily.Monospace,
@@ -558,7 +559,7 @@ private fun ServiceItem(service: ServiceLine) {
             )
             if (!service.fee.isNullOrEmpty()) {
                 Text(
-                    text = service.fee,
+                    text = PhiMask.maskDisplay(service.fee),
                     fontSize = 13.sp,
                     fontFamily = FontFamily.Monospace,
                     color = DeepInk,
@@ -567,7 +568,7 @@ private fun ServiceItem(service: ServiceLine) {
         }
         if (!service.description.isNullOrEmpty()) {
             Text(
-                text = service.description,
+                text = PhiMask.maskDisplay(service.description),
                 fontSize = 11.sp,
                 color = SoftGray,
                 maxLines = 2,
@@ -602,7 +603,7 @@ private fun FooterSection(fields: ReferralFields) {
                     color = SoftGray,
                 )
                 Text(
-                    text = value,
+                    text = PhiMask.maskDisplay(value),
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     color = DeepInk,
