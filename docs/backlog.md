@@ -14,6 +14,47 @@ See [build-plan.md](build-plan.md) for delivery schedule, contract details, and 
 
 ---
 
+## Architecture Sanity Check
+
+**Status**: Pass (reviewed 2026-02-26)
+
+Reviewed the full application structure for architectural soundness. The application is well-formed:
+
+**Pipeline architecture** — clean, linear data flow with no circular dependencies:
+```
+PdfTextExtractor → TableExtractor → FieldParser → SpreadsheetWriter
+     (PDFBox)        (Tabula-java)     (regex)      (Apache POI)
+```
+
+**Data model** — proper use of sealed classes (`ExtractionResult.Success`/`.Error`), immutable data classes (`TextBlock`, `PageInfo`, `BoundingBox`, `ReferralFields`, `ParseResult`, `ParsingWarning`), and nullable types for optional fields.
+
+**UI architecture** — standard Compose pattern: state hoisted to `App()`, enum-based screen navigation (`FILE_SELECTION → PROCESSING → RESULTS → HELP`), per-file processing in background coroutine, reusable component library (`CwCard`, `CwButton`, `SectionHeader`, etc.).
+
+**Separation of concerns** — extraction knows nothing about UI or output; output knows nothing about extraction internals; UI orchestrates but doesn't own business logic.
+
+**Things to watch** (not blockers):
+- `PdfTextExtractor.lineYTolerance` (2.0f, character-level) vs `FieldParser.lineYTolerance` (5.0f, block-level) are independent tolerances at different levels — correct but could confuse future maintainers. A comment explaining the relationship would help.
+- Pipeline processes files sequentially in a single coroutine — fine for 1-50 files but would need parallelism for larger batches.
+
+**Verdict**: Architecture is sound and appropriate for the project scope. No structural rework needed. Proceed with bug fixes and enhancements.
+
+---
+
+## Testing Policy
+
+All bug fixes (B-items) **must** include new test cases that:
+1. **Reproduce the bug** — a test using realistic input that fails before the fix
+2. **Verify the fix** — the same test passes after the fix
+3. **Use realistic text structures** — multi-line `TextBlock` inputs at varied Y coordinates, labels on separate lines from values, cross-page patterns — not single-line synthetic strings
+
+All enhancement work (E-items) should include tests where applicable (extraction logic, output formatting). UI-only changes don't require unit tests.
+
+Test fixtures should be derived from the docling JSON reference at `reference/sample-output/` to ensure patterns match real PDF output. Sanitize all PHI — use placeholder tokens like `{{{FIRST-NAME}}}`.
+
+Agents implementing work packages must run `./gradlew test` before committing and include the test results in their output.
+
+---
+
 ## Work Items
 
 ### 1. Scaffold Kotlin/Gradle project
