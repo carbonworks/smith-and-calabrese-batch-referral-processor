@@ -1,5 +1,7 @@
 package tech.carbonworks.snc.batchreferralparser.output
 
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -9,8 +11,12 @@ import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import java.io.File
 import java.io.FileInputStream
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -39,6 +45,24 @@ class SpreadsheetWriterTest {
         val r = sheet.getRow(row) ?: return ""
         val c = r.getCell(col) ?: return ""
         return c.stringCellValue
+    }
+
+    /** Read a numeric date cell and convert to [LocalDate]. Returns null if not a date cell. */
+    private fun cellDate(workbook: XSSFWorkbook, row: Int, col: Int): LocalDate? {
+        val sheet = workbook.getSheetAt(0)
+        val r = sheet.getRow(row) ?: return null
+        val c = r.getCell(col) ?: return null
+        if (c.cellType != CellType.NUMERIC) return null
+        val javaDate = c.dateCellValue ?: return null
+        return javaDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
+    /** Check if a cell is a numeric (date) cell type. */
+    private fun isCellNumeric(workbook: XSSFWorkbook, row: Int, col: Int): Boolean {
+        val sheet = workbook.getSheetAt(0)
+        val r = sheet.getRow(row) ?: return false
+        val c = r.getCell(col) ?: return false
+        return c.cellType == CellType.NUMERIC
     }
 
     /** Build a fully-populated [ReferralFields] with known test values. */
@@ -108,7 +132,8 @@ class SpreadsheetWriterTest {
             assertEquals("Doe", cellText(wb, 1, 2))
             assertEquals("CASE-001", cellText(wb, 1, 3))
             assertEquals("AUTH-12345", cellText(wb, 1, 4))
-            assertEquals("02/01/2026", cellText(wb, 1, 6))  // Date of Issue
+            // Date of Issue is now a numeric date cell
+            assertEquals(LocalDate.of(2026, 2, 1), cellDate(wb, 1, 6))
             assertEquals("Anytown", cellText(wb, 1, 12))     // City
             assertEquals("CA", cellText(wb, 1, 13))           // State
         }
@@ -257,6 +282,105 @@ class SpreadsheetWriterTest {
         openWorkbook(file).use { wb ->
             // Empty services = empty string = no cell created
             assertEquals("", cellText(wb, 1, servicesCol))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 9: Date of Issue written as Excel date cell
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `date of issue written as Excel date cell`() {
+        val referral = ReferralFields(
+            firstName = ParsedField.high("Test"),
+            dateOfIssue = ParsedField.high("August 13, 2024"),
+        )
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
+
+        val dateOfIssueCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("Date of Issue")
+
+        openWorkbook(file).use { wb ->
+            // Cell should be numeric (date) type
+            assertTrue(isCellNumeric(wb, 1, dateOfIssueCol), "Date of Issue cell should be numeric (date)")
+
+            // Date value should match
+            val date = cellDate(wb, 1, dateOfIssueCol)
+            assertNotNull(date, "Date of Issue should parse to a date")
+            assertEquals(LocalDate.of(2024, 8, 13), date)
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 10: DOB written as Excel date cell
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `dob written as Excel date cell`() {
+        val referral = ReferralFields(
+            firstName = ParsedField.high("Test"),
+            dob = ParsedField.high("09/15/1990"),
+        )
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
+
+        val dobCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("DOB")
+
+        openWorkbook(file).use { wb ->
+            // Cell should be numeric (date) type
+            assertTrue(isCellNumeric(wb, 1, dobCol), "DOB cell should be numeric (date)")
+
+            // Date value should match
+            val date = cellDate(wb, 1, dobCol)
+            assertNotNull(date, "DOB should parse to a date")
+            assertEquals(LocalDate.of(1990, 9, 15), date)
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 11: Unparseable date falls back to text
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `unparseable date falls back to text`() {
+        val referral = ReferralFields(
+            firstName = ParsedField.high("Test"),
+            dateOfIssue = ParsedField.high("some unparseable text"),
+        )
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
+
+        val dateOfIssueCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("Date of Issue")
+
+        openWorkbook(file).use { wb ->
+            // Cell should be text (string) type, not numeric
+            val sheet = wb.getSheetAt(0)
+            val cell = sheet.getRow(1).getCell(dateOfIssueCol)
+            assertNotNull(cell, "Cell should exist")
+            assertEquals(CellType.STRING, cell.cellType, "Unparseable date should be written as text")
+            assertEquals("some unparseable text", cell.stringCellValue)
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 12: Appointment date with weekday prefix parses to date cell
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `appointment date with weekday prefix parses to date cell`() {
+        val referral = ReferralFields(
+            firstName = ParsedField.high("Test"),
+            appointmentDate = ParsedField.high("Thursday September 5th, 2024"),
+        )
+        val file = SpreadsheetWriter.write(listOf(referral), tempDir, fixedTimestamp)
+
+        val apptDateCol = SpreadsheetWriter.COLUMN_HEADINGS.indexOf("Appointment Date")
+
+        openWorkbook(file).use { wb ->
+            // Cell should be numeric (date) type
+            assertTrue(isCellNumeric(wb, 1, apptDateCol), "Appointment Date cell should be numeric (date)")
+
+            // Date value should match — September 5, 2024
+            val date = cellDate(wb, 1, apptDateCol)
+            assertNotNull(date, "Appointment Date should parse to a date")
+            assertEquals(LocalDate.of(2024, 9, 5), date)
         }
     }
 }
