@@ -80,6 +80,12 @@ src/                     # Kotlin/Compose Multiplatform application source
 - Stage files explicitly (never `git add .` or `git add -A`)
 - When making a commit, also log the session. See protocol: `docs/protocols/prompt-logging.md`
 
+## Code Change Policy
+
+**All code changes must go through worktree agents.** Do not edit source files (`src/`, `build.gradle.kts`) directly in the main working tree. Instead, launch a Task with `isolation: "worktree"` and merge the result. This keeps the main conversation window free for orchestration, backlog management, and user interaction.
+
+Exceptions: documentation-only changes (`docs/`, `work-packages.md`, `CLAUDE.md`) and trivial non-code fixes can be made directly.
+
 ---
 
 ## Parallel Agent Workflow
