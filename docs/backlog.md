@@ -158,17 +158,9 @@ Removed `Confidence` enum, `ParsedField` wrapper, `ConfidenceBadge` composable, 
 
 ---
 
-### E3. Improve PDF parsing feedback
+### ~~E3. Improve PDF parsing feedback~~ ✓ RESOLVED (WP-10)
 
-Log warnings for fields that fail to extract. Currently, missing fields are silently returned as null/empty with no indication of what went wrong.
-
-- Log a warning per field when a regex pattern doesn't match (e.g., "WARN: header block not matched — 'Case ID:' label found but full pattern failed")
-- Include which extraction stage was attempted (header, table, invoice, footer)
-- Surface a per-file summary in the UI (e.g., "12/23 fields extracted — 11 missing") alongside the error panel
-- Optionally list missing field names in the results screen so the user knows what to check manually
-
-**Depends on**: #2, #4
-**Priority**: Medium — critical for debugging extraction issues in the field
+Replaced println diagnostics with structured `ParsingWarning` and `ParseResult` types. FieldParser.parse() returns warnings when labels are detected but patterns fail. ProcessingScreen shows per-file warning count; ResultsScreen has expandable warnings section grouped by file.
 
 ---
 
@@ -182,4 +174,4 @@ Tyler's input on field priorities and spreadsheet layout affects items #2, #3, a
 
 ---
 
-*Last updated: 2026-02-24*
+*Last updated: 2026-02-26*

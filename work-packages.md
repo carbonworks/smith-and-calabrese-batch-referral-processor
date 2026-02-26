@@ -200,6 +200,44 @@ Fix missing patient metadata extraction by hardening all regex patterns:
 
 ---
 
+## WP-10: Improve Parsing Feedback (E3)
+
+**Status:** done
+**Owns:** `ParseResult.kt`, `ParsingWarning.kt`, `ProcessingScreen.kt`, `ResultsScreen.kt`
+**Touches:** `FieldParser.kt`, `FieldParserTest.kt`
+**Depends on:** WP-9
+
+**Scope:**
+Replace println diagnostics with structured warnings:
+1. `ParsingWarning` data class with field, stage, and message
+2. `ParseResult` wrapper returned by `FieldParser.parse()` instead of bare `ReferralFields`
+3. Collect warnings for each extraction stage when labels detected but patterns fail
+4. ProcessingScreen shows per-file warning count
+5. ResultsScreen has expandable warnings section grouped by file
+
+**Acceptance:** Structured warnings replace all FieldParser println diagnostics. ProcessingScreen shows warning counts. ResultsScreen has expandable warnings. 27 unit tests pass.
+
+---
+
+## WP-11: Help Screen
+
+**Status:** done
+**Owns:** `HelpScreen.kt`
+**Touches:** `Main.kt`, `MainScreen.kt`
+**Depends on:** WP-4
+
+**Scope:**
+Dedicated Help screen with usage instructions and support contact:
+1. Getting Started — 4-step workflow guide
+2. Supported Formats — SSA/DDS PDFs, batch limit, XLSX output
+3. Tips — warnings panel, directory persistence, drag-and-drop
+4. Support — clickable mailto link to support@carbonworks.tech
+5. Help button in MainScreen header, navigation via Screen enum
+
+**Acceptance:** Help button on main screen opens Help screen. All sections display. Email link opens system mail client. Back button returns to file selection.
+
+---
+
 ## Dependency Graph
 
 ```
@@ -207,21 +245,17 @@ WP-0 (PDF Text Extraction) ──> WP-1 (Field Parsing) ──┬──> WP-3 (X
                                                         │                          │
 WP-2 (Table Extraction) ───────────────────────────────┘                          ├──> WP-4 (Desktop UI) ──> WP-6 (Packaging)
                                                                                    │
+WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback)
+WP-8 (Remember Directory)
+WP-11 (Help Screen)
 ```
 
 ## Recommended Execution Order
 
-**Wave 1** (can run in parallel — no dependencies):
-- WP-0, WP-2
-
-**Wave 2** (after WP-0 is merged):
-- WP-1
-
-**Wave 3** (after WP-1 and WP-2 are merged):
-- WP-3
-
-**Wave 4** (after WP-0, WP-1, WP-3 are merged):
-- WP-4
-
-**Wave 5** (after WP-4 is merged):
-- WP-6
+**Wave 1** (no dependencies): WP-0, WP-2
+**Wave 2** (after WP-0): WP-1
+**Wave 3** (after WP-1, WP-2): WP-3
+**Wave 4** (after WP-0, WP-1, WP-3): WP-4
+**Wave 5** (after WP-4, parallel): WP-6, WP-7, WP-8
+**Wave 6** (after WP-7): WP-9
+**Wave 7** (after WP-9, parallel): WP-10, WP-11
