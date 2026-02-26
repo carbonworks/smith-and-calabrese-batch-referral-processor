@@ -266,6 +266,19 @@ The Date of Issue field extracts the wrong text from the PDF. Instead of the act
 
 ---
 
+### B10. Footer pattern does not match real PDF footer text
+
+Warning `[footer] Case Number (Footer): Footer labels found but pattern did not match` is produced during real PDF processing. The WP-12 footer regex fix (B8) handles the trailing `/ OMB No. ...` components in the docling reference, but the actual PDFBox-reconstructed footer text apparently has a different structure that the pattern still doesn't match.
+
+This means `caseNumberFullFooter`, `assignedCode`, and `dccNumber` are still not extracting from real PDFs despite the B8 fix passing unit tests.
+
+**To investigate**: Run `FieldParser.dumpPageTexts()` against a real PDF and find the actual footer line. Compare it to the regex pattern `(\S+)/\s*Assigned\s+(\d+)\s+(?:null/\s*)?(?:[A-Z]+\s*/\s*)?(\S+?)(?:\s*/|\s*$)`. The discrepancy is likely whitespace, line breaks, or unexpected characters between the slash-separated components as reconstructed by PDFBox.
+
+**Severity**: High — footer fields (case number, assigned code, DCC number) not extracting
+**File**: `FieldParser.kt` (`extractCaseNumberComponents`)
+
+---
+
 ### E6. PHI-safe debug mode with data masking
 
 Add a debug mode that masks all extracted field values in the UI and logs. Masking rule: for each word, show the first character and replace the rest with asterisks. Single-character words are fully masked (`*`). Examples:
