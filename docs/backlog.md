@@ -57,6 +57,20 @@ Agents implementing work packages must run `./gradlew test` before committing an
 
 ## Work Items
 
+### 0. Record video demonstration
+
+Record a screen capture demo of the application's full workflow for client delivery. The video should show: file selection (file picker and/or drag-and-drop), batch processing with progress, data preview in card layout, and XLSX export.
+
+- Identify and install a screen recording tool for Linux (e.g., OBS Studio, SimpleScreenRecorder, or similar)
+- Record a specific application window (not full desktop)
+- Output format suitable for sharing (MP4, reasonable file size)
+- Ensure PHI masking is active during recording (DEBUG mode)
+
+**Depends on**: All bugs resolved
+**Checkpoint**: MP4 video demonstrating complete workflow
+
+---
+
 ### 1. Scaffold Kotlin/Gradle project
 
 Set up the Compose Multiplatform Desktop project structure.
