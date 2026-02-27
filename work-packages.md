@@ -329,6 +329,36 @@ Add data masking for PHI-safe development:
 
 ---
 
+## WP-17: Hybrid Text Extraction — PDFBox getText() for Regex Matching (B9, B10)
+
+**Status:** done
+**Owns:** `PdfTextExtractor.kt`, `FieldParser.kt`, `FieldParserTest.kt`, `PdfTextExtractorTest.kt`
+**Reads:** `reference/python-scripts/extract_referral_fields.py`, `CLAUDE.md`
+**Touches:** `ProcessingScreen.kt`
+**Depends on:** WP-15
+
+**Scope:**
+Fix the root cause of B9 and B10 — text reconstruction produces concatenated strings without proper spacing because our custom `PositionCollectingStripper` bypasses PDFBox's built-in text layout logic.
+
+Implement a hybrid approach:
+1. **Add `PDFTextStripper.getText()` output to `ExtractionResult.Success`** — add a `pageStrippedTexts: List<String>` field that contains PDFBox's built-in text output per page. This text has proper spacing, line breaks, and character positioning.
+2. **Update `PdfTextExtractor.extractFromDocument()`** — after collecting TextBlocks via the custom stripper, also run a standard `PDFTextStripper` per page to get the properly-spaced text. Store both in the `PageInfo` data class (add a `strippedText: String` field to `PageInfo`).
+3. **Update `FieldParser.reconstructPageTexts()`** — instead of reconstructing text from TextBlocks via naive `joinToString(" ")`, return the `strippedText` from each `PageInfo`. The existing regex patterns should work better against properly-spaced text.
+4. **Keep `TextBlock` data in `PageInfo`** — the custom position-collecting extraction is still needed for region-based queries (`extractFromRegion()`), table extraction, and any future coordinate-based features.
+5. **Update `dumpPageTextsDetailed()`** — it should use the new `strippedText` for its output, making the diagnostic dump match what regex patterns actually see.
+6. **Update tests** — existing FieldParser tests construct `TextBlock` objects directly and won't be affected (they test regex logic, not text reconstruction). Add a test verifying that `reconstructPageTexts()` now returns `strippedText` from PageInfo. Update any PdfTextExtractor tests for the new `strippedText` field.
+
+**Key constraint**: The `PositionCollectingStripper` and `TextBlock` extraction must remain functional — only the text used for regex matching changes. This is an additive change to `ExtractionResult`/`PageInfo`, not a replacement.
+
+**Acceptance:**
+- `PageInfo` has a `strippedText: String` field populated by `PDFTextStripper.getText()`
+- `FieldParser.reconstructPageTexts()` returns `strippedText` instead of naive block joining
+- Existing FieldParser tests pass (regex patterns against TextBlock-based test data)
+- New test verifies `strippedText` is used for page text reconstruction
+- `./gradlew test` passes
+
+---
+
 ## Dependency Graph
 
 ```
@@ -336,7 +366,7 @@ WP-0 (PDF Text Extraction) ──> WP-1 (Field Parsing) ──┬──> WP-3 (X
                                                         │                          │
 WP-2 (Table Extraction) ───────────────────────────────┘                          ├──> WP-4 (Desktop UI) ──> WP-6 (Packaging)
                                                                                    │
-WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback) ──┬──> WP-12 (Fix Regex Bugs) ──> WP-15 (Fix B9/B10/B11)
+WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback) ──┬──> WP-12 (Fix Regex Bugs) ──> WP-15 (Fix B9/B10/B11) ──> WP-17 (Hybrid Text)
                                                                                    └──> WP-14 (Results Cards) ──> WP-16 (Debug Masking)
 WP-3 (XLSX Output) ──> WP-13 (Date Formatting)
 WP-8 (Remember Directory)
@@ -354,3 +384,4 @@ WP-11 (Help Screen)
 **Wave 7** (after WP-9, parallel): WP-10, WP-11
 **Wave 8** (after WP-10, parallel): WP-12, WP-13, WP-14
 **Wave 9** (after WP-12/WP-14, parallel): WP-15, WP-16
+**Wave 10** (after WP-15): WP-17

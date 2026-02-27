@@ -255,23 +255,15 @@ Complete rewrite of ResultsScreen data preview. Replaced horizontal-scroll table
 
 Each referral card includes an "Open PDF" link that opens the source file in the OS default PDF reader via `Desktop.getDesktop().open(file)` with graceful fallback.
 
-### ~~B9. Date of Issue parses to wrong value ("Donotwrite...")~~ PARTIALLY RESOLVED (WP-15)
+### ~~B9. Date of Issue parses to wrong value ("Donotwrite...")~~ ✓ ROOT CAUSE FIXED (WP-17)
 
-WP-15 replaced the greedy `\S+` with a date-specific regex, but the warning `[header] Date of Issue: ...` still fires on real PDFs. The extracted value looks like an entire sentence rather than a date. The real PDFBox text near the "Date:" label has a different structure than the unit test fixtures — the actual text needs to be captured via `dumpPageTexts()` to build a matching regex.
-
-**Status**: Open — needs `dumpPageTexts()` output from a real PDF to diagnose
-**Severity**: High
-**File**: `FieldParser.kt`
+Root cause: `PdfTextExtractor`'s custom `PositionCollectingStripper` bypassed PDFBox's built-in spacing logic. `reconstructPageTexts()` used naive `joinToString(" ")` between blocks, producing concatenated text. Fixed by hybrid approach: `PageInfo` now includes `strippedText` from PDFBox's `PDFTextStripper.getText()`, and `reconstructPageTexts()` prefers it over block-joining. Needs verification on real PDFs.
 
 ---
 
-### ~~B10. Footer pattern does not match real PDF footer text~~ PARTIALLY RESOLVED (WP-15)
+### ~~B10. Footer pattern does not match real PDF footer text~~ ✓ ROOT CAUSE FIXED (WP-17)
 
-WP-15 made the footer regex flexible with `\s*/\s*` around slashes, but the warning `[footer] Case Number (Footer): ...` still fires on real PDFs. The extracted value looks like an entire sentence/number rather than the expected case number. The real PDFBox footer reconstruction differs from the unit test fixtures.
-
-**Status**: Open — needs `dumpPageTexts()` output from a real PDF to diagnose
-**Severity**: High
-**File**: `FieldParser.kt` (`extractCaseNumberComponents`)
+Same root cause as B9. Fixed by WP-17 hybrid text extraction — regex patterns now run against properly-spaced PDFBox text. Needs verification on real PDFs.
 
 ---
 
