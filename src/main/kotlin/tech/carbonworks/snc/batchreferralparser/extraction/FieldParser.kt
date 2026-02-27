@@ -128,7 +128,11 @@ class FieldParser(
         textResult: ExtractionResult.Success,
     ): List<String> {
         return textResult.pages.map { page ->
-            reconstructPageText(page.textBlocks)
+            if (page.strippedText.isNotEmpty()) {
+                page.strippedText
+            } else {
+                reconstructPageText(page.textBlocks)
+            }
         }
     }
 

@@ -783,6 +783,92 @@ class FieldParserTest {
         assertTrue("Request ID" in warningFields, "Should have Request ID warning")
     }
 
+    // -------------------------------------------------------------------
+    // 25. reconstructPageTexts prefers strippedText over block-joined text
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `reconstructPageTexts uses strippedText when populated`() {
+        // Create a page with both textBlocks and strippedText populated.
+        // The strippedText should be preferred over the block-joined text.
+        val blocks = listOf(
+            TextBlock("BlockA", 1, BoundingBox(10f, 100f, 36f, 12f), 12f),
+            TextBlock("BlockB", 1, BoundingBox(60f, 100f, 36f, 12f), 12f),
+        )
+        val page = PageInfo(
+            pageNumber = 1,
+            width = 612f,
+            height = 792f,
+            hasText = true,
+            textBlocks = blocks,
+            strippedText = "Properly Spaced Text From PDFTextStripper",
+        )
+        val input = ExtractionResult.Success(pages = listOf(page), sourceFile = "test.pdf")
+
+        val pageTexts = parser.reconstructPageTexts(input)
+
+        assertEquals(1, pageTexts.size)
+        assertEquals("Properly Spaced Text From PDFTextStripper", pageTexts[0])
+    }
+
+    @Test
+    fun `reconstructPageTexts falls back to block joining when strippedText is empty`() {
+        // Create a page with textBlocks but no strippedText (default empty string).
+        // Should fall back to the block-joining logic.
+        val blocks = listOf(
+            TextBlock("Hello", 1, BoundingBox(10f, 100f, 30f, 12f), 12f),
+            TextBlock("World", 1, BoundingBox(60f, 100f, 30f, 12f), 12f),
+        )
+        val page = PageInfo(
+            pageNumber = 1,
+            width = 612f,
+            height = 792f,
+            hasText = true,
+            textBlocks = blocks,
+            // strippedText defaults to "" — should trigger fallback
+        )
+        val input = ExtractionResult.Success(pages = listOf(page), sourceFile = "test.pdf")
+
+        val pageTexts = parser.reconstructPageTexts(input)
+
+        assertEquals(1, pageTexts.size)
+        assertEquals("Hello World", pageTexts[0])
+    }
+
+    @Test
+    fun `reconstructPageTexts handles mixed pages with and without strippedText`() {
+        val page1 = PageInfo(
+            pageNumber = 1,
+            width = 612f,
+            height = 792f,
+            hasText = true,
+            textBlocks = listOf(
+                TextBlock("FallbackText", 1, BoundingBox(10f, 100f, 72f, 12f), 12f),
+            ),
+            // No strippedText — falls back to blocks
+        )
+        val page2 = PageInfo(
+            pageNumber = 2,
+            width = 612f,
+            height = 792f,
+            hasText = true,
+            textBlocks = listOf(
+                TextBlock("IgnoredBlock", 2, BoundingBox(10f, 100f, 72f, 12f), 12f),
+            ),
+            strippedText = "Stripped Page 2 Text",
+        )
+        val input = ExtractionResult.Success(
+            pages = listOf(page1, page2),
+            sourceFile = "test.pdf",
+        )
+
+        val pageTexts = parser.reconstructPageTexts(input)
+
+        assertEquals(2, pageTexts.size)
+        assertEquals("FallbackText", pageTexts[0])  // Fallback: block-joined
+        assertEquals("Stripped Page 2 Text", pageTexts[1])  // Preferred: strippedText
+    }
+
     @Test
     fun `footer warning generated when Assigned label present but pattern fails`() {
         val input = textResult(

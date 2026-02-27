@@ -53,6 +53,7 @@ data class PageInfo(
     val height: Float,
     val hasText: Boolean,
     val textBlocks: List<TextBlock>,
+    val strippedText: String = "",
 )
 
 /**
