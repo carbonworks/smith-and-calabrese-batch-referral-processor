@@ -1,5 +1,7 @@
 package tech.carbonworks.snc.batchreferralparser.extraction
 
+import tech.carbonworks.snc.batchreferralparser.util.PhiMask
+
 /**
  * Extracts structured referral fields from raw PDF extraction results.
  *
@@ -782,6 +784,20 @@ class FieldParser(
 
     companion object {
         /**
+         * Known field labels used by diagnostic dump methods to identify
+         * lines of interest in reconstructed page text.
+         */
+        private val knownLabels = listOf(
+            "Date:", "Case ID:", "RE:", "DOB:", "Applicant:",
+            "Authorization #:", "Authorization Number:",
+            "Federal Tax ID Number:", "Federal Tax ID:",
+            "Fed Tax ID:", "Vendor Number:", "RQID:",
+            "Claimant Information", "Date and Time",
+            "Services Authorized", "Code:", "CELL #",
+            "Assigned",
+        )
+
+        /**
          * Produce a sanitized diagnostic text dump from an extraction result.
          *
          * Shows page number, line count, and which field labels were found on each page.
@@ -803,16 +819,6 @@ class FieldParser(
             val parser = FieldParser(lineYTolerance)
             val pageTexts = parser.reconstructPageTexts(textResult)
 
-            val knownLabels = listOf(
-                "Date:", "Case ID:", "RE:", "DOB:", "Applicant:",
-                "Authorization #:", "Authorization Number:",
-                "Federal Tax ID Number:", "Federal Tax ID:",
-                "Fed Tax ID:", "Vendor Number:", "RQID:",
-                "Claimant Information", "Date and Time",
-                "Services Authorized", "Code:", "CELL #",
-                "Assigned",
-            )
-
             return pageTexts.mapIndexed { index, text ->
                 val lineCount = if (text.isBlank()) 0 else text.lines().size
                 val foundLabels = knownLabels.filter { label -> label in text }
@@ -820,5 +826,94 @@ class FieldParser(
                 "[Page ${index + 1}] $lineCount lines -- labels found: $labelsStr"
             }.joinToString("\n")
         }
+
+        /**
+         * Produce a focused diagnostic dump showing only lines near known labels.
+         *
+         * For each page, outputs lines that contain a known label plus up to 2
+         * context lines above and below. Pages with no label matches are skipped.
+         * All line content is masked with [PhiMask.maskDisplay] to prevent PHI
+         * leakage; only the label annotations reveal which field was found.
+         *
+         * Non-contiguous groups of lines on the same page are separated by `...`.
+         *
+         * Example output:
+         * ```
+         * === Page 1 (3 label matches) ===
+         *   Line 5: [masked content]        (context)
+         *   Line 6: [masked content]        << Date:
+         *   Line 7: [masked content]        (context)
+         *   ...
+         *   Line 22: [masked content]       (context)
+         *   Line 23: [masked content]       << Assigned
+         *   Line 24: [masked content]       (context)
+         * ```
+         *
+         * @param textResult the successful extraction result to diagnose
+         * @param lineYTolerance tolerance for reconstructing lines (default 5.0f)
+         * @param contextRadius number of context lines above and below each label match (default 2)
+         * @return multi-line diagnostic string (safe to log — contains no PHI)
+         */
+        fun dumpPageTextsDetailed(
+            textResult: ExtractionResult.Success,
+            lineYTolerance: Float = 5.0f,
+            contextRadius: Int = 2,
+        ): String {
+            val parser = FieldParser(lineYTolerance)
+            val pageTexts = parser.reconstructPageTexts(textResult)
+            val output = StringBuilder()
+
+            for ((pageIndex, text) in pageTexts.withIndex()) {
+                if (text.isBlank()) continue
+
+                val lines = text.lines()
+
+                // Find which lines contain known labels, and which labels they contain
+                val labelLineMap = mutableMapOf<Int, MutableList<String>>()
+                for ((lineIndex, line) in lines.withIndex()) {
+                    val matchedLabels = knownLabels.filter { label -> label in line }
+                    if (matchedLabels.isNotEmpty()) {
+                        labelLineMap[lineIndex] = matchedLabels.toMutableList()
+                    }
+                }
+
+                if (labelLineMap.isEmpty()) continue
+
+                // Build the set of line indices to include (label lines + context)
+                val includedIndices = sortedSetOf<Int>()
+                for (labelLine in labelLineMap.keys) {
+                    val rangeStart = (labelLine - contextRadius).coerceAtLeast(0)
+                    val rangeEnd = (labelLine + contextRadius).coerceAtMost(lines.size - 1)
+                    for (i in rangeStart..rangeEnd) {
+                        includedIndices.add(i)
+                    }
+                }
+
+                // Build page header
+                val matchCount = labelLineMap.size
+                val matchWord = if (matchCount == 1) "label match" else "label matches"
+                if (output.isNotEmpty()) output.append("\n")
+                output.appendLine("=== Page ${pageIndex + 1} ($matchCount $matchWord) ===")
+
+                // Output lines, inserting "..." between non-contiguous groups
+                var prevIndex = -1
+                for (idx in includedIndices) {
+                    if (prevIndex >= 0 && idx > prevIndex + 1) {
+                        output.appendLine("  ...")
+                    }
+
+                    val annotation = if (idx in labelLineMap) {
+                        "<< ${labelLineMap[idx]!!.first()}"
+                    } else {
+                        "(context)"
+                    }
+                    output.appendLine("  Line ${idx + 1}: ${PhiMask.maskDisplay(lines[idx])}        $annotation")
+                    prevIndex = idx
+                }
+            }
+
+            return output.toString().trimEnd()
+        }
     }
 }
+
