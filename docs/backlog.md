@@ -255,15 +255,15 @@ Complete rewrite of ResultsScreen data preview. Replaced horizontal-scroll table
 
 Each referral card includes an "Open PDF" link that opens the source file in the OS default PDF reader via `Desktop.getDesktop().open(file)` with graceful fallback.
 
-### ~~B9. Date of Issue parses to wrong value ("Donotwrite...")~~ ✓ ROOT CAUSE FIXED (WP-17)
+### ~~B9. Date of Issue parses to wrong value ("Donotwrite...")~~ ✓ RESOLVED (WP-17)
 
-Root cause: `PdfTextExtractor`'s custom `PositionCollectingStripper` bypassed PDFBox's built-in spacing logic. `reconstructPageTexts()` used naive `joinToString(" ")` between blocks, producing concatenated text. Fixed by hybrid approach: `PageInfo` now includes `strippedText` from PDFBox's `PDFTextStripper.getText()`, and `reconstructPageTexts()` prefers it over block-joining. Needs verification on real PDFs.
+Root cause: `PdfTextExtractor`'s custom `PositionCollectingStripper` bypassed PDFBox's built-in spacing logic. `reconstructPageTexts()` used naive `joinToString(" ")` between blocks, producing concatenated text. Fixed by hybrid approach: `PageInfo` now includes `strippedText` from PDFBox's `PDFTextStripper.getText()`, and `reconstructPageTexts()` prefers it over block-joining. Verified on real PDFs.
 
 ---
 
-### ~~B10. Footer pattern does not match real PDF footer text~~ ✓ ROOT CAUSE FIXED (WP-17)
+### ~~B10. Footer pattern does not match real PDF footer text~~ ✓ RESOLVED (WP-17)
 
-Same root cause as B9. Fixed by WP-17 hybrid text extraction — regex patterns now run against properly-spaced PDFBox text. Needs verification on real PDFs.
+Same root cause as B9. Fixed by WP-17 hybrid text extraction — regex patterns now run against properly-spaced PDFBox text. Verified on real PDFs.
 
 ---
 
@@ -273,18 +273,9 @@ Fixed by applying `splitCamelCaseName()` to applicant name in both combined and 
 
 ---
 
-### B12. Parsing performance is slower than expected
+### ~~B12. Parsing performance is slower than expected~~ ✓ RESOLVED (WP-17)
 
-PDF processing takes noticeably longer than it should. Potential causes:
-- Tabula-java table detection scanning all pages (expensive even when no tables found)
-- `dumpPageTexts()` running in non-debug builds
-- Redundant full-text searches across all pages for each field
-- `reconstructPageText()` rebuilding text on every extraction call
-
-**To investigate**: Profile a batch run to identify the bottleneck. Tabula-java is the most likely culprit — it does heavy analysis even on pages without tables.
-
-**Severity**: Medium — noticeable UX impact during batch processing
-**File**: Pipeline orchestration (`ProcessingScreen.kt`, `FieldParser.kt`, `TableExtractor.kt`)
+Resolved as a side effect of WP-17. The hybrid approach eliminated the expensive `reconstructPageText()` block-sorting and grouping on every call — `strippedText` is now pre-computed during extraction. Verified by user on real PDFs.
 
 ---
 
