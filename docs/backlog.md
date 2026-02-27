@@ -59,7 +59,7 @@ Agents implementing work packages must run `./gradlew test` before committing an
 
 ### 0. Record video demonstration
 
-Record a screen capture demo of the application's full workflow for client delivery. The video should show: file selection (file picker and/or drag-and-drop), batch processing with progress, data preview in card layout, and XLSX export.
+Record a screen capture demo of the application's full workflow for client delivery. The video should show: drag-and-drop file selection, batch processing with progress, data preview in card layout, and XLSX export. Skip the file picker — it opens a system dialog that won't record cleanly.
 
 - Identify and install a screen recording tool for Linux (e.g., OBS Studio, SimpleScreenRecorder, or similar)
 - Record a specific application window (not full desktop)
