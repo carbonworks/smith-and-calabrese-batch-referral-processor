@@ -36,6 +36,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.FileStatus
 import tech.carbonworks.snc.batchreferralparser.ui.components.StatusIcon
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
+import tech.carbonworks.snc.batchreferralparser.util.BuildConfig
 import tech.carbonworks.snc.batchreferralparser.util.PhiMask
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
@@ -115,6 +116,11 @@ fun ProcessingScreen(
                         val pageCount = success.pages.size
                         val blockCount = success.pages.sumOf { it.textBlocks.size }
                         println("[Pipeline]   Text extraction OK: $pageCount page(s), $blockCount text block(s)")
+
+                        if (BuildConfig.DEBUG) {
+                            val detailedDump = FieldParser.dumpPageTextsDetailed(success)
+                            println("[Dump] ${file.name}\n$detailedDump")
+                        }
 
                         val tables = tableExtractor.extract(file)
                         println("[Pipeline]   Table extraction OK: ${tables.size} table(s)")

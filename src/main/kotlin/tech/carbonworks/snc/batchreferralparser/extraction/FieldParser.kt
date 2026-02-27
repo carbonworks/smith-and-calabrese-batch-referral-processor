@@ -1,5 +1,7 @@
 package tech.carbonworks.snc.batchreferralparser.extraction
 
+import tech.carbonworks.snc.batchreferralparser.util.PhiMask
+
 /**
  * Extracts structured referral fields from raw PDF extraction results.
  *
@@ -61,6 +63,42 @@ class FieldParser(
                 val labelsStr = if (foundLabels.isEmpty()) "(none)" else foundLabels.joinToString(", ")
                 "[Page ${index + 1}] $lineCount lines -- labels found: $labelsStr"
             }.joinToString("\n")
+        }
+
+        /**
+         * Produce a detailed page text dump with every line's content masked for PHI safety.
+         *
+         * Creates a FieldParser internally to reconstruct page texts (same pattern as
+         * [dumpPageTexts]), then outputs each line numbered and masked via [PhiMask.maskDisplay].
+         *
+         * Example output:
+         *   === Page 1 (3 lines) ===
+         *   Line 1: D***: 0*********
+         *   Line 2: C*** I*: A**-12345
+         *   Line 3: R*: J*** D**
+         *   === Page 2 (1 lines) ===
+         *   Line 1: (some masked content)
+         *
+         * @param textResult the successful extraction result to dump
+         * @param lineYTolerance tolerance for reconstructing lines (default 5.0f)
+         * @return multi-line detailed dump string (PHI-masked — safe to log)
+         */
+        fun dumpPageTextsDetailed(
+            textResult: ExtractionResult.Success,
+            lineYTolerance: Float = 5.0f,
+        ): String {
+            val parser = FieldParser(lineYTolerance)
+            val pageTexts = parser.reconstructPageTexts(textResult)
+
+            return buildString {
+                for ((index, text) in pageTexts.withIndex()) {
+                    val lines = if (text.isBlank()) emptyList() else text.lines()
+                    appendLine("=== Page ${index + 1} (${lines.size} lines) ===")
+                    for ((lineIndex, line) in lines.withIndex()) {
+                        appendLine("Line ${lineIndex + 1}: ${PhiMask.maskDisplay(line)}")
+                    }
+                }
+            }.trimEnd()
         }
     }
 
