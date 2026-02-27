@@ -25,20 +25,19 @@ class FieldParser(
         /** Y-coordinate tolerance for grouping text blocks on the same line. */
         private const val LINE_Y_TOLERANCE = 3f
 
+        /** Known field labels used by diagnostic dump methods. */
+        private val knownLabels = listOf(
+            "Date:", "Case ID:", "RE:", "DOB:", "Applicant:",
+            "Authorization #:", "Authorization Number:",
+            "Federal Tax ID Number:", "Federal Tax ID:",
+            "Fed Tax ID:", "Vendor Number:", "RQID:",
+            "Claimant Information", "Date and Time",
+            "Services Authorized", "Code:", "CELL #",
+            "Assigned",
+        )
+
         /**
-         * Produce a sanitized diagnostic text dump from an extraction result.
-         *
-         * Shows page number, line count, and which field labels were found on each page.
-         * Does NOT include actual field values (PHI constraint).
-         *
-         * Example output:
-         *   [Page 1] 15 lines -- labels found: Date, Case ID, RE, DOB, Authorization #
-         *   [Page 2] 8 lines -- labels found: (none)
-         *   [Page 3] 12 lines -- labels found: Federal Tax ID Number, Vendor Number, RQID
-         *
-         * @param textResult the successful extraction result to diagnose
-         * @param lineYTolerance tolerance for reconstructing lines (default 5.0f)
-         * @return multi-line diagnostic string (safe to log — contains no PHI)
+         * Produce a sanitized summary dump — page line counts and which labels were found.
          */
         fun dumpPageTexts(
             textResult: ExtractionResult.Success,
@@ -46,16 +45,6 @@ class FieldParser(
         ): String {
             val parser = FieldParser(lineYTolerance)
             val pageTexts = parser.reconstructPageTexts(textResult)
-
-            val knownLabels = listOf(
-                "Date:", "Case ID:", "RE:", "DOB:", "Applicant:",
-                "Authorization #:", "Authorization Number:",
-                "Federal Tax ID Number:", "Federal Tax ID:",
-                "Fed Tax ID:", "Vendor Number:", "RQID:",
-                "Claimant Information", "Date and Time",
-                "Services Authorized", "Code:", "CELL #",
-                "Assigned",
-            )
 
             return pageTexts.mapIndexed { index, text ->
                 val lineCount = if (text.isBlank()) 0 else text.lines().size
@@ -66,39 +55,67 @@ class FieldParser(
         }
 
         /**
-         * Produce a detailed page text dump with every line's content masked for PHI safety.
+         * Produce a focused diagnostic dump showing only lines near known labels.
          *
-         * Creates a FieldParser internally to reconstruct page texts (same pattern as
-         * [dumpPageTexts]), then outputs each line numbered and masked via [PhiMask.maskDisplay].
-         *
-         * Example output:
-         *   === Page 1 (3 lines) ===
-         *   Line 1: D***: 0*********
-         *   Line 2: C*** I*: A**-12345
-         *   Line 3: R*: J*** D**
-         *   === Page 2 (1 lines) ===
-         *   Line 1: (some masked content)
-         *
-         * @param textResult the successful extraction result to dump
-         * @param lineYTolerance tolerance for reconstructing lines (default 5.0f)
-         * @return multi-line detailed dump string (PHI-masked — safe to log)
+         * For each page, outputs lines containing a known label plus [contextRadius]
+         * lines above and below, with content masked via [PhiMask.maskDisplay].
+         * Pages with no label matches are skipped.
          */
         fun dumpPageTextsDetailed(
             textResult: ExtractionResult.Success,
             lineYTolerance: Float = 5.0f,
+            contextRadius: Int = 2,
         ): String {
             val parser = FieldParser(lineYTolerance)
             val pageTexts = parser.reconstructPageTexts(textResult)
+            val output = StringBuilder()
 
-            return buildString {
-                for ((index, text) in pageTexts.withIndex()) {
-                    val lines = if (text.isBlank()) emptyList() else text.lines()
-                    appendLine("=== Page ${index + 1} (${lines.size} lines) ===")
-                    for ((lineIndex, line) in lines.withIndex()) {
-                        appendLine("Line ${lineIndex + 1}: ${PhiMask.maskDisplay(line)}")
+            for ((pageIndex, text) in pageTexts.withIndex()) {
+                if (text.isBlank()) continue
+
+                val lines = text.lines()
+
+                val labelLineMap = mutableMapOf<Int, MutableList<String>>()
+                for ((lineIndex, line) in lines.withIndex()) {
+                    val matchedLabels = knownLabels.filter { label -> label in line }
+                    if (matchedLabels.isNotEmpty()) {
+                        labelLineMap[lineIndex] = matchedLabels.toMutableList()
                     }
                 }
-            }.trimEnd()
+
+                if (labelLineMap.isEmpty()) continue
+
+                val includedIndices = sortedSetOf<Int>()
+                for (labelLine in labelLineMap.keys) {
+                    val rangeStart = (labelLine - contextRadius).coerceAtLeast(0)
+                    val rangeEnd = (labelLine + contextRadius).coerceAtMost(lines.size - 1)
+                    for (i in rangeStart..rangeEnd) {
+                        includedIndices.add(i)
+                    }
+                }
+
+                val matchCount = labelLineMap.size
+                val matchWord = if (matchCount == 1) "label match" else "label matches"
+                if (output.isNotEmpty()) output.append("\n")
+                output.appendLine("=== Page ${pageIndex + 1} ($matchCount $matchWord) ===")
+
+                var prevIndex = -1
+                for (idx in includedIndices) {
+                    if (prevIndex >= 0 && idx > prevIndex + 1) {
+                        output.appendLine("  ...")
+                    }
+
+                    val annotation = if (idx in labelLineMap) {
+                        "<< ${labelLineMap[idx]!!.first()}"
+                    } else {
+                        "(context)"
+                    }
+                    output.appendLine("  Line ${idx + 1}: ${PhiMask.maskDisplay(lines[idx])}        $annotation")
+                    prevIndex = idx
+                }
+            }
+
+            return output.toString().trimEnd()
         }
     }
 
@@ -1019,3 +1036,4 @@ class FieldParser(
         val requestId: String? = null,
     )
 }
+
