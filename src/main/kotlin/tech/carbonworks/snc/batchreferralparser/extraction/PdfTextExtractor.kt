@@ -151,6 +151,12 @@ class PdfTextExtractor {
 
             val textBlocks = groupIntoTextBlocks(positions, pageNumber)
 
+            // Run standard PDFTextStripper to get properly-spaced text
+            val textStripper = PDFTextStripper()
+            textStripper.startPage = pageNumber
+            textStripper.endPage = pageNumber
+            val strippedText = textStripper.getText(document).trim()
+
             pages.add(
                 PageInfo(
                     pageNumber = pageNumber,
@@ -158,6 +164,7 @@ class PdfTextExtractor {
                     height = mediaBox.height,
                     hasText = textBlocks.isNotEmpty(),
                     textBlocks = textBlocks,
+                    strippedText = strippedText,
                 )
             )
         }
