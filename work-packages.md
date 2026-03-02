@@ -359,6 +359,58 @@ Implement a hybrid approach:
 
 ---
 
+## WP-18: Runtime PHI Visibility Toggle (E7)
+
+**Status:** ready
+**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt` (NEW), `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/util/PhiPreferences.kt` (NEW)
+**Touches:** `ResultsScreen.kt`, `PhiMask.kt`, `BuildConfig.kt`, `Main.kt`, `MainScreen.kt`, `HelpScreen.kt`
+**Depends on:** WP-16 (existing masking infrastructure)
+
+**Scope:**
+
+Replace the compile-time `BuildConfig.DEBUG` PHI masking with a user-controlled runtime toggle:
+
+1. **`PhiPreferences` utility** — wraps Java `Preferences` API (same node as existing directory pref: `tech/carbonworks/snc/batchreferralparser`). Stores a single boolean key `"showPhiByDefault"` (default `false`). Provides `getShowByDefault(): Boolean` and `setShowByDefault(Boolean)`.
+
+2. **Runtime masking state in `PhiMask`** — replace `isMaskingEnabled()` delegation from `BuildConfig.DEBUG` to a mutable runtime property. Expose `var maskingEnabled: Boolean` (initialized from `PhiPreferences.getShowByDefault()` inverted — if "show by default" is true, masking starts disabled). Remove the `BuildConfig.DEBUG` dependency. `maskValue()` and `maskDisplay()` continue to check `maskingEnabled` — no changes to call sites in `ResultsScreen.kt` needed beyond recomposition.
+
+3. **Eye toggle on Results screen** — add an `IconButton` with a visibility on/off icon (`Icons.Outlined.Visibility` / `Icons.Outlined.VisibilityOff`) in the Results screen header area. Clicking it flips `PhiMask.maskingEnabled` and triggers recomposition of all masked fields. Use a Compose `MutableState<Boolean>` hoisted to the Results screen level to drive recomposition.
+
+4. **Discovery cue animation** — the eye toggle pulses (subtle scale or alpha animation) on a repeating 15-second cycle on every app launch. The cue runs indefinitely across launches until dismissed. Dismissal is permanent (persisted via `"phiToggleDismissed"` preference key set to `true`) and triggered by either: (a) the user clicks the eye toggle, or (b) the user changes the "Show extracted data by default" setting. Once dismissed, the cue never animates again on any future launch.
+
+5. **Settings screen** — new `SettingsScreen.kt` composable. Add `SETTINGS` to the `Screen` enum in `Main.kt`. Accessible via a gear icon (`Icons.Outlined.Settings`) `IconButton` in the `MainScreen` header. Contains:
+   - Section: "Privacy"
+   - Toggle row: "Show extracted data by default" with a `Switch` composable
+   - Descriptive text: explains that data is masked by default for privacy protection
+   - Back button returns to `FILE_SELECTION`
+   - Changing this toggle also persists the `"phiToggleDismissed"` key to `true` (stops the discovery cue)
+
+6. **Upgrade MainScreen header buttons** — replace the existing `CwSecondaryButton(text = "? Help")` with a pair of `IconButton`s using Material icons:
+   - Settings: `Icons.Outlined.Settings` (navigates to `SETTINGS`)
+   - Help: `Icons.AutoMirrored.Outlined.HelpOutline` (navigates to `HELP`)
+   - Both use `SoftGray` tint, arranged in a `Row` with 4.dp spacing, right-aligned in the header
+   - Optional: tooltip text ("Settings" / "Help") on hover via `Modifier.pointerHoverIcon` or `TooltipBox`
+
+7. **Help screen tip** — add a `HelpBullet` in the Tips section: `"Extracted data is masked by default for privacy. Use the eye toggle on the results screen to reveal values."`
+
+8. **Remove `BuildConfig.kt`** — the `DEBUG` constant is no longer needed. Delete the file. All masking is now controlled by `PhiMask.maskingEnabled` at runtime.
+
+9. **XLSX output unchanged** — `SpreadsheetWriter` never calls `PhiMask` and writes raw `ReferralFields` values. No changes needed.
+
+**Acceptance:**
+- Eye toggle on Results screen masks/unmasks all displayed field values
+- PHI is masked by default on every app launch (unless "show by default" setting is on)
+- Discovery cue pulses on a 15s cycle every launch until permanently dismissed by first toggle click or settings change
+- Settings screen accessible from MainScreen with "Show extracted data by default" toggle
+- MainScreen header has Settings (gear) and Help (question mark) as Material icon buttons, replacing the old text-based "? Help" button
+- Setting persists across app restarts via Java Preferences
+- New tip in HelpScreen about the toggle
+- `BuildConfig.kt` removed
+- XLSX output always contains unmasked data
+- `./gradlew test` passes
+
+---
+
 ## Dependency Graph
 
 ```
@@ -367,7 +419,7 @@ WP-0 (PDF Text Extraction) ──> WP-1 (Field Parsing) ──┬──> WP-3 (X
 WP-2 (Table Extraction) ───────────────────────────────┘                          ├──> WP-4 (Desktop UI) ──> WP-6 (Packaging)
                                                                                    │
 WP-7 (Remove Confidence) ──> WP-9 (Harden Regex) ──> WP-10 (Parsing Feedback) ──┬──> WP-12 (Fix Regex Bugs) ──> WP-15 (Fix B9/B10/B11) ──> WP-17 (Hybrid Text)
-                                                                                   └──> WP-14 (Results Cards) ──> WP-16 (Debug Masking)
+                                                                                   └──> WP-14 (Results Cards) ──> WP-16 (Debug Masking) ──> WP-18 (PHI Toggle)
 WP-3 (XLSX Output) ──> WP-13 (Date Formatting)
 WP-8 (Remember Directory)
 WP-11 (Help Screen)
@@ -385,3 +437,4 @@ WP-11 (Help Screen)
 **Wave 8** (after WP-10, parallel): WP-12, WP-13, WP-14
 **Wave 9** (after WP-12/WP-14, parallel): WP-15, WP-16
 **Wave 10** (after WP-15): WP-17
+**Wave 11** (after WP-16): WP-18

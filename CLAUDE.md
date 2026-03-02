@@ -86,6 +86,11 @@ src/                     # Kotlin/Compose Multiplatform application source
 
 Exceptions: documentation-only changes (`docs/`, `work-packages.md`, `CLAUDE.md`) and trivial non-code fixes can be made directly.
 
+## Permission Hygiene
+
+- **Never bundle AI memory/settings edits with project edits.** Edits to files under `.claude/` (memory, settings, etc.) must be requested in a separate tool call from edits to project source files. This allows the user to grant blanket permission for one category without being forced to approve the other.
+- **Work package agents must run in the background.** Never run a worktree implementation agent in the foreground — it blocks the main conversation and forces the user to sit through serial edit approvals.
+
 ---
 
 ## Parallel Agent Workflow
@@ -106,13 +111,13 @@ When the user asks to run work packages (e.g., "run WP-0 and WP-2" or "kick off 
 
 1. **Read `work-packages.md`** to get the current status and scope of each requested package.
 2. **Check dependencies** — only launch packages whose dependencies are merged (status: `done`).
-3. **Launch each package as a Task** with `isolation: "worktree"` and `subagent_type: "Bash"` or `"general-purpose"`. Each agent gets its own git worktree (isolated branch).
+3. **Launch each package as a Task** with `isolation: "worktree"`, `subagent_type: "general-purpose"`, and **`run_in_background: true`**. Each agent gets its own git worktree (isolated branch). Work package agents must always run asynchronously so the main conversation stays responsive and the user is not blocked approving edits serially for extended periods.
 4. **Provide each agent a clear prompt** including:
    - The full text of the work package scope and acceptance criteria
    - The list of spec docs to read (from the "Reads" field)
    - Instructions to commit their work on the worktree branch when done
    - The project's commit conventions (imperative mood, no Co-Authored-By)
-5. **Monitor agents** — check output periodically. When agents complete, their worktree branches contain the work.
+5. **Monitor agents** — you will be notified when background agents complete. Do not poll or sleep-wait. When agents complete, their worktree branches contain the work.
 6. **Merge completed branches** into `main` one at a time. Resolve any conflicts (most likely in shared files listed under "Touches"). Use standard `git merge` — do not squash, so the branch history is preserved.
 7. **Update `work-packages.md`** — set the merged package's status to `done`.
 8. **After merging a wave**, check for newly unblocked packages. Report this to the user.

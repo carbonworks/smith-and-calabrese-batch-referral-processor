@@ -57,17 +57,9 @@ Agents implementing work packages must run `./gradlew test` before committing an
 
 ## Work Items
 
-### 0. Record video demonstration
+### ~~0. Record video demonstration~~ ✓ DONE
 
-Record a screen capture demo of the application's full workflow for client delivery. The video should show: drag-and-drop file selection, batch processing with progress, data preview in card layout, and XLSX export. Skip the file picker — it opens a system dialog that won't record cleanly.
-
-- Identify and install a screen recording tool for Linux (e.g., OBS Studio, SimpleScreenRecorder, or similar)
-- Record a specific application window (not full desktop)
-- Output format suitable for sharing (MP4, reasonable file size)
-- Ensure PHI masking is active during recording (DEBUG mode)
-
-**Depends on**: All bugs resolved
-**Checkpoint**: MP4 video demonstrating complete workflow
+Recorded screen capture demo of full workflow (drag-and-drop, batch processing, card preview, XLSX export) with PHI masking active. Video ready to send to client.
 
 ---
 
@@ -135,17 +127,9 @@ Compose Multiplatform interface for batch processing.
 
 ---
 
-### 5. Add OCR fallback
+### ~~5. Add OCR fallback~~ — OUT OF SCOPE
 
-Tess4J integration for scanned PDF pages where PDFBox returns no text.
-
-- Detect pages with no extractable text
-- Run Tesseract OCR via Tess4J on those pages
-- Feed OCR text back into the extraction pipeline
-- Bundle Tesseract data files with the application
-
-**Depends on**: #2 (extends extraction engine)
-**Checkpoint**: Scanned PDF pages produce extracted text
+Descoped. All referral PDFs from the client contain extractable text (not scanned images). OCR fallback via Tess4J is not needed for Phase 1 delivery.
 
 ---
 
@@ -300,6 +284,35 @@ Added `PhiMask` utility with `maskValue()`/`maskDisplay()` and `BuildConfig.DEBU
 
 ---
 
+### E7. User-controlled PHI visibility toggle
+
+Replace the compile-time `BuildConfig.DEBUG` masking approach with a runtime toggle so end users can control PHI visibility in the application without rebuilding.
+
+**Results screen toggle:**
+- Eye icon toggle in the Results screen header (similar to a password-field visibility toggle)
+- PHI is masked by default on every session launch
+- Clicking the toggle unmasks all field values on the Results screen; clicking again re-masks
+- Visual cue (subtle animation/pulse) on the toggle every 15 seconds, repeating on every launch, to teach discoverability — stops permanently once the user either clicks the toggle or changes the related setting
+
+**Settings screen:**
+- New Settings screen accessible from MainScreen (gear icon or similar)
+- Toggle: "Show extracted data by default" (off by default)
+- When enabled, PHI is unmasked when entering the Results screen (toggle still available to re-mask)
+- Setting persisted via Java Preferences API (same node as existing directory preference)
+
+**Help screen tip:**
+- Add a tip explaining that extracted data is masked by default for privacy and can be revealed with the eye toggle on the results screen
+
+**Constraints:**
+- XLSX output is never affected — spreadsheet always contains unmasked data
+- The underlying `ReferralFields` data is never modified — masking is display-only
+- `BuildConfig.DEBUG` constant is removed; `PhiMask.isMaskingEnabled()` reads runtime state instead
+
+**Depends on**: E6 (existing masking infrastructure)
+**Checkpoint**: Toggle works on Results screen; setting persists across launches; tip visible in Help; XLSX unaffected
+
+---
+
 ## Cross-cutting: Tyler Feedback
 
 Tyler's input on field priorities and spreadsheet layout affects items #2, #3, and #4. This isn't a discrete work item — it's an ongoing dependency:
@@ -310,4 +323,4 @@ Tyler's input on field priorities and spreadsheet layout affects items #2, #3, a
 
 ---
 
-*Last updated: 2026-02-27*
+*Last updated: 2026-03-01*
