@@ -361,7 +361,7 @@ Implement a hybrid approach:
 
 ## WP-18: Runtime PHI Visibility Toggle (E7)
 
-**Status:** ready
+**Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt` (NEW), `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/util/PhiPreferences.kt` (NEW)
 **Touches:** `ResultsScreen.kt`, `PhiMask.kt`, `BuildConfig.kt`, `Main.kt`, `MainScreen.kt`, `HelpScreen.kt`
 **Depends on:** WP-16 (existing masking infrastructure)
@@ -411,6 +411,58 @@ Replace the compile-time `BuildConfig.DEBUG` PHI masking with a user-controlled 
 
 ---
 
+## WP-19: Adjust Discovery Cue Animation Timing
+
+**Status:** done
+**Owns:** `ResultsScreen.kt` (keyframes block only)
+**Depends on:** WP-18
+
+**Scope:**
+Replace the single-pulse 15s discovery cue animation cycle with a double-pulse 12s cycle: 5 seconds idle, two quick 200ms grow/shrink pulses, then idle until repeat.
+
+**Acceptance:** Discovery cue animation uses the new double-pulse 12s timing. Compiles and existing tests pass.
+
+---
+
+## WP-20: Green Mask Icon and Secondary Buttons
+
+**Status:** done
+**Owns:** `ResultsScreen.kt` (icon tint only), `CwButton.kt`
+**Depends on:** WP-18
+
+**Scope:**
+Change the eye mask icon tint from SoftGray to BrandGreen. Update CwSecondaryButton to use BrandGreen for content color and add a BrandGreen border.
+
+**Acceptance:** Eye icon and all secondary buttons use BrandGreen. Compiles and existing tests pass.
+
+---
+
+## WP-21: Always-Visible Scrollbar on Data Preview
+
+**Status:** done
+**Owns:** `ResultsScreen.kt` (LazyColumn block + imports)
+**Depends on:** WP-18
+
+**Scope:**
+Wrap the ResultsScreen data preview LazyColumn in a Box with a VerticalScrollbar companion for always-visible scroll indication.
+
+**Acceptance:** Scrollbar visible at all times on the data preview. Compiles and existing tests pass.
+
+---
+
+## WP-22: PHI Masking Tests
+
+**Status:** done
+**Owns:** `src/test/kotlin/.../util/PhiMaskTest.kt` (NEW)
+**Depends on:** WP-18
+
+**Scope:**
+Comprehensive test file for PhiMask (maskValue, maskDisplay), PhiPreferences (round-trips), and SpreadsheetWriter boundary (unmasked output despite masking enabled). 17 tests with state isolation helpers.
+
+**Acceptance:** 17 new tests pass. Total test count: 98. All existing tests unaffected.
+
+---
+
 ## Dependency Graph
 
 ```
@@ -438,3 +490,4 @@ WP-11 (Help Screen)
 **Wave 9** (after WP-12/WP-14, parallel): WP-15, WP-16
 **Wave 10** (after WP-15): WP-17
 **Wave 11** (after WP-16): WP-18
+**Wave 12** (after WP-18, parallel): WP-19, WP-20, WP-21, WP-22
