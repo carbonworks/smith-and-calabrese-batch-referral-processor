@@ -1,5 +1,7 @@
 package tech.carbonworks.snc.batchreferralparser
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -61,63 +63,69 @@ fun App(window: java.awt.Window? = null) {
                 .fillMaxSize()
                 .background(WarmWhite),
         ) {
-            when (currentScreen) {
-                Screen.FILE_SELECTION -> {
-                    MainScreen(
-                        files = selectedFiles,
-                        onFilesChanged = { selectedFiles = it },
-                        onProcess = {
-                            fileStates = selectedFiles.map { FileProcessingState(it) }
-                            processingResults = emptyList()
-                            currentScreen = Screen.PROCESSING
-                        },
-                        onHelp = { currentScreen = Screen.HELP },
-                        onSettings = { currentScreen = Screen.SETTINGS },
-                        window = window,
-                    )
-                }
+            Crossfade(
+                targetState = currentScreen,
+                animationSpec = tween(300),
+                label = "screen-transition",
+            ) { screen ->
+                when (screen) {
+                    Screen.FILE_SELECTION -> {
+                        MainScreen(
+                            files = selectedFiles,
+                            onFilesChanged = { selectedFiles = it },
+                            onProcess = {
+                                fileStates = selectedFiles.map { FileProcessingState(it) }
+                                processingResults = emptyList()
+                                currentScreen = Screen.PROCESSING
+                            },
+                            onHelp = { currentScreen = Screen.HELP },
+                            onSettings = { currentScreen = Screen.SETTINGS },
+                            window = window,
+                        )
+                    }
 
-                Screen.PROCESSING -> {
-                    ProcessingScreen(
-                        files = selectedFiles,
-                        fileStates = fileStates,
-                        onFileStateUpdate = { index, state ->
-                            fileStates = fileStates.toMutableList().also {
-                                it[index] = state
-                            }
-                        },
-                        onComplete = { results ->
-                            println("[Nav] Processing complete, received ${results.size} result(s)")
-                            println("[Nav]   Success: ${results.count { it.fields != null }}, Errors: ${results.count { it.error != null }}")
-                            processingResults = results
-                            println("[Nav] Set processingResults (size=${processingResults.size}), navigating to RESULTS")
-                            currentScreen = Screen.RESULTS
-                        },
-                    )
-                }
+                    Screen.PROCESSING -> {
+                        ProcessingScreen(
+                            files = selectedFiles,
+                            fileStates = fileStates,
+                            onFileStateUpdate = { index, state ->
+                                fileStates = fileStates.toMutableList().also {
+                                    it[index] = state
+                                }
+                            },
+                            onComplete = { results ->
+                                println("[Nav] Processing complete, received ${results.size} result(s)")
+                                println("[Nav]   Success: ${results.count { it.fields != null }}, Errors: ${results.count { it.error != null }}")
+                                processingResults = results
+                                println("[Nav] Set processingResults (size=${processingResults.size}), navigating to RESULTS")
+                                currentScreen = Screen.RESULTS
+                            },
+                        )
+                    }
 
-                Screen.RESULTS -> {
-                    ResultsScreen(
-                        results = processingResults,
-                        onStartOver = {
-                            selectedFiles = emptyList()
-                            fileStates = emptyList()
-                            processingResults = emptyList()
-                            currentScreen = Screen.FILE_SELECTION
-                        },
-                    )
-                }
+                    Screen.RESULTS -> {
+                        ResultsScreen(
+                            results = processingResults,
+                            onStartOver = {
+                                selectedFiles = emptyList()
+                                fileStates = emptyList()
+                                processingResults = emptyList()
+                                currentScreen = Screen.FILE_SELECTION
+                            },
+                        )
+                    }
 
-                Screen.HELP -> {
-                    HelpScreen(
-                        onBack = { currentScreen = Screen.FILE_SELECTION },
-                    )
-                }
+                    Screen.HELP -> {
+                        HelpScreen(
+                            onBack = { currentScreen = Screen.FILE_SELECTION },
+                        )
+                    }
 
-                Screen.SETTINGS -> {
-                    SettingsScreen(
-                        onBack = { currentScreen = Screen.FILE_SELECTION },
-                    )
+                    Screen.SETTINGS -> {
+                        SettingsScreen(
+                            onBack = { currentScreen = Screen.FILE_SELECTION },
+                        )
+                    }
                 }
             }
         }

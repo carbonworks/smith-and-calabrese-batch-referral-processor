@@ -323,7 +323,7 @@ fun MainScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp, horizontal = 8.dp),
+                                .padding(vertical = 2.dp, horizontal = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             FilePathText(
@@ -337,19 +337,22 @@ fun MainScreen(
                                 color = SoftGray,
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Remove ${file.name}",
-                                tint = SoftGray,
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clickable {
-                                        onFilesChanged(files - file)
-                                        if (files.size - 1 < MAX_FILES) {
-                                            limitMessage = null
-                                        }
-                                    },
-                            )
+                            IconButton(
+                                onClick = {
+                                    onFilesChanged(files - file)
+                                    if (files.size - 1 < MAX_FILES) {
+                                        limitMessage = null
+                                    }
+                                },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Remove ${file.name}",
+                                    tint = SoftGray,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
                         }
                     }
                 }
