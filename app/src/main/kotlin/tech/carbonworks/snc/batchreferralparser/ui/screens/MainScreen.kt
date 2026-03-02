@@ -48,6 +48,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.FilePathText
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
+import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
@@ -221,7 +222,7 @@ fun MainScreen(
                     Icon(
                         imageVector = Icons.Outlined.Settings,
                         contentDescription = "Settings",
-                        tint = SoftGray,
+                        tint = BrandGreen,
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -232,7 +233,7 @@ fun MainScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
                         contentDescription = "Help",
-                        tint = SoftGray,
+                        tint = BrandGreen,
                         modifier = Modifier.size(24.dp),
                     )
                 }
