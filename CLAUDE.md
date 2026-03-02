@@ -57,12 +57,15 @@ src/                     # Kotlin/Compose Multiplatform application source
 
 | Need | Location |
 |------|----------|
-| Build plan & timeline | `docs/build-plan.md` |
-| Solution analysis | `docs/solution-analysis.md` |
-| Tech stack decision | `docs/tech-stack-decision.md` |
-| Field mapping | `docs/field-mapping.json` |
+| Architecture | `docs/architecture/architecture.md` |
+| Architectural review | `docs/architecture/architectural-review.md` |
+| Build plan & timeline | `docs/spec/build-plan.md` |
+| Solution analysis | `docs/spec/solution-analysis.md` |
+| Tech stack decision | `docs/spec/tech-stack-decision.md` |
+| Field mapping | `docs/spec/field-mapping.json` |
 | JVM library research | `docs/research/jvm-pdf-extraction-research.md` |
 | Brand guidelines | `docs/brand/carbon-works-brand-guidelines.md` |
+| Consulting | `docs/consulting/` |
 | Python prototypes | `reference/python-scripts/` (reference implementations) |
 | Work packages | `work-packages.md` (parallel agent development) |
 | Prompt logging protocol | `docs/protocols/prompt-logging.md` |

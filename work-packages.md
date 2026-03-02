@@ -18,7 +18,7 @@ This file defines independent work packages for parallel agent development. Each
 
 **Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/PdfTextExtractor.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ExtractionResult.kt`
-**Reads:** `reference/python-scripts/extract_referral_fields.py`, `reference/python-scripts/dump_pdf.py`, `docs/field-mapping.json`, `docs/extraction-template.json`, `docs/build-plan.md` (Section 6)
+**Reads:** `reference/python-scripts/extract_referral_fields.py`, `reference/python-scripts/dump_pdf.py`, `docs/spec/field-mapping.json`, `docs/spec/extraction-template.json`, `docs/spec/build-plan.md` (Section 6)
 **Touches:** none
 **Depends on:** nothing
 
@@ -41,7 +41,7 @@ Build the core PDF text extraction layer using Apache PDFBox:
 
 **Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`
-**Reads:** `reference/python-scripts/extract_referral_fields.py` (port this logic), `docs/field-mapping.json`, `docs/extraction-template.json`
+**Reads:** `reference/python-scripts/extract_referral_fields.py` (port this logic), `docs/spec/field-mapping.json`, `docs/spec/extraction-template.json`
 **Touches:** none
 **Depends on:** WP-0 (needs ExtractionResult as input)
 
@@ -62,7 +62,7 @@ Port the Python field extraction logic to Kotlin:
 
 **Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`
-**Reads:** `reference/python-scripts/dump_pdf.py`, `docs/build-plan.md` (Section 6)
+**Reads:** `reference/python-scripts/dump_pdf.py`, `docs/spec/build-plan.md` (Section 6)
 **Touches:** none
 **Depends on:** nothing
 
@@ -83,7 +83,7 @@ Integrate Tabula-java for structured table data extraction:
 
 **Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
-**Reads:** `docs/build-plan.md` (Section 10, D2 and D3 specs)
+**Reads:** `docs/spec/build-plan.md` (Section 10, D2 and D3 specs)
 **Touches:** none
 **Depends on:** WP-1 (needs ReferralFields data class as input)
 
@@ -106,7 +106,7 @@ Generate XLSX spreadsheets from extracted referral data:
 
 **Status:** done
 **Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/components/`
-**Reads:** `docs/build-plan.md` (Sections 10-11), `docs/brand/carbon-works-brand-guidelines.md`
+**Reads:** `docs/spec/build-plan.md` (Sections 10-11), `docs/brand/carbon-works-brand-guidelines.md`
 **Touches:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt` (replace placeholder content with screen navigation)
 **Depends on:** WP-0, WP-1, WP-3 (needs extraction pipeline and XLSX output to wire up)
 
@@ -128,7 +128,7 @@ Build the Compose Desktop UI for the complete batch processing workflow:
 
 **Status:** done
 **Owns:** packaging config in `build.gradle.kts` (jpackage section), installer resources
-**Reads:** `docs/build-plan.md` (Section 10, D1 spec)
+**Reads:** `docs/spec/build-plan.md` (Section 10, D1 spec)
 **Touches:** none
 **Depends on:** WP-4 (needs complete, working application to package)
 
