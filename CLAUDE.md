@@ -81,7 +81,7 @@ tools/                   # PDF generation toolchain for deliverable documents
 - Descriptive commit messages in imperative mood
 - Do NOT include `Co-Authored-By` trailers
 - Stage files explicitly (never `git add .` or `git add -A`)
-- **Never chain git commands** — run `git add`, `git commit`, `git push`, etc. as separate, standalone Bash invocations (no `&&` chaining). This allows the user to review and approve each step independently.
+- **Never chain git commands** — run `git add`, `git commit`, `git push`, etc. as separate, standalone Bash invocations (no `&&` chaining). This includes `cd && git` — never combine directory changes with git commands. Use the `-C <path>` flag instead (e.g., `git -C /path/to/repo status`). This allows the user to review and approve each step independently.
 - When making a commit, also log the session. See protocol: `docs/protocols/prompt-logging.md`
 
 ## Code Change Policy

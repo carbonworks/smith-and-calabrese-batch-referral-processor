@@ -174,6 +174,32 @@ class PhiMaskTest {
     }
 
     @Test
+    fun `refreshFromPreferences syncs maskingEnabled with persisted preference`() {
+        val originalMasking = PhiMask.maskingEnabled
+        val originalPref = PhiPreferences.getShowByDefault()
+        try {
+            // Set preference to "show by default" and force maskingEnabled to stale value
+            PhiPreferences.setShowByDefault(true)
+            PhiMask.maskingEnabled = true // stale — should be false after refresh
+
+            PhiMask.refreshFromPreferences()
+
+            assertFalse(PhiMask.maskingEnabled, "maskingEnabled should be false when showByDefault is true")
+
+            // Now set preference to "masked by default" and force maskingEnabled to stale value
+            PhiPreferences.setShowByDefault(false)
+            PhiMask.maskingEnabled = false // stale — should be true after refresh
+
+            PhiMask.refreshFromPreferences()
+
+            assertTrue(PhiMask.maskingEnabled, "maskingEnabled should be true when showByDefault is false")
+        } finally {
+            PhiMask.maskingEnabled = originalMasking
+            PhiPreferences.setShowByDefault(originalPref)
+        }
+    }
+
+    @Test
     fun `phiToggleDismissed defaults to false`() = withToggleDismissed(false) {
         assertFalse(PhiPreferences.getToggleDismissed())
     }

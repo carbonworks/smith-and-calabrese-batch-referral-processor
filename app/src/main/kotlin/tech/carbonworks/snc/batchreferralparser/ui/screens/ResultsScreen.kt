@@ -97,8 +97,13 @@ fun ResultsScreen(
     var errorsExpanded by remember { mutableStateOf(false) }
     var warningsExpanded by remember { mutableStateOf(false) }
 
-    // Hoisted masking state — drives recomposition of all masked fields
-    var isMasked by remember { mutableStateOf(PhiMask.maskingEnabled) }
+    // Hoisted masking state — drives recomposition of all masked fields.
+    // Re-read the persisted preference first so that changes made in Settings
+    // (or across app restarts) are reflected when this screen is composed.
+    var isMasked by remember {
+        PhiMask.refreshFromPreferences()
+        mutableStateOf(PhiMask.maskingEnabled)
+    }
 
     // Discovery cue: track whether animation should play
     val showDiscoveryCue = remember { mutableStateOf(!PhiPreferences.getToggleDismissed()) }

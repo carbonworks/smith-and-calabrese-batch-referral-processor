@@ -25,8 +25,23 @@ object PhiMask {
      * Initialized from [PhiPreferences.getShowByDefault] (inverted — if
      * "show by default" is true, masking starts disabled). Can be toggled at
      * any time via the eye button on the Results screen.
+     *
+     * **Important**: Because this is an `object` singleton, the initial value
+     * is set once at class-load time and is never automatically re-read.
+     * Call [refreshFromPreferences] before reading this flag to ensure it
+     * reflects the latest persisted preference (e.g., after the user changes
+     * the setting in the Settings screen).
      */
     var maskingEnabled: Boolean = !PhiPreferences.getShowByDefault()
+
+    /**
+     * Re-reads [PhiPreferences.getShowByDefault] and updates [maskingEnabled]
+     * to match. Call this before entering a screen that initializes local
+     * masking state from [maskingEnabled] (e.g., the Results screen).
+     */
+    fun refreshFromPreferences() {
+        maskingEnabled = !PhiPreferences.getShowByDefault()
+    }
 
     /**
      * Returns true when PHI masking should be applied in the UI.

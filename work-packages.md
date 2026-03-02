@@ -463,6 +463,25 @@ Comprehensive test file for PhiMask (maskValue, maskDisplay), PhiPreferences (ro
 
 ---
 
+## WP-23: "Show Extracted Data by Default" Setting Not Honored (B12)
+
+**Status:** done
+**Owns:** `PhiMask.kt`, `ResultsScreen.kt`
+**Reads:** `PhiPreferences.kt`, `SettingsScreen.kt`
+**Touches:** none
+**Depends on:** nothing (all dependencies already merged)
+
+**Scope:**
+The "Show extracted data by default" toggle in the Settings screen persists its value via `PhiPreferences`, but the app does not honor the setting on subsequent launches or when navigating to the Results screen:
+1. Investigate how `PhiMask.maskingEnabled` is initialized from `PhiPreferences.getShowByDefault()` — the `object` singleton initializes once at class load time and is never re-read
+2. Investigate how `ResultsScreen` initializes its `isMasked` state from `PhiMask.maskingEnabled` — verify this reads the correct persisted value
+3. Fix the initialization path so that when "Show extracted data by default" is enabled, the Results screen starts with data unmasked
+4. Verify the setting round-trips correctly: toggle on → restart app → Results screen shows unmasked data
+
+**Acceptance:** Toggling "Show extracted data by default" ON in Settings causes the Results screen to display unmasked data on next navigation and on app restart. Toggling OFF restores default masked behavior. Existing PHI masking tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
