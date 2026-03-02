@@ -1,11 +1,12 @@
 package tech.carbonworks.snc.batchreferralparser.util
 
 /**
- * PHI-safe masking utilities for debug/development builds.
+ * PHI-safe masking utilities for UI display.
  *
- * When masking is enabled ([isMaskingEnabled] returns true), all extracted
- * field values displayed in the UI are masked to prevent accidental PHI
- * exposure during development and testing.
+ * Masking is controlled at runtime via [maskingEnabled]. When enabled, all
+ * extracted field values displayed in the UI are masked to prevent accidental
+ * PHI exposure. The initial state is derived from [PhiPreferences]: if "show
+ * by default" is true, masking starts disabled; otherwise it starts enabled.
  *
  * Masking rule: split on whitespace, then for each word keep the first
  * character and replace the rest with asterisks. Single-character words
@@ -19,10 +20,18 @@ package tech.carbonworks.snc.batchreferralparser.util
 object PhiMask {
 
     /**
-     * Returns true when PHI masking should be applied in the UI.
-     * Currently enabled for debug builds only.
+     * Runtime flag controlling whether PHI masking is active.
+     *
+     * Initialized from [PhiPreferences.getShowByDefault] (inverted — if
+     * "show by default" is true, masking starts disabled). Can be toggled at
+     * any time via the eye button on the Results screen.
      */
-    fun isMaskingEnabled(): Boolean = BuildConfig.DEBUG
+    var maskingEnabled: Boolean = !PhiPreferences.getShowByDefault()
+
+    /**
+     * Returns true when PHI masking should be applied in the UI.
+     */
+    fun isMaskingEnabled(): Boolean = maskingEnabled
 
     /**
      * Mask a field value for safe display in the UI.

@@ -20,6 +20,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.screens.MainScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessedReferral
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessingScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ResultsScreen
+import tech.carbonworks.snc.batchreferralparser.ui.screens.SettingsScreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CarbonWorksTheme
 import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
 import java.io.File
@@ -32,6 +33,7 @@ enum class Screen {
     PROCESSING,
     RESULTS,
     HELP,
+    SETTINGS,
 }
 
 fun main() = application {
@@ -70,6 +72,7 @@ fun App(window: java.awt.Window? = null) {
                             currentScreen = Screen.PROCESSING
                         },
                         onHelp = { currentScreen = Screen.HELP },
+                        onSettings = { currentScreen = Screen.SETTINGS },
                         window = window,
                     )
                 }
@@ -107,6 +110,12 @@ fun App(window: java.awt.Window? = null) {
 
                 Screen.HELP -> {
                     HelpScreen(
+                        onBack = { currentScreen = Screen.FILE_SELECTION },
+                    )
+                }
+
+                Screen.SETTINGS -> {
+                    SettingsScreen(
                         onBack = { currentScreen = Screen.FILE_SELECTION },
                     )
                 }

@@ -1,5 +1,10 @@
 package tech.carbonworks.snc.batchreferralparser.ui.screens
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,10 +16,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +47,7 @@ import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
 import tech.carbonworks.snc.batchreferralparser.util.PhiMask
+import tech.carbonworks.snc.batchreferralparser.util.PhiPreferences
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwCard
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
@@ -79,24 +93,53 @@ fun ResultsScreen(
     var errorsExpanded by remember { mutableStateOf(false) }
     var warningsExpanded by remember { mutableStateOf(false) }
 
+    // Hoisted masking state — drives recomposition of all masked fields
+    var isMasked by remember { mutableStateOf(PhiMask.maskingEnabled) }
+
+    // Discovery cue: track whether animation should play
+    val showDiscoveryCue = remember { mutableStateOf(!PhiPreferences.getToggleDismissed()) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(GreenTint)
             .padding(32.dp),
     ) {
-        // Header
-        Text(
-            text = "Extraction Results",
-            style = MaterialTheme.typography.headlineSmall,
-            color = DeepInk,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = buildSummaryText(successResults.size, errorResults.size, totalWarnings),
-            style = MaterialTheme.typography.bodyMedium,
-            color = SoftGray,
-        )
+        // Header row with title and eye toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Extraction Results",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = DeepInk,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = buildSummaryText(successResults.size, errorResults.size, totalWarnings),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SoftGray,
+                )
+            }
+
+            // Eye toggle button with optional discovery cue
+            PhiToggleButton(
+                isMasked = isMasked,
+                showDiscoveryCue = showDiscoveryCue.value,
+                onToggle = {
+                    isMasked = !isMasked
+                    PhiMask.maskingEnabled = isMasked
+                    // Permanently dismiss the discovery cue on first toggle
+                    if (showDiscoveryCue.value) {
+                        PhiPreferences.setToggleDismissed(true)
+                        showDiscoveryCue.value = false
+                    }
+                },
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -315,6 +358,61 @@ fun ResultsScreen(
                 enabled = referralFields.isNotEmpty(),
             )
         }
+    }
+}
+
+/**
+ * Eye toggle button for masking/unmasking PHI data.
+ *
+ * When [showDiscoveryCue] is true, the button pulses with a subtle scale
+ * animation on a repeating 15-second cycle to draw the user's attention.
+ */
+@Composable
+private fun PhiToggleButton(
+    isMasked: Boolean,
+    showDiscoveryCue: Boolean,
+    onToggle: () -> Unit,
+) {
+    // Discovery cue: subtle scale pulse on a repeating 15-second cycle.
+    // The pulse grows to 1.25x over 400ms, shrinks back over 400ms, then
+    // idles at 1x for the remaining ~14.2 seconds before repeating.
+    val pulseScale = if (showDiscoveryCue) {
+        val infiniteTransition = rememberInfiniteTransition(label = "phi-toggle-pulse")
+        val scale by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 15_000
+                    1f at 0
+                    1.25f at 400
+                    1f at 800
+                    1f at 15_000
+                },
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "phi-toggle-scale",
+        )
+        scale
+    } else {
+        1f
+    }
+
+    IconButton(
+        onClick = onToggle,
+        modifier = Modifier
+            .size(40.dp)
+            .graphicsLayer {
+                scaleX = pulseScale
+                scaleY = pulseScale
+            },
+    ) {
+        Icon(
+            imageVector = if (isMasked) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+            contentDescription = if (isMasked) "Show extracted data" else "Mask extracted data",
+            tint = SoftGray,
+            modifier = Modifier.size(24.dp),
+        )
     }
 }
 

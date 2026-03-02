@@ -25,8 +25,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -110,6 +112,7 @@ fun MainScreen(
     onFilesChanged: (List<File>) -> Unit,
     onProcess: () -> Unit,
     onHelp: () -> Unit = {},
+    onSettings: () -> Unit = {},
     window: java.awt.Window?,
 ) {
     var isDragOver by remember { mutableStateOf(false) }
@@ -210,10 +213,30 @@ fun MainScreen(
                     color = SoftGray,
                 )
             }
-            CwSecondaryButton(
-                text = "? Help",
-                onClick = onHelp,
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(
+                    onClick = onSettings,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = "Settings",
+                        tint = SoftGray,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                IconButton(
+                    onClick = onHelp,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                        contentDescription = "Help",
+                        tint = SoftGray,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
