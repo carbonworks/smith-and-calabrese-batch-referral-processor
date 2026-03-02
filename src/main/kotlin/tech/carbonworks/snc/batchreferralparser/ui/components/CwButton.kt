@@ -1,5 +1,6 @@
 package tech.carbonworks.snc.batchreferralparser.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
@@ -12,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CleanWhite
-import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 
@@ -57,9 +57,10 @@ fun CwSecondaryButton(
         modifier = modifier.height(44.dp),
         enabled = enabled,
         colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = DeepInk,
+            contentColor = BrandGreen,
             disabledContentColor = SoftGray,
         ),
+        border = BorderStroke(1.dp, BrandGreen),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
     ) {
         Text(text)

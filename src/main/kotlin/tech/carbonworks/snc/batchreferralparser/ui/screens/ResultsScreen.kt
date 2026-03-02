@@ -410,7 +410,7 @@ private fun PhiToggleButton(
         Icon(
             imageVector = if (isMasked) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
             contentDescription = if (isMasked) "Show extracted data" else "Mask extracted data",
-            tint = SoftGray,
+            tint = BrandGreen,
             modifier = Modifier.size(24.dp),
         )
     }
