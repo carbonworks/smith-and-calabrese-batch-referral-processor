@@ -10,6 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
@@ -38,10 +41,26 @@ enum class Screen {
     SETTINGS,
 }
 
+/**
+ * Load the CarbonWorks origami bird icon from classpath resources.
+ * Returns null if the icon has not been generated yet (run: ./gradlew :app:generateIcons).
+ */
+private fun loadAppIcon(): Painter? =
+    try {
+        Thread.currentThread().contextClassLoader
+            .getResourceAsStream("icon.png")
+            ?.use { BitmapPainter(loadImageBitmap(it)) }
+    } catch (_: Exception) {
+        null
+    }
+
 fun main() = application {
+    val appIcon = loadAppIcon()
+
     Window(
         onCloseRequest = ::exitApplication,
         title = "Carbon Works \u2014 PDF Referral Parser",
+        icon = appIcon,
         state = rememberWindowState(width = 1100.dp, height = 700.dp),
     ) {
         window.minimumSize = Dimension(600, 400)
