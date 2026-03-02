@@ -214,7 +214,7 @@ fun ResultsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = PhiMask.maskDisplay(result.error ?: "Unknown error"),
+                                    text = if (isMasked) PhiMask.maskDisplay(result.error ?: "Unknown error") else (result.error ?: "Unknown error"),
                                     fontSize = 12.sp,
                                     color = SoftGray,
                                     maxLines = 2,
@@ -274,7 +274,7 @@ fun ResultsScreen(
                                         modifier = Modifier.width(64.dp),
                                     )
                                     Text(
-                                        text = "${warning.field}: ${PhiMask.maskDisplay(warning.message)}",
+                                        text = "${warning.field}: ${if (isMasked) PhiMask.maskDisplay(warning.message) else warning.message}",
                                         fontSize = 12.sp,
                                         color = SoftGray,
                                         maxLines = 2,
@@ -616,7 +616,7 @@ private fun MetadataRow(label: String, value: String, isMasked: Boolean) {
             Spacer(modifier = Modifier.width(100.dp))
         }
         Text(
-            text = PhiMask.maskDisplay(value),
+            text = if (isMasked) PhiMask.maskDisplay(value) else value,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             color = DeepInk,
@@ -666,7 +666,7 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = PhiMask.maskDisplay(service.cptCode),
+                text = if (isMasked) PhiMask.maskDisplay(service.cptCode) else service.cptCode,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily.Monospace,
@@ -674,7 +674,7 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
             )
             if (!service.fee.isNullOrEmpty()) {
                 Text(
-                    text = PhiMask.maskDisplay(service.fee),
+                    text = if (isMasked) PhiMask.maskDisplay(service.fee) else service.fee,
                     fontSize = 13.sp,
                     fontFamily = FontFamily.Monospace,
                     color = DeepInk,
@@ -683,7 +683,7 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
         }
         if (!service.description.isNullOrEmpty()) {
             Text(
-                text = PhiMask.maskDisplay(service.description),
+                text = if (isMasked) PhiMask.maskDisplay(service.description) else service.description,
                 fontSize = 11.sp,
                 color = SoftGray,
                 maxLines = 2,
@@ -718,7 +718,7 @@ private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
                     color = SoftGray,
                 )
                 Text(
-                    text = PhiMask.maskDisplay(value),
+                    text = if (isMasked) PhiMask.maskDisplay(value) else value,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     color = DeepInk,
