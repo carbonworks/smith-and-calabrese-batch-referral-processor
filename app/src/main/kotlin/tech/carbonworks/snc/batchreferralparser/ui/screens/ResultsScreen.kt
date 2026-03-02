@@ -1,13 +1,16 @@
 package tech.carbonworks.snc.batchreferralparser.ui.screens
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,11 +46,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
@@ -65,6 +73,8 @@ import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 import java.awt.Desktop
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.io.File
 
 /**
@@ -433,6 +443,98 @@ private fun PhiToggleButton(
 }
 
 /**
+ * Copy [text] to the system clipboard via AWT.
+ */
+private fun copyToClipboard(text: String) {
+    try {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(StringSelection(text), null)
+    } catch (e: Exception) {
+        println("[Results] Failed to copy to clipboard: ${e.message}")
+    }
+}
+
+/**
+ * A clickable text composable that copies its displayed value to the clipboard
+ * on click. Shows a brief color flash (BrandGreen) as visual feedback that
+ * fades back to the normal color over ~800ms.
+ *
+ * The [displayText] parameter should be the already-masked (if applicable)
+ * text — this ensures the copy always matches what is displayed to the user,
+ * respecting PHI masking state.
+ *
+ * @param displayText the text to display and copy (already masked if needed)
+ * @param fontSize font size for the text
+ * @param fontWeight font weight for the text
+ * @param fontFamily optional font family
+ * @param normalColor the default text color (reverts after flash)
+ * @param maxLines maximum lines before truncation
+ * @param overflow text overflow behavior
+ * @param modifier optional modifier
+ */
+@Composable
+private fun CopyableValue(
+    displayText: String,
+    fontSize: TextUnit,
+    fontWeight: FontWeight = FontWeight.Normal,
+    fontFamily: FontFamily? = null,
+    normalColor: Color = DeepInk,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+    modifier: Modifier = Modifier,
+) {
+    var copied by remember { mutableStateOf(false) }
+
+    // Auto-reset the copied flag after a brief delay
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(1200)
+            copied = false
+        }
+    }
+
+    // Animate text color: flash to BrandGreen on copy, then fade back
+    val textColor by animateColorAsState(
+        targetValue = if (copied) BrandGreen else normalColor,
+        animationSpec = tween(durationMillis = if (copied) 100 else 800),
+        label = "copy-flash-color",
+    )
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) {
+                copyToClipboard(displayText)
+                copied = true
+            }
+            .pointerHoverIcon(PointerIcon.Hand),
+    ) {
+        Text(
+            text = displayText,
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            fontFamily = fontFamily,
+            color = textColor,
+            maxLines = maxLines,
+            overflow = overflow,
+        )
+        // "Copied" indicator shown briefly after a copy action
+        if (copied) {
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Copied",
+                fontSize = 10.sp,
+                color = BrandGreen,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    }
+}
+
+/**
  * A single referral card showing extracted data from one PDF.
  *
  * Layout:
@@ -594,10 +696,13 @@ private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
 }
 
 /**
- * A single label/value row in the metadata section.
+ * A single label/value row in the metadata section. The value is copyable
+ * via click-to-copy, respecting PHI masking state.
  */
 @Composable
 private fun MetadataRow(label: String, value: String, isMasked: Boolean) {
+    val displayText = if (isMasked) PhiMask.maskDisplay(value) else value
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -615,11 +720,10 @@ private fun MetadataRow(label: String, value: String, isMasked: Boolean) {
             // Continuation line (e.g., city/state/zip under address)
             Spacer(modifier = Modifier.width(100.dp))
         }
-        Text(
-            text = PhiMask.maskDisplay(value),
+        CopyableValue(
+            displayText = displayText,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
-            color = DeepInk,
         )
     }
 }
@@ -656,36 +760,38 @@ private fun ServicesSection(services: List<ServiceLine>, isMasked: Boolean) {
 }
 
 /**
- * A single service line item display.
+ * A single service line item display with copyable values.
  */
 @Composable
 private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
+    val displayCptCode = if (isMasked) PhiMask.maskDisplay(service.cptCode) else service.cptCode
+    val displayFee = service.fee?.let { if (isMasked) PhiMask.maskDisplay(it) else it }
+    val displayDescription = service.description?.let { if (isMasked) PhiMask.maskDisplay(it) else it }
+
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
-                text = PhiMask.maskDisplay(service.cptCode),
+            CopyableValue(
+                displayText = displayCptCode,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily.Monospace,
-                color = DeepInk,
             )
-            if (!service.fee.isNullOrEmpty()) {
-                Text(
-                    text = PhiMask.maskDisplay(service.fee),
+            if (!displayFee.isNullOrEmpty()) {
+                CopyableValue(
+                    displayText = displayFee,
                     fontSize = 13.sp,
                     fontFamily = FontFamily.Monospace,
-                    color = DeepInk,
                 )
             }
         }
-        if (!service.description.isNullOrEmpty()) {
-            Text(
-                text = PhiMask.maskDisplay(service.description),
+        if (!displayDescription.isNullOrEmpty()) {
+            CopyableValue(
+                displayText = displayDescription,
                 fontSize = 11.sp,
-                color = SoftGray,
+                normalColor = SoftGray,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -695,6 +801,7 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
 
 /**
  * Footer section showing invoice/case fields in a subtle secondary style.
+ * Each value is copyable via click-to-copy, respecting PHI masking state.
  */
 @Composable
 private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
@@ -711,17 +818,17 @@ private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         for ((label, value) in footerFields) {
+            val displayValue = if (isMasked) PhiMask.maskDisplay(value) else value
             Column {
                 Text(
                     text = label,
                     fontSize = 11.sp,
                     color = SoftGray,
                 )
-                Text(
-                    text = PhiMask.maskDisplay(value),
+                CopyableValue(
+                    displayText = displayValue,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
-                    color = DeepInk,
                 )
             }
         }
