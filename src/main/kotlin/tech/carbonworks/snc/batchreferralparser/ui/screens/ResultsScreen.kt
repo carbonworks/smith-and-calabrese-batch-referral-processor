@@ -373,9 +373,9 @@ private fun PhiToggleButton(
     showDiscoveryCue: Boolean,
     onToggle: () -> Unit,
 ) {
-    // Discovery cue: subtle scale pulse on a repeating 15-second cycle.
-    // The pulse grows to 1.25x over 400ms, shrinks back over 400ms, then
-    // idles at 1x for the remaining ~14.2 seconds before repeating.
+    // Discovery cue: double scale pulse on a repeating 12-second cycle.
+    // Idles for 5 seconds, then delivers two quick pulses (each 200ms
+    // grow + 200ms shrink), then idles again until the cycle repeats.
     val pulseScale = if (showDiscoveryCue) {
         val infiniteTransition = rememberInfiniteTransition(label = "phi-toggle-pulse")
         val scale by infiniteTransition.animateFloat(
@@ -383,11 +383,14 @@ private fun PhiToggleButton(
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
                 animation = keyframes {
-                    durationMillis = 15_000
+                    durationMillis = 12_000
                     1f at 0
-                    1.25f at 400
-                    1f at 800
-                    1f at 15_000
+                    1f at 5_000        // 5s initial wait
+                    1.25f at 5_200     // pulse 1 grow (200ms)
+                    1f at 5_400        // pulse 1 shrink (200ms)
+                    1.25f at 5_600     // pulse 2 grow (200ms)
+                    1f at 5_800        // pulse 2 shrink (200ms)
+                    1f at 12_000       // idle to end
                 },
                 repeatMode = RepeatMode.Restart,
             ),
