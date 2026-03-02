@@ -34,7 +34,6 @@ This project processes Protected Health Information (PHI) from SSA disability re
 - **NEVER commit real PHI to the repository** — sample files use sanitized/masked data only
 - PHI processing happens locally on Randall's machine only
 - All extraction development uses sanitized structural data (field positions, bounding boxes, layouts)
-- See `docs/hipaa/hipaa-compliance-solo-consultant.md` for compliance requirements
 
 ---
 
@@ -63,7 +62,6 @@ src/                     # Kotlin/Compose Multiplatform application source
 | Tech stack decision | `docs/tech-stack-decision.md` |
 | Field mapping | `docs/field-mapping.json` |
 | JVM library research | `docs/research/jvm-pdf-extraction-research.md` |
-| HIPAA compliance | `docs/hipaa/hipaa-compliance-solo-consultant.md` |
 | Brand guidelines | `docs/brand/carbon-works-brand-guidelines.md` |
 | Python prototypes | `reference/python-scripts/` (reference implementations) |
 | Work packages | `work-packages.md` (parallel agent development) |
