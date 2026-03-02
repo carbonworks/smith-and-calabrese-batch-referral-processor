@@ -40,6 +40,9 @@ This project processes Protected Health Information (PHI) from SSA disability re
 ## Project Structure
 
 ```
+app/
+  src/                   # Kotlin/Compose Multiplatform application source
+  build.gradle.kts       # Application build config (subproject)
 archive/
   prompts/               # AI session prompt logs (YYYY/MM.md)
 docs/                    # Project documentation, research, brand assets
@@ -48,7 +51,6 @@ reference/
   python-scripts/        # Python prototype scripts (reference only, not production)
   sample-output/         # Sanitized extraction output samples
 tools/                   # PDF generation toolchain for deliverable documents
-src/                     # Kotlin/Compose Multiplatform application source
 ```
 
 ---
@@ -83,7 +85,7 @@ src/                     # Kotlin/Compose Multiplatform application source
 
 ## Code Change Policy
 
-**All code changes must go through worktree agents.** Do not edit source files (`src/`, `build.gradle.kts`) directly in the main working tree. Instead, launch a Task with `isolation: "worktree"` and merge the result. This keeps the main conversation window free for orchestration, backlog management, and user interaction.
+**All code changes must go through worktree agents.** Do not edit source files (`app/src/`, `app/build.gradle.kts`) directly in the main working tree. Instead, launch a Task with `isolation: "worktree"` and merge the result. This keeps the main conversation window free for orchestration, backlog management, and user interaction.
 
 Exceptions: documentation-only changes (`docs/`, `work-packages.md`, `CLAUDE.md`) and trivial non-code fixes can be made directly.
 

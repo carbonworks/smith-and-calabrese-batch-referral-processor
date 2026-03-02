@@ -7,3 +7,5 @@ pluginManagement {
 }
 
 rootProject.name = "snc-batch-referral-processor"
+
+include("app")

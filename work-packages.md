@@ -17,7 +17,7 @@ This file defines independent work packages for parallel agent development. Each
 ## WP-0: PDF Text Extraction Core — FOUNDATION
 
 **Status:** done
-**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/PdfTextExtractor.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ExtractionResult.kt`
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/PdfTextExtractor.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ExtractionResult.kt`
 **Reads:** `reference/python-scripts/extract_referral_fields.py`, `reference/python-scripts/dump_pdf.py`, `docs/spec/field-mapping.json`, `docs/spec/extraction-template.json`, `docs/spec/build-plan.md` (Section 6)
 **Touches:** none
 **Depends on:** nothing
@@ -40,7 +40,7 @@ Build the core PDF text extraction layer using Apache PDFBox:
 ## WP-1: Field Parsing Engine — Regex & Pattern Matching
 
 **Status:** done
-**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`
 **Reads:** `reference/python-scripts/extract_referral_fields.py` (port this logic), `docs/spec/field-mapping.json`, `docs/spec/extraction-template.json`
 **Touches:** none
 **Depends on:** WP-0 (needs ExtractionResult as input)
@@ -61,7 +61,7 @@ Port the Python field extraction logic to Kotlin:
 ## WP-2: Table Extraction — Tabula-java Integration
 
 **Status:** done
-**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`
 **Reads:** `reference/python-scripts/dump_pdf.py`, `docs/spec/build-plan.md` (Section 6)
 **Touches:** none
 **Depends on:** nothing
@@ -82,7 +82,7 @@ Integrate Tabula-java for structured table data extraction:
 ## WP-3: XLSX Output — Apache POI Spreadsheet Generation
 
 **Status:** done
-**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
 **Reads:** `docs/spec/build-plan.md` (Section 10, D2 and D3 specs)
 **Touches:** none
 **Depends on:** WP-1 (needs ReferralFields data class as input)
@@ -105,9 +105,9 @@ Generate XLSX spreadsheets from extracted referral data:
 ## WP-4: Desktop UI — File Selection & Batch Processing
 
 **Status:** done
-**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`, `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/components/`
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/components/`
 **Reads:** `docs/spec/build-plan.md` (Sections 10-11), `docs/brand/carbon-works-brand-guidelines.md`
-**Touches:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt` (replace placeholder content with screen navigation)
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt` (replace placeholder content with screen navigation)
 **Depends on:** WP-0, WP-1, WP-3 (needs extraction pipeline and XLSX output to wire up)
 
 **Scope:**
@@ -127,7 +127,7 @@ Build the Compose Desktop UI for the complete batch processing workflow:
 ## WP-6: Packaging — jpackage Installer
 
 **Status:** done
-**Owns:** packaging config in `build.gradle.kts` (jpackage section), installer resources
+**Owns:** packaging config in `app/build.gradle.kts` (jpackage section), installer resources
 **Reads:** `docs/spec/build-plan.md` (Section 10, D1 spec)
 **Touches:** none
 **Depends on:** WP-4 (needs complete, working application to package)
@@ -362,7 +362,7 @@ Implement a hybrid approach:
 ## WP-18: Runtime PHI Visibility Toggle (E7)
 
 **Status:** done
-**Owns:** `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt` (NEW), `src/main/kotlin/tech/carbonworks/snc/batchreferralparser/util/PhiPreferences.kt` (NEW)
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt` (NEW), `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/util/PhiPreferences.kt` (NEW)
 **Touches:** `ResultsScreen.kt`, `PhiMask.kt`, `BuildConfig.kt`, `Main.kt`, `MainScreen.kt`, `HelpScreen.kt`
 **Depends on:** WP-16 (existing masking infrastructure)
 
@@ -453,7 +453,7 @@ Wrap the ResultsScreen data preview LazyColumn in a Box with a VerticalScrollbar
 ## WP-22: PHI Masking Tests
 
 **Status:** done
-**Owns:** `src/test/kotlin/.../util/PhiMaskTest.kt` (NEW)
+**Owns:** `app/src/test/kotlin/.../util/PhiMaskTest.kt` (NEW)
 **Depends on:** WP-18
 
 **Scope:**

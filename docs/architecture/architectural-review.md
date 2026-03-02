@@ -151,7 +151,7 @@ tech.carbonworks.snc.batchreferralparser/
 - **Double PDF loading**: `PdfTextExtractor` and `TableExtractor` each call `Loader.loadPDF(file)` independently, loading the same PDF into memory twice. For 50-file batches, this doubles memory pressure.
 - **Sequential processing**: Files are processed one at a time. Parallel processing could significantly speed up batches.
 - **Regex recompilation**: `FieldParser` compiles multiple `Regex` objects on every invocation. These static patterns should be compiled once as `companion object` constants.
-- **JVM memory limit**: `build.gradle.kts` sets `-Xmx512m`. With Apache POI, PDFBox, and Tabula all loaded, 512MB could be tight for 50 large PDFs.
+- **JVM memory limit**: `app/build.gradle.kts` sets `-Xmx512m`. With Apache POI, PDFBox, and Tabula all loaded, 512MB could be tight for 50 large PDFs.
 
 ---
 
@@ -165,7 +165,7 @@ tech.carbonworks.snc.batchreferralparser/
 
 **Dependency direction**: Dependencies flow correctly: `ui` depends on `extraction` and `output`; `extraction` depends on `util`; `output` depends on `extraction`. No circular dependencies.
 
-**External dependencies**: PDFBox 3.0.4, Tabula 1.0.5, POI 5.3.0 -- mature, well-maintained libraries. `DuplicatesStrategy.EXCLUDE` in `build.gradle.kts` handles transitive dependency conflicts.
+**External dependencies**: PDFBox 3.0.4, Tabula 1.0.5, POI 5.3.0 -- mature, well-maintained libraries. `DuplicatesStrategy.EXCLUDE` in `app/build.gradle.kts` handles transitive dependency conflicts.
 
 ---
 
@@ -197,7 +197,7 @@ tech.carbonworks.snc.batchreferralparser/
 
 10. **Consider parallel file processing** -- For batches approaching 50 files, process files in parallel with `Dispatchers.IO.limitedParallelism(4)`.
 
-11. **Add application icons** -- TODOs exist in `build.gradle.kts` for `.ico`, `.icns`, and `.png` icons.
+11. **Add application icons** -- TODOs exist in `app/build.gradle.kts` for `.ico`, `.icns`, and `.png` icons.
 
 12. **Add `ExtractionPipelineResult` type** -- Replace ad-hoc tuple built in `ProcessingScreen` with an explicit wrapper for the full pipeline output per file.
 
