@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
@@ -250,6 +251,7 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp)
+                .clip(RoundedCornerShape(12.dp))
                 .border(
                     border = BorderStroke(
                         width = 2.dp,
@@ -257,7 +259,7 @@ fun MainScreen(
                     ),
                     shape = RoundedCornerShape(12.dp),
                 )
-                .background(dropBackground, RoundedCornerShape(12.dp))
+                .background(dropBackground)
                 .clickable { openFilePicker(files, onFilesChanged) { msg -> limitMessage = msg } },
             contentAlignment = Alignment.Center,
         ) {
@@ -280,7 +282,7 @@ fun MainScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Limit warning message
         limitMessage?.let { msg ->
@@ -335,22 +337,19 @@ fun MainScreen(
                                 color = SoftGray,
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            IconButton(
-                                onClick = {
-                                    onFilesChanged(files - file)
-                                    if (files.size - 1 < MAX_FILES) {
-                                        limitMessage = null
-                                    }
-                                },
-                                modifier = Modifier.size(28.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Remove ${file.name}",
-                                    tint = SoftGray,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Remove ${file.name}",
+                                tint = SoftGray,
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clickable {
+                                        onFilesChanged(files - file)
+                                        if (files.size - 1 < MAX_FILES) {
+                                            limitMessage = null
+                                        }
+                                    },
+                            )
                         }
                     }
                 }
@@ -369,7 +368,7 @@ fun MainScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Action buttons
         Row(

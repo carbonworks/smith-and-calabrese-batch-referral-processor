@@ -205,7 +205,7 @@ fun ProcessingScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Per-file status list
         SectionHeader(text = "File Status")

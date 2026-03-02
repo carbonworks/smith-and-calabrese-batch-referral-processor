@@ -177,7 +177,7 @@ fun ResultsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Error summary (expandable)
         if (errorResults.isNotEmpty()) {
@@ -318,6 +318,7 @@ fun ResultsScreen(
                     items(successResults) { result ->
                         ReferralCard(
                             processedReferral = result,
+                            isMasked = isMasked,
                         )
                     }
                 }
@@ -328,7 +329,7 @@ fun ResultsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Save status messages
         saveMessage?.let { msg ->
@@ -442,6 +443,7 @@ private fun PhiToggleButton(
 @Composable
 private fun ReferralCard(
     processedReferral: ProcessedReferral,
+    isMasked: Boolean,
 ) {
     val fields = processedReferral.fields ?: return
     val file = processedReferral.file
@@ -478,12 +480,12 @@ private fun ReferralCard(
             ) {
                 // Left side — patient metadata (~60%)
                 Column(modifier = Modifier.weight(0.6f)) {
-                    PatientMetadataSection(fields = fields)
+                    PatientMetadataSection(fields = fields, isMasked = isMasked)
                 }
 
                 // Right side — services (~40%)
                 Column(modifier = Modifier.weight(0.4f)) {
-                    ServicesSection(services = fields.services)
+                    ServicesSection(services = fields.services, isMasked = isMasked)
                 }
             }
 
@@ -500,7 +502,7 @@ private fun ReferralCard(
                 Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(color = LightGray, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(8.dp))
-                FooterSection(fields = fields)
+                FooterSection(fields = fields, isMasked = isMasked)
             }
         }
     }
@@ -541,7 +543,7 @@ private fun OpenPdfLink(file: File) {
  * Patient metadata displayed as label/value pairs, skipping empty fields.
  */
 @Composable
-private fun PatientMetadataSection(fields: ReferralFields) {
+private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
     // Build full name from parts
     val fullName = listOfNotNull(
         fields.firstName,
@@ -587,7 +589,7 @@ private fun PatientMetadataSection(fields: ReferralFields) {
     }
 
     for ((label, value) in metadataFields) {
-        MetadataRow(label = label, value = value)
+        MetadataRow(label = label, value = value, isMasked = isMasked)
     }
 }
 
@@ -595,7 +597,7 @@ private fun PatientMetadataSection(fields: ReferralFields) {
  * A single label/value row in the metadata section.
  */
 @Composable
-private fun MetadataRow(label: String, value: String) {
+private fun MetadataRow(label: String, value: String, isMasked: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -626,7 +628,7 @@ private fun MetadataRow(label: String, value: String) {
  * Services authorized section showing CPT code, description, and fee per service.
  */
 @Composable
-private fun ServicesSection(services: List<ServiceLine>) {
+private fun ServicesSection(services: List<ServiceLine>, isMasked: Boolean) {
     Text(
         text = "Services Authorized",
         fontSize = 12.sp,
@@ -648,7 +650,7 @@ private fun ServicesSection(services: List<ServiceLine>) {
                 HorizontalDivider(color = LightGray.copy(alpha = 0.6f), thickness = 0.5.dp)
                 Spacer(modifier = Modifier.height(4.dp))
             }
-            ServiceItem(service = service)
+            ServiceItem(service = service, isMasked = isMasked)
         }
     }
 }
@@ -657,7 +659,7 @@ private fun ServicesSection(services: List<ServiceLine>) {
  * A single service line item display.
  */
 @Composable
-private fun ServiceItem(service: ServiceLine) {
+private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -695,7 +697,7 @@ private fun ServiceItem(service: ServiceLine) {
  * Footer section showing invoice/case fields in a subtle secondary style.
  */
 @Composable
-private fun FooterSection(fields: ReferralFields) {
+private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
     val footerFields = buildList {
         if (!fields.federalTaxId.isNullOrEmpty()) add("Federal Tax ID" to fields.federalTaxId)
         if (!fields.vendorNumber.isNullOrEmpty()) add("Vendor Number" to fields.vendorNumber)
