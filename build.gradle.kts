@@ -18,6 +18,7 @@ dependencies {
     // Compose Desktop
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
+    implementation(compose.materialIconsExtended)
 
     // PDF text extraction
     implementation("org.apache.pdfbox:pdfbox:3.0.4")

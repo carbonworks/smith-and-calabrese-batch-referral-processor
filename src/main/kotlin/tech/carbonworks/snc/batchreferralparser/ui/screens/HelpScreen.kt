@@ -130,6 +130,9 @@ fun HelpScreen(
                         HelpBullet(
                             text = "Drag and drop multiple files at once for faster batch loading.",
                         )
+                        HelpBullet(
+                            text = "Extracted data is masked by default for privacy. Use the eye toggle on the results screen to reveal values.",
+                        )
                     }
                 }
 
