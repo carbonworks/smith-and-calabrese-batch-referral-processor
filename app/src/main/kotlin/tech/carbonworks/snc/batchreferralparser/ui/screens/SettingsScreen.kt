@@ -244,6 +244,13 @@ fun SettingsScreen(
                                         ExportPreferences.save(columnConfig)
                                     },
                                 )
+                                CwSecondaryButton(
+                                    text = "Reset",
+                                    onClick = {
+                                        ExportPreferences.reset()
+                                        columnConfig = ExportColumnConfig.default()
+                                    },
+                                )
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
