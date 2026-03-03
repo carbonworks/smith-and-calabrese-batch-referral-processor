@@ -33,6 +33,9 @@ dependencies {
     // JSON serialization (export column config persistence)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
+    // Drag-and-drop reordering for LazyColumn
+    implementation("sh.calvin.reorderable:reorderable:3.0.0")
+
     // Testing
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")

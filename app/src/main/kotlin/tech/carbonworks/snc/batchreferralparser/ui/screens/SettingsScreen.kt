@@ -1,5 +1,6 @@
 package tech.carbonworks.snc.batchreferralparser.ui.screens
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,14 +12,20 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Checkbox
@@ -26,6 +33,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -39,6 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import tech.carbonworks.snc.batchreferralparser.FeatureFlags
 import tech.carbonworks.snc.batchreferralparser.output.DEFAULT_FIELD_ORDER
 import tech.carbonworks.snc.batchreferralparser.output.ExportColumn
@@ -65,6 +75,15 @@ private val ESSENTIAL_FIELD_IDS = setOf(
     "appointmentTime",
     "services",
 )
+
+/**
+ * Returns a stable unique key for an [ExportColumn], suitable for use as a
+ * LazyColumn item key.
+ */
+private fun ExportColumn.stableKey(): String = when (this) {
+    is ExportColumn.Field -> "field-$fieldId"
+    is ExportColumn.Spacer -> "spacer-$id"
+}
 
 /**
  * Settings screen: allows the user to configure application preferences.
@@ -210,57 +229,14 @@ fun SettingsScreen(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // Column list
-                            columnConfig.columns.forEachIndexed { index, column ->
-                                ExportColumnRow(
-                                    column = column,
-                                    index = index,
-                                    isFirst = index == 0,
-                                    isLast = index == columnConfig.columns.lastIndex,
-                                    onToggleEnabled = { enabled ->
-                                        val updated = when (column) {
-                                            is ExportColumn.Field -> column.copy(enabled = enabled)
-                                            is ExportColumn.Spacer -> column // spacers are always "enabled"
-                                        }
-                                        columnConfig = ExportColumnConfig(
-                                            columns = columnConfig.columns.toMutableList().apply {
-                                                set(index, updated)
-                                            },
-                                        )
-                                        ExportPreferences.save(columnConfig)
-                                    },
-                                    onMoveUp = {
-                                        columnConfig = ExportColumnConfig(
-                                            columns = columnConfig.columns.toMutableList().apply {
-                                                val item = removeAt(index)
-                                                add(index - 1, item)
-                                            },
-                                        )
-                                        ExportPreferences.save(columnConfig)
-                                    },
-                                    onMoveDown = {
-                                        columnConfig = ExportColumnConfig(
-                                            columns = columnConfig.columns.toMutableList().apply {
-                                                val item = removeAt(index)
-                                                add(index + 1, item)
-                                            },
-                                        )
-                                        ExportPreferences.save(columnConfig)
-                                    },
-                                    onRemove = if (column is ExportColumn.Spacer) {
-                                        {
-                                            columnConfig = ExportColumnConfig(
-                                                columns = columnConfig.columns.toMutableList().apply {
-                                                    removeAt(index)
-                                                },
-                                            )
-                                            ExportPreferences.save(columnConfig)
-                                        }
-                                    } else {
-                                        null
-                                    },
-                                )
-                            }
+                            // Reorderable column list in a fixed-height container
+                            ExportColumnReorderableList(
+                                columnConfig = columnConfig,
+                                onColumnConfigChanged = { newConfig ->
+                                    columnConfig = newConfig
+                                    ExportPreferences.save(newConfig)
+                                },
+                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -304,10 +280,130 @@ fun SettingsScreen(
 }
 
 /**
+ * A reorderable LazyColumn that displays the export column configuration.
+ *
+ * Supports drag-and-drop reordering via drag handles, as well as the existing
+ * up/down arrow button reordering. Lives inside a fixed-height container to
+ * avoid gesture conflicts with the outer Settings scroll.
+ */
+@Composable
+private fun ExportColumnReorderableList(
+    columnConfig: ExportColumnConfig,
+    onColumnConfigChanged: (ExportColumnConfig) -> Unit,
+) {
+    val lazyListState = rememberLazyListState()
+
+    val reorderableState = rememberReorderableLazyListState(
+        lazyListState = lazyListState,
+    ) { from, to ->
+        val updatedColumns = columnConfig.columns.toMutableList().apply {
+            add(to.index, removeAt(from.index))
+        }
+        onColumnConfigChanged(ExportColumnConfig(columns = updatedColumns))
+    }
+
+    // Fixed-height container prevents nested scroll conflicts with the
+    // outer Settings verticalScroll.
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 400.dp),
+    ) {
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            itemsIndexed(
+                items = columnConfig.columns,
+                key = { _, column -> column.stableKey() },
+            ) { index, column ->
+                ReorderableItem(
+                    state = reorderableState,
+                    key = column.stableKey(),
+                ) { isDragging ->
+                    val elevation by animateDpAsState(
+                        targetValue = if (isDragging) 8.dp else 0.dp,
+                    )
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem(),
+                        shadowElevation = elevation,
+                        tonalElevation = if (isDragging) 2.dp else 0.dp,
+                        shape = RoundedCornerShape(4.dp),
+                        color = if (isDragging) {
+                            WarmWhite
+                        } else {
+                            androidx.compose.ui.graphics.Color.Transparent
+                        },
+                    ) {
+                        ExportColumnRow(
+                            column = column,
+                            index = index,
+                            isFirst = index == 0,
+                            isLast = index == columnConfig.columns.lastIndex,
+                            onToggleEnabled = { enabled ->
+                                val updated = when (column) {
+                                    is ExportColumn.Field -> column.copy(enabled = enabled)
+                                    is ExportColumn.Spacer -> column
+                                }
+                                onColumnConfigChanged(
+                                    ExportColumnConfig(
+                                        columns = columnConfig.columns.toMutableList().apply {
+                                            set(index, updated)
+                                        },
+                                    ),
+                                )
+                            },
+                            onMoveUp = {
+                                onColumnConfigChanged(
+                                    ExportColumnConfig(
+                                        columns = columnConfig.columns.toMutableList().apply {
+                                            val item = removeAt(index)
+                                            add(index - 1, item)
+                                        },
+                                    ),
+                                )
+                            },
+                            onMoveDown = {
+                                onColumnConfigChanged(
+                                    ExportColumnConfig(
+                                        columns = columnConfig.columns.toMutableList().apply {
+                                            val item = removeAt(index)
+                                            add(index + 1, item)
+                                        },
+                                    ),
+                                )
+                            },
+                            onRemove = if (column is ExportColumn.Spacer) {
+                                {
+                                    onColumnConfigChanged(
+                                        ExportColumnConfig(
+                                            columns = columnConfig.columns.toMutableList().apply {
+                                                removeAt(index)
+                                            },
+                                        ),
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                            dragModifier = Modifier.draggableHandle(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * A single row in the Export Columns configuration list.
  *
- * Displays a checkbox (for [ExportColumn.Field] columns), the column name,
- * up/down reorder buttons, and a remove button (for [ExportColumn.Spacer] columns).
+ * Displays a drag handle, a checkbox (for [ExportColumn.Field] columns), the
+ * column name, up/down reorder buttons, and a remove button (for
+ * [ExportColumn.Spacer] columns).
  */
 @Composable
 private fun ExportColumnRow(
@@ -319,6 +415,7 @@ private fun ExportColumnRow(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: (() -> Unit)?,
+    dragModifier: Modifier = Modifier,
 ) {
     Row(
         modifier = Modifier
@@ -326,6 +423,16 @@ private fun ExportColumnRow(
             .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // Drag handle (6-dot grip icon)
+        Icon(
+            imageVector = Icons.Default.DragIndicator,
+            contentDescription = "Drag to reorder",
+            tint = SoftGray,
+            modifier = dragModifier
+                .size(24.dp)
+                .padding(end = 4.dp),
+        )
+
         // Checkbox — only meaningful for Field columns
         when (column) {
             is ExportColumn.Field -> {
