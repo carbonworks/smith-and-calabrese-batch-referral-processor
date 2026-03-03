@@ -64,10 +64,10 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Dmg, TargetFormat.Deb)
-            packageName = "PDF Referral Parser - Carbon Works"
+            packageName = "PDF Authorization Processor"
             packageVersion = "1.0.0"
             vendor = "Carbon Works"
-            description = "Batch PDF data extraction tool for SSA/DDS referral processing"
+            description = "Batch PDF data extraction tool for MD DDS service authorization processing"
             copyright = "Copyright 2026 Carbon Works"
 
             windows {

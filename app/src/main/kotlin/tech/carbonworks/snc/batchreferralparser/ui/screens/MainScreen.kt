@@ -204,13 +204,13 @@ fun MainScreen(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "S&C Batch Referral Processor",
+                    text = "S&C Batch Authorization Processor",
                     style = MaterialTheme.typography.headlineSmall,
                     color = DeepInk,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Select PDF referral files to extract structured data",
+                    text = "Gather authorization information from MD DDS service authorization forms",
                     style = MaterialTheme.typography.bodyMedium,
                     color = SoftGray,
                 )
@@ -412,7 +412,7 @@ private fun openFilePicker(
     }
 
     val chooser = JFileChooser().apply {
-        dialogTitle = "Select PDF Referral Files"
+        dialogTitle = "Select PDF Authorization Files"
         fileFilter = FileNameExtensionFilter("PDF Files (*.pdf)", "pdf")
         isMultiSelectionEnabled = true
         fileSelectionMode = JFileChooser.FILES_ONLY
