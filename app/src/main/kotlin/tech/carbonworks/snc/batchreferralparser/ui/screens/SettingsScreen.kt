@@ -569,24 +569,8 @@ private fun ExportColumnRow(
             )
         }
 
-        // Remove button (spacers only) — kept for alignment consistency
-        if (onRemove != null) {
-            Spacer(modifier = Modifier.width(4.dp))
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.size(32.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Remove",
-                    tint = SoftGray,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        } else {
-            // Reserve space so rows align when some have remove buttons
-            Spacer(modifier = Modifier.width(36.dp))
-        }
+        // Reserve space for alignment
+        Spacer(modifier = Modifier.width(36.dp))
 
         Spacer(modifier = Modifier.width(4.dp))
 
