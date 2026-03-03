@@ -24,12 +24,19 @@ import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.VerticalAlignBottom
+import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -199,7 +206,7 @@ fun SettingsScreen(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // Preset buttons row
+                            // Preset buttons and Insert Empty Column toolbar row
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
@@ -225,6 +232,18 @@ fun SettingsScreen(
                                         ExportPreferences.save(columnConfig)
                                     },
                                 )
+                                CwSecondaryButton(
+                                    text = "Insert Empty Column",
+                                    onClick = {
+                                        val spacer = ExportColumn.Spacer(
+                                            id = "spacer-${System.currentTimeMillis()}",
+                                        )
+                                        columnConfig = ExportColumnConfig(
+                                            columns = columnConfig.columns + spacer,
+                                        )
+                                        ExportPreferences.save(columnConfig)
+                                    },
+                                )
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
@@ -238,21 +257,6 @@ fun SettingsScreen(
                                 },
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Add Empty Column button
-                            CwSecondaryButton(
-                                text = "Add Empty Column",
-                                onClick = {
-                                    val spacer = ExportColumn.Spacer(
-                                        id = "spacer-${System.currentTimeMillis()}",
-                                    )
-                                    columnConfig = ExportColumnConfig(
-                                        columns = columnConfig.columns + spacer,
-                                    )
-                                    ExportPreferences.save(columnConfig)
-                                },
-                            )
                         }
                     }
                 }
@@ -376,6 +380,50 @@ private fun ExportColumnReorderableList(
                                     ),
                                 )
                             },
+                            onMoveToTop = {
+                                onColumnConfigChanged(
+                                    ExportColumnConfig(
+                                        columns = columnConfig.columns.toMutableList().apply {
+                                            val item = removeAt(index)
+                                            add(0, item)
+                                        },
+                                    ),
+                                )
+                            },
+                            onMoveToBottom = {
+                                onColumnConfigChanged(
+                                    ExportColumnConfig(
+                                        columns = columnConfig.columns.toMutableList().apply {
+                                            val item = removeAt(index)
+                                            add(item)
+                                        },
+                                    ),
+                                )
+                            },
+                            onInsertSpacerAbove = {
+                                val spacer = ExportColumn.Spacer(
+                                    id = "spacer-${System.currentTimeMillis()}",
+                                )
+                                onColumnConfigChanged(
+                                    ExportColumnConfig(
+                                        columns = columnConfig.columns.toMutableList().apply {
+                                            add(index, spacer)
+                                        },
+                                    ),
+                                )
+                            },
+                            onInsertSpacerBelow = {
+                                val spacer = ExportColumn.Spacer(
+                                    id = "spacer-${System.currentTimeMillis()}",
+                                )
+                                onColumnConfigChanged(
+                                    ExportColumnConfig(
+                                        columns = columnConfig.columns.toMutableList().apply {
+                                            add(index + 1, spacer)
+                                        },
+                                    ),
+                                )
+                            },
                             onRemove = if (column is ExportColumn.Spacer) {
                                 {
                                     onColumnConfigChanged(
@@ -401,9 +449,10 @@ private fun ExportColumnReorderableList(
 /**
  * A single row in the Export Columns configuration list.
  *
- * Displays a drag handle, a checkbox (for [ExportColumn.Field] columns), the
- * column name, up/down reorder buttons, and a remove button (for
- * [ExportColumn.Spacer] columns).
+ * Displays a drag handle, a checkbox (for [ExportColumn.Field] columns) or
+ * inline close button (for [ExportColumn.Spacer] columns), the column name,
+ * up/down reorder buttons, and a three-dot overflow menu with additional
+ * actions (Move to Top/Bottom, Insert Spacer Above/Below, Remove).
  */
 @Composable
 private fun ExportColumnRow(
@@ -414,9 +463,15 @@ private fun ExportColumnRow(
     onToggleEnabled: (Boolean) -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
+    onMoveToTop: () -> Unit,
+    onMoveToBottom: () -> Unit,
+    onInsertSpacerAbove: () -> Unit,
+    onInsertSpacerBelow: () -> Unit,
     onRemove: (() -> Unit)?,
     dragModifier: Modifier = Modifier,
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -433,7 +488,7 @@ private fun ExportColumnRow(
                 .padding(end = 4.dp),
         )
 
-        // Checkbox — only meaningful for Field columns
+        // Checkbox for Field columns; inline Close button for Spacer columns
         when (column) {
             is ExportColumn.Field -> {
                 Checkbox(
@@ -448,8 +503,18 @@ private fun ExportColumnRow(
                 )
             }
             is ExportColumn.Spacer -> {
-                // Reserve the same space so labels stay aligned
-                Spacer(modifier = Modifier.size(40.dp))
+                // Inline close button for single-click spacer removal
+                IconButton(
+                    onClick = { onRemove?.invoke() },
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Remove spacer",
+                        tint = SoftGray,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
         }
 
@@ -504,7 +569,7 @@ private fun ExportColumnRow(
             )
         }
 
-        // Remove button (spacers only)
+        // Remove button (spacers only) — kept for alignment consistency
         if (onRemove != null) {
             Spacer(modifier = Modifier.width(4.dp))
             IconButton(
@@ -521,6 +586,111 @@ private fun ExportColumnRow(
         } else {
             // Reserve space so rows align when some have remove buttons
             Spacer(modifier = Modifier.width(36.dp))
+        }
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        // Overflow menu (three-dot button)
+        Box {
+            IconButton(
+                onClick = { menuExpanded = true },
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More options",
+                    tint = SoftGray,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+            ) {
+                // Move to Top
+                DropdownMenuItem(
+                    text = { Text("Move to Top") },
+                    onClick = {
+                        menuExpanded = false
+                        onMoveToTop()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.VerticalAlignTop,
+                            contentDescription = null,
+                        )
+                    },
+                    enabled = !isFirst,
+                )
+
+                // Move to Bottom
+                DropdownMenuItem(
+                    text = { Text("Move to Bottom") },
+                    onClick = {
+                        menuExpanded = false
+                        onMoveToBottom()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.VerticalAlignBottom,
+                            contentDescription = null,
+                        )
+                    },
+                    enabled = !isLast,
+                )
+
+                HorizontalDivider()
+
+                // Insert Spacer Above
+                DropdownMenuItem(
+                    text = { Text("Insert Spacer Above") },
+                    onClick = {
+                        menuExpanded = false
+                        onInsertSpacerAbove()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                        )
+                    },
+                )
+
+                // Insert Spacer Below
+                DropdownMenuItem(
+                    text = { Text("Insert Spacer Below") },
+                    onClick = {
+                        menuExpanded = false
+                        onInsertSpacerBelow()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                        )
+                    },
+                )
+
+                // Remove option (spacer rows only)
+                if (onRemove != null) {
+                    HorizontalDivider()
+
+                    DropdownMenuItem(
+                        text = { Text("Remove") },
+                        onClick = {
+                            menuExpanded = false
+                            onRemove()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                            )
+                        },
+                    )
+                }
+            }
         }
     }
 }

@@ -788,7 +788,7 @@ Add an "Export Columns" configuration section to the Settings screen, gated behi
 
 ## WP-38: Fix Main Screen Title and Subtitle Text (E17)
 
-**Status:** ready
+**Status:** done
 **Owns:** none
 **Reads:** none
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
@@ -805,7 +805,7 @@ Two text fixes on the main screen:
 
 ## WP-39: Drag-and-Drop Column Reordering (F4)
 
-**Status:** blocked
+**Status:** done
 **Owns:** none
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
 **Touches:** `app/build.gradle.kts`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
@@ -830,7 +830,7 @@ The `onMove` callback should update `columnConfig` state and persist via `Export
 
 ## WP-40: Overflow Menu and Spacer Insertion UX (F5)
 
-**Status:** blocked
+**Status:** done
 **Owns:** none
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
