@@ -59,7 +59,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Dmg, TargetFormat.Deb)
-            packageName = "PDF Referral Parser - Carbon Works"
+            packageName = "PDF Referral Parser"
             packageVersion = "1.0.0"
             vendor = "Carbon Works"
             description = "Batch PDF data extraction tool for SSA/DDS referral processing"
