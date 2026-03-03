@@ -943,6 +943,133 @@ Both links should use underlined text or a visual cue indicating clickability (`
 
 ---
 
+## WP-46: Move Export Columns Configuration to Dedicated Screen (E23)
+
+**Status:** done
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt` (layout pattern reference)
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Depends on:** WP-44
+
+**Scope:**
+Extract the Export Columns configuration into its own dedicated screen:
+
+1. **Create `ExportSettingsScreen.kt`**: A new screen composable that contains all the export column configuration UI currently in the "Export Columns" `CwCard` on SettingsScreen — the description text, preset buttons row (All Fields, Essential Only, Reset), the reorderable column list (`ExportColumnReorderableList`), `ExportColumnRow`, and all supporting state/callbacks. Follow the same layout pattern as HelpScreen (header, subtitle, scrollable content, back button).
+2. **Add a `Screen.EXPORT_SETTINGS` enum value** (or equivalent) in Main.kt and wire navigation to/from the new screen.
+3. **Replace the Export Columns card on SettingsScreen** with a navigation row: a "Export Columns" label with a chevron or button that navigates to the new ExportSettingsScreen. Keep the feature flag gate — when `FeatureFlags.EXPORT_COLUMN_CONFIG` is `false`, neither the navigation row nor the screen is available.
+4. **Move all related private functions and constants** (`ESSENTIAL_FIELD_IDS`, `stableKey()`, `ExportColumnReorderableList`, `ExportColumnRow`) from SettingsScreen.kt to ExportSettingsScreen.kt.
+
+**Acceptance:** Export column configuration lives on its own screen accessible from Settings. SettingsScreen shows a navigation row instead of the full column config inline. The ExportSettingsScreen has a Back button returning to Settings. All existing functionality preserved (drag-and-drop, overflow menus, presets, checkboxes). Build compiles and all tests pass.
+
+---
+
+## WP-47: Add Reset Confirmation Dialog with Text Input (E24)
+
+**Status:** ready
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
+**Depends on:** WP-46
+
+**Scope:**
+Add a confirmation dialog to the Reset button on the Export Settings screen:
+
+1. Clicking "Reset" opens an `AlertDialog` instead of immediately resetting.
+2. The dialog explains that this will restore all columns to their default configuration.
+3. The dialog contains a `TextField` where the user must type the word "reset" (case-insensitive) to enable the confirm button.
+4. The confirm button is disabled until the text field contains "reset".
+5. On confirm: call `ExportPreferences.reset()`, set `columnConfig = ExportColumnConfig.default()`, dismiss the dialog.
+6. A cancel button dismisses the dialog without changes.
+
+**Acceptance:** Clicking Reset shows a confirmation dialog. The confirm button is disabled until "reset" is typed. Confirming resets the config. Cancelling dismisses without changes. Build compiles and all tests pass.
+
+---
+
+## WP-48: Add "Expand Services to Individual Rows" Option (F6)
+
+**Status:** ready
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumnConfig.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
+**Depends on:** WP-46
+
+**Scope:**
+Add a checkbox to the Export Settings screen (above the column list) that controls whether services are expanded to individual rows:
+
+1. **UI**: Add a labeled `Checkbox` above the column list: "Place each service on its own row (duplicate other fields)". When checked, each service CPT code for a referral gets its own row in the XLSX output, with all other field values duplicated across those rows.
+2. **Data model**: Add an `expandServices: Boolean = false` property to `ExportColumnConfig`. Update serialization and persistence (`ExportPreferences`) to include this field.
+3. **SpreadsheetWriter**: When `expandServices` is `true` and a referral has multiple services, write one row per service. The "services" column for each row contains just the single CPT code. All other field values are duplicated verbatim.
+4. **Default behavior**: `expandServices = false` (current behavior — all services joined as comma-separated in one row).
+
+**Acceptance:** Checkbox visible on Export Settings screen above the column list. When unchecked, behavior is unchanged (services comma-separated in one cell). When checked, each service gets its own row with duplicated field values. Setting persists. Existing tests still pass. Add at least one new test verifying the expansion behavior.
+
+---
+
+## WP-49: Add Export Settings Button on Results Screen (E25)
+
+**Status:** ready
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Depends on:** WP-46
+
+**Scope:**
+Add a settings button to the Results screen action bar:
+
+1. Add a `CwSecondaryButton` with text "Export Settings" (or an `IconButton` with a settings gear icon) to the left of the "Start Over" button in the action buttons row.
+2. Clicking it navigates to the Export Settings screen (`Screen.EXPORT_SETTINGS`).
+3. Add an `onNavigateToExportSettings` callback parameter to `ResultsScreen` and wire it in Main.kt.
+4. Gate behind `FeatureFlags.EXPORT_COLUMN_CONFIG` — only show the button when the feature flag is enabled.
+
+**Acceptance:** Settings/gear button visible to the left of "Start Over" on the Results screen. Clicking navigates to Export Settings. Back from Export Settings returns to Results. Button hidden when feature flag is off. Build compiles and all tests pass.
+
+---
+
+## WP-50: Fix Help Screen Back Navigation from Results Screen (B14)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Depends on:** none
+
+**Scope:**
+When the user navigates to Help & Support from the Results screen (via the help icon button added in WP-29), pressing Back on the Help screen returns to the Main screen instead of the Results screen.
+
+The likely cause is that the Help screen's `onBack` callback is hardcoded to navigate to `Screen.MAIN` rather than returning to the previous screen. Fix this so that Back returns to whatever screen the user came from. Approaches:
+- Track the previous screen in a variable (e.g., `var previousScreen`) and set it before navigating to Help. The Help screen's `onBack` restores `previousScreen`.
+- Or pass a dynamic `onBack` lambda from Main.kt that captures the correct return screen at navigation time.
+
+**Acceptance:** Navigating Results → Help → Back returns to Results. Navigating Main → Help → Back returns to Main (existing behavior preserved). Build compiles and all tests pass.
+
+---
+
+## WP-51: Migrate to Compose Multiplatform Navigation (R3)
+
+**Status:** ready
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/*.kt`, `app/build.gradle.kts`
+**Touches:** `app/build.gradle.kts`, all screen composables (callback signature changes)
+**Depends on:** WP-46, WP-49, WP-50
+
+**Scope:**
+Replace the hand-rolled `enum class Screen` / `mutableStateOf` / `when` navigation in Main.kt with the official Compose Multiplatform navigation library (`org.jetbrains.androidx.navigation:navigation-compose`):
+
+1. **Add the navigation-compose dependency** to `app/build.gradle.kts`.
+2. **Define a navigation graph** using `NavHost` and `composable()` routes, replacing the current `Crossfade` + `when (screen)` block in `App()`.
+3. **Replace the `Screen` enum** with string route constants (or a sealed class of route objects).
+4. **Wire `NavController`** for all screen transitions — forward navigation, back navigation, and "start over" (pop to root).
+5. **Preserve the `Crossfade` animation** (or migrate to `AnimatedNavHost` for equivalent transition animations).
+6. **Hoist shared state** (selectedFiles, fileStates, processingResults) appropriately — either via a shared ViewModel, `rememberSaveable`, or by passing them through the nav graph's back stack entry arguments.
+7. **Remove `previousScreen` tracking** — the NavController's built-in back stack handles return-to-previous-screen automatically.
+8. **Update all screen composables** to accept navigation callbacks from the NavController rather than raw lambdas where appropriate.
+
+This is a refactor — no user-visible behavior changes. All existing navigation flows must continue to work identically.
+
+**Acceptance:** App uses `NavHost`/`NavController` for all screen navigation. Back button behavior is correct for all flows (Main→Help→Back, Results→Help→Back, Settings→ExportSettings→Back, etc.). Crossfade or equivalent transition animation preserved. No `Screen` enum or manual `previousScreen` tracking. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
