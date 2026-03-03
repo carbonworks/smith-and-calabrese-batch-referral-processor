@@ -611,23 +611,22 @@ Reduce the discovery cue animation cycle on the mask eye toggle from 12 seconds 
 
 ---
 
-## WP-31: Build and Verify Windows Installer (D1)
+## WP-31: Add App Icon Resources and Clean Up Old Icon Artifacts (E15)
 
 **Status:** ready
-**Owns:** `app/src/main/resources/icon.ico`, `app/src/main/resources/icon.png`
-**Reads:** `app/build.gradle.kts`, `tools/generate-icons.py`
-**Touches:** none
+**Owns:** `app/src/main/resources/icon.ico`, `app/src/main/resources/icon.png`, `app/src/main/resources/icon.svg`
+**Reads:** `app/build.gradle.kts`
+**Touches:** `app/build.gradle.kts`
 **Depends on:** WP-25 (icon infrastructure), WP-27 (app title)
 
 **Scope:**
-Produce a working Windows .msi installer and verify end-to-end:
-1. Generate icon files by running `python tools/generate-icons.py` (produces `icon.ico` and `icon.png` in `app/src/main/resources/`)
-2. Commit the generated icon files to the repository
-3. Run `./gradlew :app:packageMsi` to build the Windows installer
-4. Verify: installer runs, app launches, window title reads "PDF Referral Parser - Carbon Works", origami bird icon appears in title bar and taskbar, bundled JRE (no external Java required)
-5. Document final installer size and any issues
+The origami bird brand SVG has been exported to icon.png (256x256) and icon.ico (16/32/48/256) using Inkscape. These files already exist as untracked files in `app/src/main/resources/`. This WP commits them and cleans up the old icon generation artifacts:
+1. Add `app/src/main/resources/icon.svg`, `icon.png`, and `icon.ico` to the repository
+2. Delete `tools/generate-icons.py` (old Python polygon-rendering script, superseded by real brand SVG)
+3. Delete `app/src/main/resources/cw-emblem.svg` (old extracted polygon emblem, replaced by icon.svg)
+4. Remove the stale "Icon generation" comment block in `app/build.gradle.kts` (lines 54-57, referencing the deleted Python script)
 
-**Acceptance:** .msi installer builds successfully, installs on Windows, launches the app with correct title and icon. No external Java dependency.
+**Acceptance:** icon.svg, icon.png, and icon.ico committed to resources. Old artifacts (generate-icons.py, cw-emblem.svg) deleted. Stale comment removed. Build compiles and all tests pass.
 
 ---
 
