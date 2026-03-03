@@ -631,6 +631,23 @@ Produce a working Windows .msi installer and verify end-to-end:
 
 ---
 
+## WP-32: Reduce Branding — Remove Watermark and Window Title Suffix (E14)
+
+**Status:** ready
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`, `app/build.gradle.kts`
+**Depends on:** WP-27 (app title), WP-25 (icon)
+
+**Scope:**
+The origami bird icon and brand colors already provide sufficient brand presence. Reduce branding clutter:
+1. Remove the CW emblem watermark from the MainScreen background (the `Image` composable loading `icon.svg` with 0.25 alpha)
+2. Shorten the window title from "PDF Referral Parser - Carbon Works" to just "PDF Referral Parser" (in `Main.kt` Window title and `build.gradle.kts` packageName)
+
+**Acceptance:** No watermark visible on the main screen. Window title bar reads "PDF Referral Parser". Icon still appears in title bar/taskbar.
+
+---
+
 ## Dependency Graph
 
 ```
