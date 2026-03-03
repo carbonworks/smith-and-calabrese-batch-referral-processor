@@ -131,6 +131,7 @@ fun App(window: java.awt.Window? = null) {
                                 processingResults = emptyList()
                                 currentScreen = Screen.FILE_SELECTION
                             },
+                            onNavigateToHelp = { currentScreen = Screen.HELP },
                         )
                     }
 
