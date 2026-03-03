@@ -206,7 +206,7 @@ fun SettingsScreen(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // Preset buttons and Insert Empty Column toolbar row
+                            // Preset buttons toolbar row
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
@@ -228,18 +228,6 @@ fun SettingsScreen(
                                                     enabled = fieldId in ESSENTIAL_FIELD_IDS,
                                                 )
                                             },
-                                        )
-                                        ExportPreferences.save(columnConfig)
-                                    },
-                                )
-                                CwSecondaryButton(
-                                    text = "Insert Empty Column",
-                                    onClick = {
-                                        val spacer = ExportColumn.Spacer(
-                                            id = "spacer-${System.currentTimeMillis()}",
-                                        )
-                                        columnConfig = ExportColumnConfig(
-                                            columns = columnConfig.columns + spacer,
                                         )
                                         ExportPreferences.save(columnConfig)
                                     },
@@ -322,7 +310,7 @@ private fun ExportColumnReorderableList(
     ) {
         LazyColumn(
             state = lazyListState,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(end = 12.dp),
         ) {
             itemsIndexed(
                 items = columnConfig.columns,
@@ -450,6 +438,11 @@ private fun ExportColumnReorderableList(
                 }
             }
         }
+
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(lazyListState),
+        )
     }
 }
 
