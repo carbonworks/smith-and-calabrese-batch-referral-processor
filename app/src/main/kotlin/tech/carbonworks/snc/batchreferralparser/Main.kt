@@ -25,6 +25,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.screens.MainScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessedReferral
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ProcessingScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ResultsScreen
+import tech.carbonworks.snc.batchreferralparser.ui.screens.ExportSettingsScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.SettingsScreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.CarbonWorksTheme
 import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
@@ -39,6 +40,7 @@ enum class Screen {
     RESULTS,
     HELP,
     SETTINGS,
+    EXPORT_SETTINGS,
 }
 
 /**
@@ -144,6 +146,13 @@ fun App(window: java.awt.Window? = null) {
                     Screen.SETTINGS -> {
                         SettingsScreen(
                             onBack = { currentScreen = Screen.FILE_SELECTION },
+                            onNavigateToExportSettings = { currentScreen = Screen.EXPORT_SETTINGS },
+                        )
+                    }
+
+                    Screen.EXPORT_SETTINGS -> {
+                        ExportSettingsScreen(
+                            onBack = { currentScreen = Screen.SETTINGS },
                         )
                     }
                 }
