@@ -503,7 +503,7 @@ Enable copy-to-clipboard behavior for individual data values on the Results scre
 
 ## WP-26: Replace Click-to-Copy with Native Text Selection (E10)
 
-**Status:** ready
+**Status:** done
 **Owns:** `ResultsScreen.kt`
 **Reads:** none
 **Touches:** none
@@ -546,7 +546,7 @@ Replace the default app icon with the CarbonWorks origami bird logo for both des
 
 ## WP-27: Update Application Title (E11)
 
-**Status:** ready
+**Status:** done
 **Owns:** `Main.kt`
 **Reads:** none
 **Touches:** `app/build.gradle.kts` (packageName if it should match)
@@ -563,7 +563,7 @@ Change the application window title to "PDF Referral Parser - Carbon Works":
 
 ## WP-28: Fix Progress Bar Color (B13)
 
-**Status:** ready
+**Status:** done
 **Owns:** `ProcessingScreen.kt`
 **Reads:** `docs/brand/carbon-works-brand-guidelines.md`
 **Touches:** none
