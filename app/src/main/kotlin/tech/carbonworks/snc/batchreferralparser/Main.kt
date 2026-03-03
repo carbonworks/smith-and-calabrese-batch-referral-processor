@@ -59,7 +59,7 @@ fun main() = application {
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Carbon Works \u2014 PDF Referral Parser",
+        title = "PDF Referral Parser - Carbon Works",
         icon = appIcon,
         state = rememberWindowState(width = 1100.dp, height = 700.dp),
     ) {
