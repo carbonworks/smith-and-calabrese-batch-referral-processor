@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("jvm") version "2.1.10"
+    kotlin("plugin.serialization") version "2.1.10"
     id("org.jetbrains.compose") version "1.7.3"
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.10"
 }
@@ -28,6 +29,9 @@ dependencies {
 
     // XLSX output
     implementation("org.apache.poi:poi-ooxml:5.3.0")
+
+    // JSON serialization (export column config persistence)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     // Testing
     testImplementation(kotlin("test"))
