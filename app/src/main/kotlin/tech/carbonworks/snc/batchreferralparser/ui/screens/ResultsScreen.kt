@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -449,60 +450,62 @@ private fun ReferralCard(
     val file = processedReferral.file
 
     CwCard {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Card header — filename + Open PDF link
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = file.name,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = DeepInk,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                OpenPdfLink(file = file)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = LightGray, thickness = 1.dp)
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Body — patient metadata (left) + services (right)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // Left side — patient metadata (~60%)
-                Column(modifier = Modifier.weight(0.6f)) {
-                    PatientMetadataSection(fields = fields, isMasked = isMasked)
+        SelectionContainer {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Card header — filename + Open PDF link
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = file.name,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DeepInk,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    OpenPdfLink(file = file)
                 }
 
-                // Right side — services (~40%)
-                Column(modifier = Modifier.weight(0.4f)) {
-                    ServicesSection(services = fields.services, isMasked = isMasked)
-                }
-            }
-
-            // Footer — invoice/case fields (only if any are present)
-            val hasFooterFields = listOf(
-                fields.federalTaxId,
-                fields.vendorNumber,
-                fields.caseNumberFullFooter,
-                fields.assignedCode,
-                fields.dccNumber,
-            ).any { !it.isNullOrEmpty() }
-
-            if (hasFooterFields) {
                 Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(color = LightGray, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(8.dp))
-                FooterSection(fields = fields, isMasked = isMasked)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Body — patient metadata (left) + services (right)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    // Left side — patient metadata (~60%)
+                    Column(modifier = Modifier.weight(0.6f)) {
+                        PatientMetadataSection(fields = fields, isMasked = isMasked)
+                    }
+
+                    // Right side — services (~40%)
+                    Column(modifier = Modifier.weight(0.4f)) {
+                        ServicesSection(services = fields.services, isMasked = isMasked)
+                    }
+                }
+
+                // Footer — invoice/case fields (only if any are present)
+                val hasFooterFields = listOf(
+                    fields.federalTaxId,
+                    fields.vendorNumber,
+                    fields.caseNumberFullFooter,
+                    fields.assignedCode,
+                    fields.dccNumber,
+                ).any { !it.isNullOrEmpty() }
+
+                if (hasFooterFields) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(color = LightGray, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FooterSection(fields = fields, isMasked = isMasked)
+                }
             }
         }
     }
@@ -616,7 +619,7 @@ private fun MetadataRow(label: String, value: String, isMasked: Boolean) {
             Spacer(modifier = Modifier.width(100.dp))
         }
         Text(
-            text = PhiMask.maskDisplay(value),
+            text = if (isMasked) PhiMask.maskDisplay(value) else value,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             color = DeepInk,
@@ -666,7 +669,7 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = PhiMask.maskDisplay(service.cptCode),
+                text = if (isMasked) PhiMask.maskDisplay(service.cptCode) else service.cptCode,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily.Monospace,
@@ -674,7 +677,7 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
             )
             if (!service.fee.isNullOrEmpty()) {
                 Text(
-                    text = PhiMask.maskDisplay(service.fee),
+                    text = if (isMasked) PhiMask.maskDisplay(service.fee) else service.fee,
                     fontSize = 13.sp,
                     fontFamily = FontFamily.Monospace,
                     color = DeepInk,
@@ -683,7 +686,7 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
         }
         if (!service.description.isNullOrEmpty()) {
             Text(
-                text = PhiMask.maskDisplay(service.description),
+                text = if (isMasked) PhiMask.maskDisplay(service.description) else service.description,
                 fontSize = 11.sp,
                 color = SoftGray,
                 maxLines = 2,
@@ -718,7 +721,7 @@ private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
                     color = SoftGray,
                 )
                 Text(
-                    text = PhiMask.maskDisplay(value),
+                    text = if (isMasked) PhiMask.maskDisplay(value) else value,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     color = DeepInk,
