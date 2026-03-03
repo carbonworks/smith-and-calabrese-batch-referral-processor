@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -101,6 +102,7 @@ fun ResultsScreen(
 
     var saveMessage by remember { mutableStateOf<String?>(null) }
     var saveError by remember { mutableStateOf<String?>(null) }
+    var savedFile by remember { mutableStateOf<File?>(null) }
     var errorsExpanded by remember { mutableStateOf(false) }
     var warningsExpanded by remember { mutableStateOf(false) }
 
@@ -357,30 +359,64 @@ fun ResultsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Save status messages
-        saveMessage?.let { msg ->
-            Text(
-                text = msg,
-                fontSize = 13.sp,
-                color = BrandGreen,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-        }
-        saveError?.let { msg ->
-            Text(
-                text = msg,
-                fontSize = 13.sp,
-                color = Color(0xFFE53E3E),
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-        }
-
-        // Action buttons
+        // Action buttons with inline save status
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Save status (fills available space, right-aligned text)
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                savedFile?.let { file ->
+                    Text(
+                        text = file.name,
+                        fontSize = 13.sp,
+                        color = BrandOrange,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable {
+                            try {
+                                if (Desktop.isDesktopSupported()) {
+                                    Desktop.getDesktop().open(file)
+                                }
+                            } catch (e: Exception) {
+                                println("[Results] Failed to open file: ${e.message}")
+                            }
+                        },
+                    )
+                    Text(
+                        text = " ",
+                        fontSize = 13.sp,
+                        color = BrandOrange,
+                    )
+                    Text(
+                        text = "(Open folder)",
+                        fontSize = 13.sp,
+                        color = BrandOrange,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable {
+                            try {
+                                if (Desktop.isDesktopSupported()) {
+                                    Desktop.getDesktop().open(file.parentFile)
+                                }
+                            } catch (e: Exception) {
+                                println("[Results] Failed to open folder: ${e.message}")
+                            }
+                        },
+                    )
+                }
+                saveError?.let { msg ->
+                    Text(
+                        text = msg,
+                        fontSize = 13.sp,
+                        color = Color(0xFFE53E3E),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
             CwSecondaryButton(
                 text = "Start Over",
                 onClick = onStartOver,
@@ -389,9 +425,10 @@ fun ResultsScreen(
             CwPrimaryButton(
                 text = "Save to XLSX",
                 onClick = {
-                    saveToXlsx(results, referralFields) { message, error ->
+                    saveToXlsx(results, referralFields) { message, error, file ->
                         saveMessage = message
                         saveError = error
+                        savedFile = file
                     }
                 },
                 enabled = referralFields.isNotEmpty(),
@@ -783,12 +820,12 @@ private fun SummaryCard(
 }
 
 /**
- * Save extracted referral data to an XLSX file and open the output directory.
+ * Save extracted referral data to an XLSX file.
  */
 private fun saveToXlsx(
     results: List<ProcessedReferral>,
     referralFields: List<ReferralFields>,
-    onResult: (message: String?, error: String?) -> Unit,
+    onResult: (message: String?, error: String?, file: File?) -> Unit,
 ) {
     try {
         // Default output directory: parent of first source PDF
@@ -803,19 +840,10 @@ private fun saveToXlsx(
         val outputFile = SpreadsheetWriter.write(referralFields, outputDir, columnConfig = columnConfig)
         println("[Save] Saved: ${outputFile.absolutePath}")
 
-        onResult("Saved to: ${outputFile.absolutePath}", null)
-
-        // Open the output directory in the OS file manager
-        try {
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(outputDir)
-            }
-        } catch (_: Exception) {
-            // Non-critical: file was saved successfully, just couldn't open the folder
-        }
+        onResult("Saved to: ${outputFile.absolutePath}", null, outputFile)
     } catch (e: Exception) {
         println("[Save] FAILED: ${e.message}")
-        onResult(null, "Failed to save: ${e.message ?: "Unknown error"}")
+        onResult(null, "Failed to save: ${e.message ?: "Unknown error"}", null)
     }
 }
 
