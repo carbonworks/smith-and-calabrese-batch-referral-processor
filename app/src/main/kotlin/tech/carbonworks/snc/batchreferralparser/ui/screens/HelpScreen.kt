@@ -131,7 +131,10 @@ fun HelpScreen(
                             text = "Drag and drop multiple files at once for faster batch loading.",
                         )
                         HelpBullet(
-                            text = "Extracted data is masked by default for privacy. Use the eye toggle on the results screen to reveal values.",
+                            text = "Extracted data is masked by default for privacy. Use the eye toggle on the results screen to reveal values, or change the default in Settings.",
+                        )
+                        HelpBullet(
+                            text = "Triple-click on any field value in the results to select the entire value for copying.",
                         )
                     }
                 }

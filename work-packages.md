@@ -579,6 +579,58 @@ The progress indicator on the ProcessingScreen has a purple/default Material tin
 
 ---
 
+## WP-29: Help Button on Results Screen (E12)
+
+**Status:** ready
+**Owns:** `ResultsScreen.kt`
+**Reads:** `MainScreen.kt` (for existing icon button pattern), `HelpScreen.kt`
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+Add a help icon button to the Results screen header so users can reach the Help screen without navigating back to the main screen first:
+1. Add a help icon (`Icons.AutoMirrored.Outlined.HelpOutline`) button in the Results screen header row
+2. Follow the same icon style used in the MainScreen header (SoftGray or BrandGreen tint, same sizing)
+3. Wire navigation to the `HELP` screen via the existing `Screen` enum
+4. ResultsScreen will need an `onNavigateToHelp` callback parameter (or similar)
+
+**Acceptance:** Help icon visible on the Results screen header. Clicking it navigates to the Help screen. Back button on Help returns to Results. Consistent styling with MainScreen header icons.
+
+---
+
+## WP-30: Shorten Discovery Cue Animation Cycle (E13)
+
+**Status:** ready
+**Owns:** `ResultsScreen.kt` (keyframes block only)
+**Depends on:** nothing
+
+**Scope:**
+Reduce the discovery cue animation cycle on the mask eye toggle from 12 seconds to 8 seconds. Adjust the keyframe timings proportionally to maintain the same double-pulse feel in a tighter loop.
+
+**Acceptance:** Animation cycle is 8 seconds. Double-pulse still reads clearly. Compiles and existing tests pass.
+
+---
+
+## WP-31: Build and Verify Windows Installer (D1)
+
+**Status:** ready
+**Owns:** `app/src/main/resources/icon.ico`, `app/src/main/resources/icon.png`
+**Reads:** `app/build.gradle.kts`, `tools/generate-icons.py`
+**Touches:** none
+**Depends on:** WP-25 (icon infrastructure), WP-27 (app title)
+
+**Scope:**
+Produce a working Windows .msi installer and verify end-to-end:
+1. Generate icon files by running `python tools/generate-icons.py` (produces `icon.ico` and `icon.png` in `app/src/main/resources/`)
+2. Commit the generated icon files to the repository
+3. Run `./gradlew :app:packageMsi` to build the Windows installer
+4. Verify: installer runs, app launches, window title reads "PDF Referral Parser - Carbon Works", origami bird icon appears in title bar and taskbar, bundled JRE (no external Java required)
+5. Document final installer size and any issues
+
+**Acceptance:** .msi installer builds successfully, installs on Windows, launches the app with correct title and icon. No external Java dependency.
+
+---
+
 ## Dependency Graph
 
 ```
