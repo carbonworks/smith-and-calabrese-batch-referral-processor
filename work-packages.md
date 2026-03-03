@@ -857,6 +857,92 @@ Add per-row overflow menus and targeted spacer insertion to the Export Columns c
 
 ---
 
+## WP-41: Clean Up Spacer Row Remove Button Duplication (E18)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** WP-40
+
+**Scope:**
+Remove the redundant `Close` icon button that appears next to the up/down arrows on spacer rows. Spacer rows already have an inline `Close` button in the checkbox area (left side) and a "Remove" option in the overflow menu — the third remove button next to the arrows is unnecessary clutter.
+
+In `ExportColumnRow`, remove the `if (onRemove != null)` block that renders the remove `IconButton` between the down arrow and the overflow menu. Keep the `Spacer(modifier = Modifier.width(36.dp))` fallback so field rows stay aligned with the overflow menu, but spacer rows should also just get the same spacer (no extra close button). The inline close button on the left and the overflow menu "Remove" remain as the two removal paths.
+
+**Acceptance:** Spacer rows show only the inline close button (left side) and the overflow menu "Remove" — no close button next to the arrows. Field rows are unchanged. Row alignment is preserved. Build compiles and all tests pass.
+
+---
+
+## WP-42: Add Reset Button to Export Columns Settings (E19)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** WP-40
+
+**Scope:**
+Add a "Reset" button to the Export Columns toolbar row (alongside "All Fields", "Essential Only"). Clicking it calls `ExportPreferences.reset()` and resets `columnConfig` state to `ExportColumnConfig.default()`. This provides a clear "start over" affordance.
+
+**Acceptance:** "Reset" button appears in the preset toolbar row. Clicking it restores the default 22-field configuration with all fields enabled, default order, and no spacers. Config persists after reset. Build compiles and all tests pass.
+
+---
+
+## WP-43: Add Scrollbar to Export Columns List (E20)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** WP-39
+
+**Scope:**
+Add a visible vertical scrollbar to the Export Columns `LazyColumn` list when its content exceeds the fixed-height container (400.dp). Use the same `VerticalScrollbar` + `rememberScrollbarAdapter` pattern already used for the outer Settings scroll.
+
+In `ExportColumnReorderableList`, wrap the `LazyColumn` in a `Box` (already exists) and add a `VerticalScrollbar` aligned to `Alignment.CenterEnd` using `rememberLazyListState()` (already available as `lazyListState`). Use `rememberScrollbarAdapter(lazyListState)` for the adapter.
+
+**Acceptance:** When the column list exceeds the visible area, a scrollbar appears on the right side of the list. Scrollbar follows the existing app styling. Drag-and-drop still works. Build compiles and all tests pass.
+
+---
+
+## WP-44: Remove Insert Empty Column Button (E21)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** WP-40
+
+**Scope:**
+Remove the "Insert Empty Column" `CwSecondaryButton` from the Export Columns toolbar row. Spacer insertion is now handled via the per-row overflow menu ("Insert Spacer Above" / "Insert Spacer Below"), making the top-level button redundant.
+
+**Acceptance:** No "Insert Empty Column" button in the toolbar row. Spacer insertion still works via overflow menus. Build compiles and all tests pass.
+
+---
+
+## WP-45: Improve Save Results UX on Results Screen (E22)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+Improve the save-to-XLSX feedback on the Results screen:
+
+1. **Right-align the save result text** so it appears near the save button rather than at the left edge.
+2. **Make the text orange** using the app's existing `BrandOrange` (or define one if needed — check `ui/theme/` for the current palette).
+3. **Make the filename clickable** — clicking it opens the saved `.xlsx` file with the system's default application using `java.awt.Desktop.getDesktop().open(file)`.
+4. **Add a directory link in parentheses** immediately after the filename — e.g., `patient-referrals-2026-03-03-143022.xlsx (Open folder)`. Clicking "Open folder" opens the containing directory using `java.awt.Desktop.getDesktop().open(file.parentFile)`.
+
+Both links should use underlined text or a visual cue indicating clickability (`Modifier.clickable`, pointer cursor if available).
+
+**Acceptance:** After saving, the result text is right-aligned near the save button and displayed in orange. The filename is clickable and opens the file. The parenthesized folder link opens the directory. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
