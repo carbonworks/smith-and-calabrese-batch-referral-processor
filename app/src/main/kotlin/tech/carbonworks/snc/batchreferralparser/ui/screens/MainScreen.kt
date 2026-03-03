@@ -189,13 +189,13 @@ fun MainScreen(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "S&C Batch Authorization Processor",
+                    text = "Batch Authorization Processor",
                     style = MaterialTheme.typography.headlineSmall,
                     color = DeepInk,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Gather authorization information from MD DDS service authorization forms",
+                    text = "Gather authorization information from Maryland Disability Determination Services authorization forms",
                     style = MaterialTheme.typography.bodyMedium,
                     color = SoftGray,
                 )
