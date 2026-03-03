@@ -51,11 +51,6 @@ kotlin {
     jvmToolchain(17)
 }
 
-// Icon generation: run `python tools/generate-icons.py` to produce
-// icon.ico and icon.png from the origami bird emblem SVG data.
-// The generated files go into app/src/main/resources/ and should be
-// committed to the repository.
-
 compose.desktop {
     application {
         mainClass = "tech.carbonworks.snc.batchreferralparser.MainKt"
