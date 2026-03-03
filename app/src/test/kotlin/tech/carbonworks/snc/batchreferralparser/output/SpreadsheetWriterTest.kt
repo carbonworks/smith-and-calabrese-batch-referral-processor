@@ -377,4 +377,195 @@ class SpreadsheetWriterTest {
             assertEquals(LocalDate.of(2024, 9, 5), date)
         }
     }
+
+    // -------------------------------------------------------------------
+    // Test 13: Custom column order produces correctly reordered output
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `custom column order produces correctly reordered output`() {
+        val referral = sampleReferral()
+        // Reverse the first three columns: Last Name, Middle Name, First Name
+        val customConfig = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "lastName", displayName = "Last Name"),
+                ExportColumn.Field(fieldId = "middleName", displayName = "Middle Name"),
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+                ExportColumn.Field(fieldId = "caseId", displayName = "Case ID"),
+            ),
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp, columnConfig = customConfig,
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+            val headerRow = sheet.getRow(0)
+
+            // Verify reordered headers
+            assertEquals("Last Name", headerRow.getCell(0).stringCellValue)
+            assertEquals("Middle Name", headerRow.getCell(1).stringCellValue)
+            assertEquals("First Name", headerRow.getCell(2).stringCellValue)
+            assertEquals("Case ID", headerRow.getCell(3).stringCellValue)
+
+            // Verify reordered data
+            assertEquals("Doe", cellText(wb, 1, 0))
+            assertEquals("M", cellText(wb, 1, 1))
+            assertEquals("Jane", cellText(wb, 1, 2))
+            assertEquals("CASE-001", cellText(wb, 1, 3))
+
+            // Only 4 columns
+            assertEquals(4, headerRow.lastCellNum.toInt())
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 14: Disabled fields are excluded from output
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `disabled fields are excluded from output`() {
+        val referral = sampleReferral()
+        // Include firstName and lastName, but disable middleName
+        val customConfig = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+                ExportColumn.Field(fieldId = "middleName", displayName = "Middle Name", enabled = false),
+                ExportColumn.Field(fieldId = "lastName", displayName = "Last Name"),
+                ExportColumn.Field(fieldId = "caseId", displayName = "Case ID"),
+            ),
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp, columnConfig = customConfig,
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+            val headerRow = sheet.getRow(0)
+
+            // Only 3 columns (middleName excluded)
+            assertEquals(3, headerRow.lastCellNum.toInt())
+            assertEquals("First Name", headerRow.getCell(0).stringCellValue)
+            assertEquals("Last Name", headerRow.getCell(1).stringCellValue)
+            assertEquals("Case ID", headerRow.getCell(2).stringCellValue)
+
+            // Data row should skip middleName
+            assertEquals("Jane", cellText(wb, 1, 0))
+            assertEquals("Doe", cellText(wb, 1, 1))
+            assertEquals("CASE-001", cellText(wb, 1, 2))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 15: Spacer columns produce empty cells
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `spacer columns produce empty cells`() {
+        val referral = sampleReferral()
+        val customConfig = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+                ExportColumn.Spacer(id = "spacer_1"),
+                ExportColumn.Field(fieldId = "lastName", displayName = "Last Name"),
+            ),
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp, columnConfig = customConfig,
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+            val headerRow = sheet.getRow(0)
+
+            // 3 columns: firstName, spacer, lastName
+            assertEquals(3, headerRow.lastCellNum.toInt())
+            assertEquals("First Name", headerRow.getCell(0).stringCellValue)
+            assertEquals("", headerRow.getCell(1).stringCellValue)  // Spacer header is blank
+            assertEquals("Last Name", headerRow.getCell(2).stringCellValue)
+
+            // Data: firstName, empty (spacer), lastName
+            assertEquals("Jane", cellText(wb, 1, 0))
+            assertEquals("", cellText(wb, 1, 1))   // Spacer cell is empty
+            assertEquals("Doe", cellText(wb, 1, 2))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 16: Default config produces identical output to legacy behavior
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `default config produces identical output to legacy hardcoded behavior`() {
+        val referral = sampleReferral()
+
+        // Write with explicit default config
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp,
+            columnConfig = ExportColumnConfig.default(),
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+            val headerRow = sheet.getRow(0)
+
+            // Verify all 22 column headings match legacy COLUMN_HEADINGS
+            assertEquals(SpreadsheetWriter.COLUMN_HEADINGS.size, headerRow.lastCellNum.toInt())
+            SpreadsheetWriter.COLUMN_HEADINGS.forEachIndexed { col, expectedHeading ->
+                assertEquals(expectedHeading, headerRow.getCell(col).stringCellValue)
+            }
+
+            // Verify data values at the same positions as the legacy format
+            assertEquals("Jane", cellText(wb, 1, 0))     // First Name
+            assertEquals("M", cellText(wb, 1, 1))         // Middle Name
+            assertEquals("Doe", cellText(wb, 1, 2))       // Last Name
+            assertEquals("CASE-001", cellText(wb, 1, 3))  // Case ID
+
+            // Date columns should still be date cells
+            assertEquals(LocalDate.of(2026, 2, 1), cellDate(wb, 1, 6))   // Date of Issue
+            assertEquals(LocalDate.of(1990, 5, 15), cellDate(wb, 1, 7))  // DOB
+            assertEquals(LocalDate.of(2026, 3, 1), cellDate(wb, 1, 9))   // Appointment Date
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 17: Date detection works with custom column order
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `date detection works with custom column order`() {
+        val referral = ReferralFields(
+            firstName = "Test",
+            dateOfIssue = "August 13, 2024",
+            dob = "09/15/1990",
+        )
+        // Put dateOfIssue at col 0 and dob at col 1 (not their default positions)
+        val customConfig = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "dateOfIssue", displayName = "Date of Issue"),
+                ExportColumn.Field(fieldId = "dob", displayName = "DOB"),
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+            ),
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp, columnConfig = customConfig,
+        )
+
+        openWorkbook(file).use { wb ->
+            // Date of Issue at col 0 should be a date cell
+            assertTrue(isCellNumeric(wb, 1, 0), "dateOfIssue at col 0 should be numeric (date)")
+            assertEquals(LocalDate.of(2024, 8, 13), cellDate(wb, 1, 0))
+
+            // DOB at col 1 should be a date cell
+            assertTrue(isCellNumeric(wb, 1, 1), "dob at col 1 should be numeric (date)")
+            assertEquals(LocalDate.of(1990, 9, 15), cellDate(wb, 1, 1))
+
+            // firstName at col 2 should be text
+            assertEquals("Test", cellText(wb, 1, 2))
+        }
+    }
 }

@@ -51,6 +51,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
+import tech.carbonworks.snc.batchreferralparser.FeatureFlags
+import tech.carbonworks.snc.batchreferralparser.output.ExportColumnConfig
+import tech.carbonworks.snc.batchreferralparser.output.ExportPreferences
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
 import tech.carbonworks.snc.batchreferralparser.util.PhiMask
 import tech.carbonworks.snc.batchreferralparser.util.PhiPreferences
@@ -792,7 +795,12 @@ private fun saveToXlsx(
         val outputDir = results.firstOrNull()?.file?.parentFile ?: File(System.getProperty("user.home"))
         println("[Save] Writing ${referralFields.size} referral(s) to XLSX in: ${outputDir.absolutePath}")
 
-        val outputFile = SpreadsheetWriter.write(referralFields, outputDir)
+        val columnConfig = if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
+            ExportPreferences.load()
+        } else {
+            ExportColumnConfig.default()
+        }
+        val outputFile = SpreadsheetWriter.write(referralFields, outputDir, columnConfig = columnConfig)
         println("[Save] Saved: ${outputFile.absolutePath}")
 
         onResult("Saved to: ${outputFile.absolutePath}", null)

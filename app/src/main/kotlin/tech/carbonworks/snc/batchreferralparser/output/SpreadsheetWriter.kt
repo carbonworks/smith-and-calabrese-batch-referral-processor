@@ -20,14 +20,13 @@ import java.util.Locale
  * or data validation) to ensure Google Sheets compatibility. The header row
  * is bold and frozen.
  *
- * Column order mirrors [ReferralFields] property order.
+ * Column order is determined by the [ExportColumnConfig] passed to [write].
+ * When no config is provided, the default config produces output identical
+ * to the original hardcoded column layout.
  */
 object SpreadsheetWriter {
 
     private val FILENAME_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")
-
-    /** Column indices that contain date values and should be written as Excel date cells. */
-    private val DATE_COLUMN_INDICES = setOf(6, 7, 9) // Date of Issue, DOB, Appointment Date
 
     /**
      * Regex to strip weekday prefixes (e.g., "Thursday ") and ordinal suffixes
@@ -86,31 +85,16 @@ object SpreadsheetWriter {
 
     /**
      * Column headings in output order. Each corresponds to a [ReferralFields] property.
+     *
+     * Retained for backward compatibility with existing tests and external callers.
+     * New code should use [ExportColumnConfig.default] instead.
      */
-    val COLUMN_HEADINGS: List<String> = listOf(
-        "First Name",
-        "Middle Name",
-        "Last Name",
-        "Case ID",
-        "Authorization #",
-        "Request ID",
-        "Date of Issue",
-        "DOB",
-        "Applicant",
-        "Appointment Date",
-        "Appointment Time",
-        "Street Address",
-        "City",
-        "State",
-        "ZIP",
-        "Phone",
-        "Services",
-        "Federal Tax ID",
-        "Vendor Number",
-        "Case Number (Footer)",
-        "Assigned Code",
-        "DCC Number",
-    )
+    val COLUMN_HEADINGS: List<String> = ExportColumnConfig.default().columns.map { column ->
+        when (column) {
+            is ExportColumn.Field -> column.displayName
+            is ExportColumn.Spacer -> ""
+        }
+    }
 
     /**
      * Writes referral data to an XLSX file in the specified output directory.
@@ -118,13 +102,23 @@ object SpreadsheetWriter {
      * @param referrals the extracted referral data to write (may be empty)
      * @param outputDir the directory where the XLSX file will be created
      * @param timestamp optional timestamp for the filename; defaults to now
+     * @param columnConfig the column layout to use; defaults to the legacy column order
      * @return the [File] path of the written spreadsheet
      */
     fun write(
         referrals: List<ReferralFields>,
         outputDir: File,
         timestamp: LocalDateTime = LocalDateTime.now(),
+        columnConfig: ExportColumnConfig = ExportColumnConfig.default(),
     ): File {
+        // Filter to enabled fields + all spacers
+        val activeColumns = columnConfig.columns.filter { column ->
+            when (column) {
+                is ExportColumn.Field -> column.enabled
+                is ExportColumn.Spacer -> true
+            }
+        }
+
         val filename = "patient-referrals-${FILENAME_TIMESTAMP_FORMAT.format(timestamp)}.xlsx"
         val outputFile = File(outputDir, filename)
 
@@ -145,9 +139,14 @@ object SpreadsheetWriter {
             }
 
             val headerRow = sheet.createRow(0)
-            COLUMN_HEADINGS.forEachIndexed { colIndex, heading ->
+            activeColumns.forEachIndexed { colIndex, column ->
                 val cell = headerRow.createCell(colIndex)
-                cell.setCellValue(heading)
+                cell.setCellValue(
+                    when (column) {
+                        is ExportColumn.Field -> column.displayName
+                        is ExportColumn.Spacer -> ""
+                    }
+                )
                 cell.cellStyle = headerStyle
             }
 
@@ -157,10 +156,17 @@ object SpreadsheetWriter {
             // -- Data rows --
             referrals.forEachIndexed { rowIndex, referral ->
                 val row = sheet.createRow(rowIndex + 1)
-                val values = extractRowValues(referral)
-                values.forEachIndexed { colIndex, value ->
+                activeColumns.forEachIndexed { colIndex, column ->
+                    if (column is ExportColumn.Spacer) {
+                        // Spacer columns produce empty cells (no cell created)
+                        return@forEachIndexed
+                    }
+
+                    val field = column as ExportColumn.Field
+                    val value = referral.getFieldValue(field.fieldId)
+
                     if (value.isNotEmpty()) {
-                        if (colIndex in DATE_COLUMN_INDICES) {
+                        if (field.fieldId in DATE_FIELD_IDS) {
                             val parsedDate = tryParseDate(value)
                             if (parsedDate != null) {
                                 val cell = row.createCell(colIndex)
@@ -184,38 +190,5 @@ object SpreadsheetWriter {
         }
 
         return outputFile
-    }
-
-    /**
-     * Extracts cell values from a [ReferralFields] instance in column order.
-     * Returns a list of strings (empty string for absent fields).
-     */
-    private fun extractRowValues(referral: ReferralFields): List<String> {
-        val services = referral.services.joinToString(", ") { it.cptCode }
-
-        return listOf(
-            referral.firstName.orEmpty(),
-            referral.middleName.orEmpty(),
-            referral.lastName.orEmpty(),
-            referral.caseId.orEmpty(),
-            referral.authorizationNumber.orEmpty(),
-            referral.requestId.orEmpty(),
-            referral.dateOfIssue.orEmpty(),
-            referral.dob.orEmpty(),
-            referral.applicantName.orEmpty(),
-            referral.appointmentDate.orEmpty(),
-            referral.appointmentTime.orEmpty(),
-            referral.streetAddress.orEmpty(),
-            referral.city.orEmpty(),
-            referral.state.orEmpty(),
-            referral.zipCode.orEmpty(),
-            referral.phone.orEmpty(),
-            services,
-            referral.federalTaxId.orEmpty(),
-            referral.vendorNumber.orEmpty(),
-            referral.caseNumberFullFooter.orEmpty(),
-            referral.assignedCode.orEmpty(),
-            referral.dccNumber.orEmpty(),
-        )
     }
 }
