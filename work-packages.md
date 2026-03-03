@@ -581,7 +581,7 @@ The progress indicator on the ProcessingScreen has a purple/default Material tin
 
 ## WP-29: Help Button on Results Screen (E12)
 
-**Status:** ready
+**Status:** done
 **Owns:** `ResultsScreen.kt`
 **Reads:** `MainScreen.kt` (for existing icon button pattern), `HelpScreen.kt`
 **Touches:** none
@@ -600,7 +600,7 @@ Add a help icon button to the Results screen header so users can reach the Help 
 
 ## WP-30: Shorten Discovery Cue Animation Cycle (E13)
 
-**Status:** ready
+**Status:** done
 **Owns:** `ResultsScreen.kt` (keyframes block only)
 **Depends on:** nothing
 
@@ -613,7 +613,7 @@ Reduce the discovery cue animation cycle on the mask eye toggle from 12 seconds 
 
 ## WP-31: Add App Icon Resources and Clean Up Old Icon Artifacts (E15)
 
-**Status:** ready
+**Status:** done
 **Owns:** `app/src/main/resources/icon.ico`, `app/src/main/resources/icon.png`, `app/src/main/resources/icon.svg`
 **Reads:** `app/build.gradle.kts`
 **Touches:** `app/build.gradle.kts`
@@ -632,7 +632,7 @@ The origami bird brand SVG has been exported to icon.png (256x256) and icon.ico 
 
 ## WP-32: Reduce Branding — Remove Watermark and Window Title Suffix (E14)
 
-**Status:** ready
+**Status:** done
 **Owns:** none
 **Reads:** none
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`, `app/build.gradle.kts`
@@ -644,6 +644,145 @@ The origami bird icon and brand colors already provide sufficient brand presence
 2. Shorten the window title from "PDF Referral Parser - Carbon Works" to just "PDF Referral Parser" (in `Main.kt` Window title and `build.gradle.kts` packageName)
 
 **Acceptance:** No watermark visible on the main screen. Window title bar reads "PDF Referral Parser". Icon still appears in title bar/taskbar.
+
+---
+
+## WP-33: Rebrand to PDF Authorization Processor (E16)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `Main.kt`, `MainScreen.kt`, `HelpScreen.kt`, `app/build.gradle.kts`
+**Depends on:** WP-32
+
+**Scope:**
+Rebrand the application from "referral" terminology to "authorization" terminology. The tool gathers authorization information from Maryland Disability Determination Services (MD DDS) PDF service authorization forms.
+
+Update all user-visible text:
+1. **`app/build.gradle.kts`**: `packageName` → `"PDF Authorization Processor"`, `description` → `"Batch PDF data extraction tool for MD DDS service authorization processing"`
+2. **`Main.kt`**: Window title → `"PDF Authorization Processor"`
+3. **`MainScreen.kt`**: Header text `"S&C Batch Referral Processor"` → `"S&C Batch Authorization Processor"`, subtitle `"Select PDF referral files to extract structured data"` → `"Gather authorization information from MD DDS service authorization forms"`, file picker dialog title `"Select PDF Referral Files"` → `"Select PDF Authorization Files"`
+4. **`HelpScreen.kt`**: Update subtitle `"Learn how to use the batch referral processor"` → `"Learn how to use the batch authorization processor"`, step 1 `"Select PDF referral files..."` → `"Select PDF authorization files..."`, supported formats `"The tool processes SSA/DDS consultative examination referral PDFs."` → `"The tool processes Maryland DDS service authorization PDFs."`
+
+Do NOT rename packages, classes, variable names, or file names — only user-visible strings.
+
+**Acceptance:** All user-visible text references "authorization" instead of "referral". Window title reads "PDF Authorization Processor". Build compiles and all tests pass.
+
+---
+
+## WP-34: Feature Flag Infrastructure (F0)
+
+**Status:** ready
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/FeatureFlags.kt`
+**Reads:** none
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+Create a build-time feature flag system. Flags are `const val` booleans in a singleton object — the compiler dead-code-eliminates disabled paths. No runtime configuration, no build flavors, no variant support. To toggle a feature, change the value and commit.
+
+1. **`FeatureFlags.kt`**: Create `object FeatureFlags` in the root package with:
+   - `const val EXPORT_COLUMN_CONFIG = false` — gates the configurable export columns feature (WP-35 through WP-37)
+   - KDoc on the object explaining the convention: flags are `const val Boolean`, `false` = disabled, flip to `true` and commit to enable
+
+No tests needed — it's a static constants file.
+
+**Acceptance:** `FeatureFlags.kt` compiles. Existing tests still pass. Flag is `false` by default.
+
+---
+
+## WP-35: Export Column Configuration — Data Model and Persistence (F1)
+
+**Status:** blocked
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/util/PhiPreferences.kt`
+**Touches:** `app/build.gradle.kts` (add kotlinx-serialization-json dependency if needed)
+**Depends on:** WP-34
+
+**Scope:**
+Create the data model and persistence layer for configurable export columns:
+
+1. **`ExportColumn.kt`**: Define the column configuration types:
+   - `ExportColumn` sealed class with two subclasses:
+     - `ExportColumn.Field(fieldId: String, displayName: String, enabled: Boolean = true)` — a data field from extraction
+     - `ExportColumn.Spacer(id: String, label: String = "Empty Column")` — a blank spacer column
+   - `ExportColumnConfig(columns: List<ExportColumn>)` with a `companion object` providing `default()` that returns all 22 fields in the canonical order from `SpreadsheetWriter.COLUMN_HEADINGS`
+   - `DEFAULT_FIELD_ORDER: List<Pair<String, String>>` — canonical mapping of fieldId to display name (e.g., `"firstName" to "First Name"`)
+   - `DATE_FIELD_IDS = setOf("dateOfIssue", "dob", "appointmentDate")` — replaces the fragile index-based `DATE_COLUMN_INDICES`
+   - Extension function `ReferralFields.getFieldValue(fieldId: String): String` — returns the value for a given field ID via a `when` expression
+   - All serializable via `kotlinx.serialization` annotations (`@Serializable`, `@SerialName` discriminator for the sealed class)
+
+2. **`ExportPreferences.kt`**: Persistence singleton following the `PhiPreferences` pattern:
+   - Uses `java.util.prefs.Preferences` at the same node (`"tech/carbonworks/snc/batchreferralparser"`)
+   - `load(): ExportColumnConfig` — reads JSON string from Preferences key `"exportColumnConfig"`, deserializes, returns `default()` on missing/corrupt data
+   - `save(config: ExportColumnConfig)` — serializes to JSON, writes to Preferences
+   - `reset()` — removes the key (next load returns default)
+
+3. **Tests**: Unit tests verifying:
+   - `ExportColumnConfig.default()` produces 22 fields in the expected order
+   - `getFieldValue()` returns correct values for all 22 field IDs
+   - `ExportPreferences` round-trips a config through save/load (including spacers and disabled fields)
+   - Corrupt/empty JSON in preferences falls back to default gracefully
+
+4. If `kotlinx-serialization-json` is not on the compile classpath, add it to `app/build.gradle.kts` dependencies and add the serialization plugin.
+
+**Acceptance:** Data model compiles, serialization round-trips correctly, preferences load/save works, all tests pass (existing + new). No UI changes.
+
+---
+
+## WP-36: Refactor SpreadsheetWriter to Use ExportColumnConfig (F2)
+
+**Status:** blocked
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/FeatureFlags.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-35
+
+**Scope:**
+Refactor SpreadsheetWriter to accept and use column configuration:
+
+1. **`SpreadsheetWriter.write()`**: Add optional `columnConfig: ExportColumnConfig = ExportColumnConfig.default()` parameter.
+2. **Replace hardcoded parallel arrays**: Instead of `COLUMN_HEADINGS` + `extractRowValues()`, filter `columnConfig.columns` to enabled fields and spacers, then:
+   - Write header row from column display names (blank for spacers)
+   - Write data rows using `ReferralFields.getFieldValue(fieldId)` (blank for spacers)
+3. **Decouple date detection**: Replace `DATE_COLUMN_INDICES` (index set) with `DATE_FIELD_IDS` (field ID set). Check `column.fieldId in DATE_FIELD_IDS` instead of `colIndex in DATE_COLUMN_INDICES`.
+4. **Keep `COLUMN_HEADINGS` as a reference constant** (or remove if unused after refactor).
+5. **Wire in ResultsScreen behind feature flag**: In `saveToXlsx()`, check `FeatureFlags.EXPORT_COLUMN_CONFIG`:
+   - If `true`: load `ExportPreferences.load()` and pass to `SpreadsheetWriter.write()`
+   - If `false`: call `SpreadsheetWriter.write()` with no config (uses default — identical to current behavior)
+6. **Update existing tests**: Ensure `SpreadsheetWriter` tests still pass — default config should produce byte-identical output to the old hardcoded behavior.
+
+**Acceptance:** Default config produces identical XLSX output. Custom configs (reordered, with disabled fields, with spacers) produce correct output. When `EXPORT_COLUMN_CONFIG = false`, behavior is identical to pre-refactor. All tests pass.
+
+---
+
+## WP-37: Column Configuration UI on Settings Screen (F3)
+
+**Status:** blocked
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt` (for existing component patterns), `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/FeatureFlags.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** WP-35
+
+**Scope:**
+Add an "Export Columns" configuration section to the Settings screen, gated behind `FeatureFlags.EXPORT_COLUMN_CONFIG`:
+
+1. **Feature flag gate**: The entire "Export Columns" CwCard section is only rendered when `FeatureFlags.EXPORT_COLUMN_CONFIG` is `true`. When `false`, the Settings screen looks exactly as it does today.
+2. **New CwCard section** below the existing Privacy section, titled "Export Columns" via `SectionHeader`.
+3. **Column list**: Each row displays:
+   - `Checkbox` — toggles `enabled` for Field columns
+   - Field name label (or "Empty Column" in italic for spacers)
+   - Up/down `IconButton`s (`Icons.Default.KeyboardArrowUp` / `KeyboardArrowDown`) — swap with neighbor, disabled at top/bottom
+   - Remove `IconButton` (`Icons.Default.Close`) — only shown for Spacer rows
+4. **"+ Add Empty Column" button** (CwSecondaryButton) below the list — appends a new Spacer
+5. **Preset buttons row** above the column list: "All Fields" and "Essential Only" (CwSecondaryButton style)
+   - "All Fields": resets to `ExportColumnConfig.default()` (all 22 fields enabled, default order, no spacers)
+   - "Essential Only": curated subset — First Name, Last Name, DOB, Case ID, Authorization #, Appointment Date, Appointment Time, Services — others unchecked
+6. **"Reset to Defaults" link or button** — calls `ExportPreferences.reset()`
+7. **State management**: `var columnConfig by remember { mutableStateOf(ExportPreferences.load()) }` — each UI action updates state and immediately calls `ExportPreferences.save()`
+8. **Scrollable content**: Wrap Settings screen content in `verticalScroll` since the column list may be tall
+
+**Acceptance:** When `EXPORT_COLUMN_CONFIG = false`, Settings screen is unchanged. When `true`, column config UI renders. Checkboxes toggle field inclusion. Up/down buttons reorder. Spacers can be added/removed. Presets work. Config persists across app restarts. All tests pass.
 
 ---
 
