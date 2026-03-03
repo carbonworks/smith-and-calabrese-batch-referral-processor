@@ -41,7 +41,7 @@ enum class Screen {
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Carbon Works \u2014 PDF Referral Parser",
+        title = "PDF Referral Parser - Carbon Works",
         state = rememberWindowState(width = 1100.dp, height = 700.dp),
     ) {
         window.minimumSize = Dimension(600, 400)
