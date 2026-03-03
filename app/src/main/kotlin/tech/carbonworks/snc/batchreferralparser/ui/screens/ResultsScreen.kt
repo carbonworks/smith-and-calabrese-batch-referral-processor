@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
@@ -74,11 +75,13 @@ import java.io.File
  *
  * @param results the list of processing results (successes and failures)
  * @param onStartOver callback to return to the file selection screen
+ * @param onNavigateToHelp callback to navigate to the Help screen
  */
 @Composable
 fun ResultsScreen(
     results: List<ProcessedReferral>,
     onStartOver: () -> Unit,
+    onNavigateToHelp: () -> Unit = {},
 ) {
     println("[Results] ResultsScreen composed with ${results.size} result(s)")
     for ((i, r) in results.withIndex()) {
@@ -135,20 +138,34 @@ fun ResultsScreen(
                 )
             }
 
-            // Eye toggle button with optional discovery cue
-            PhiToggleButton(
-                isMasked = isMasked,
-                showDiscoveryCue = showDiscoveryCue.value,
-                onToggle = {
-                    isMasked = !isMasked
-                    PhiMask.maskingEnabled = isMasked
-                    // Permanently dismiss the discovery cue on first toggle
-                    if (showDiscoveryCue.value) {
-                        PhiPreferences.setToggleDismissed(true)
-                        showDiscoveryCue.value = false
-                    }
-                },
-            )
+            // Header icon buttons — eye toggle + help
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Eye toggle button with optional discovery cue
+                PhiToggleButton(
+                    isMasked = isMasked,
+                    showDiscoveryCue = showDiscoveryCue.value,
+                    onToggle = {
+                        isMasked = !isMasked
+                        PhiMask.maskingEnabled = isMasked
+                        // Permanently dismiss the discovery cue on first toggle
+                        if (showDiscoveryCue.value) {
+                            PhiPreferences.setToggleDismissed(true)
+                            showDiscoveryCue.value = false
+                        }
+                    },
+                )
+                IconButton(
+                    onClick = onNavigateToHelp,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                        contentDescription = "Help",
+                        tint = BrandGreen,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
