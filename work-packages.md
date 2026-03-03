@@ -482,6 +482,103 @@ The "Show extracted data by default" toggle in the Settings screen persists its 
 
 ---
 
+## WP-24: Copy/Paste Support for Extracted Data Values (E8)
+
+**Status:** done (needs rework — see WP-26)
+**Owns:** `ResultsScreen.kt`
+**Reads:** none
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+Enable copy-to-clipboard behavior for individual data values on the Results screen:
+1. Each extracted field value in the referral cards (metadata rows, service items, footer fields) should be selectable/copyable
+2. Use Compose `SelectionContainer` or per-value click-to-copy with clipboard API
+3. Respect PHI masking — only copy the displayed (possibly masked) value, not the underlying raw value
+4. Visual feedback on copy (e.g., brief tooltip or color flash)
+
+**Acceptance:** Users can copy individual field values from the Results screen referral cards. Copied text matches what is displayed (masked if masking is active). Visual feedback confirms the copy action.
+
+---
+
+## WP-26: Replace Click-to-Copy with Native Text Selection (E10)
+
+**Status:** ready
+**Owns:** `ResultsScreen.kt`
+**Reads:** none
+**Touches:** none
+**Depends on:** WP-24
+
+**Scope:**
+WP-24 implemented click-to-copy with a color flash — a web/mobile pattern that feels foreign on Windows desktop. Replace with standard native text selection:
+1. Remove the `CopyableValue` composable and `copyToClipboard()` helper
+2. Wrap referral card content in Compose `SelectionContainer` so users can click-drag to highlight text and Ctrl+C to copy — standard Windows behavior
+3. Decide on masking behavior during selection (see notes below)
+4. Remove unused imports added by WP-24 (`animateColorAsState`, `tween`, `MutableInteractionSource`, `LaunchedEffect`, `PointerIcon`, `pointerHoverIcon`, `TextUnit`, `delay`, `Toolkit`, `StringSelection`)
+
+**Masking + selection behavior (TBD):**
+The displayed text drives what can be selected — when masked, users select and copy masked values. This matches the visual contract (what you see is what you get). The eye toggle unmasks first if the user needs real values.
+
+**Acceptance:** Users can click-drag to select text in referral cards and Ctrl+C to copy. No click-to-copy flash behavior. Standard Windows desktop UX. Masked text copies as masked.
+
+---
+
+## WP-25: CarbonWorks Origami Bird App Icon (E9)
+
+**Status:** done
+**Owns:** installer icon resources, `app/build.gradle.kts` (icon config)
+**Reads:** `docs/brand/carbon-works-brand-guidelines.md`
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+Replace the default app icon with the CarbonWorks origami bird logo for both desktop platforms:
+1. Source the origami bird asset from brand assets (`docs/brand/` or request from user)
+2. Generate Windows .ico file (multi-resolution: 16x16, 32x32, 48x48, 256x256)
+3. Generate macOS .icns file (standard resolutions)
+4. Configure jpackage icon paths in `app/build.gradle.kts`
+5. Set the Compose window icon in `Main.kt`
+6. Verify icon appears in: window title bar, taskbar, installer, and desktop shortcut
+
+**Acceptance:** App icon shows the CarbonWorks origami bird on Windows (title bar, taskbar, installer) and macOS (dock, title bar, DMG). Icon is crisp at all standard sizes.
+
+---
+
+## WP-27: Update Application Title (E11)
+
+**Status:** ready
+**Owns:** `Main.kt`
+**Reads:** none
+**Touches:** `app/build.gradle.kts` (packageName if it should match)
+**Depends on:** nothing
+
+**Scope:**
+Change the application window title to "PDF Referral Parser - Carbon Works":
+1. Update the `Window` composable `title` parameter in `Main.kt`
+2. Update `packageName` in `build.gradle.kts` `nativeDistributions` if appropriate (affects installer name, Start Menu entry)
+
+**Acceptance:** Window title bar reads "PDF Referral Parser - Carbon Works". Installer/package name updated to match.
+
+---
+
+## WP-28: Fix Progress Bar Color (B13)
+
+**Status:** ready
+**Owns:** `ProcessingScreen.kt`
+**Reads:** `docs/brand/carbon-works-brand-guidelines.md`
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+The progress indicator on the ProcessingScreen has a purple/default Material tint instead of brand colors:
+1. Find the `LinearProgressIndicator` or `CircularProgressIndicator` in `ProcessingScreen.kt`
+2. Override its color to use `BrandGreen` and track color to use a muted green or `LightGray`
+3. Ensure no purple/Material default colors remain anywhere in the processing flow
+
+**Acceptance:** Progress indicator uses BrandGreen. No purple anywhere in the app. Compiles and existing tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
