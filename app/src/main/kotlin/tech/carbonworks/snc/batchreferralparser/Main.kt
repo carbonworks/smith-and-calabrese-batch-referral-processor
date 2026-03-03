@@ -72,6 +72,7 @@ fun main() = application {
 fun App(window: java.awt.Window? = null) {
     // All app state hoisted to App() level
     var currentScreen by remember { mutableStateOf(Screen.FILE_SELECTION) }
+    var previousScreen by remember { mutableStateOf(Screen.FILE_SELECTION) }
     var selectedFiles by remember { mutableStateOf<List<File>>(emptyList()) }
     var fileStates by remember { mutableStateOf<List<FileProcessingState>>(emptyList()) }
     var processingResults by remember { mutableStateOf<List<ProcessedReferral>>(emptyList()) }
@@ -97,8 +98,14 @@ fun App(window: java.awt.Window? = null) {
                                 processingResults = emptyList()
                                 currentScreen = Screen.PROCESSING
                             },
-                            onHelp = { currentScreen = Screen.HELP },
-                            onSettings = { currentScreen = Screen.SETTINGS },
+                            onHelp = {
+                                previousScreen = currentScreen
+                                currentScreen = Screen.HELP
+                            },
+                            onSettings = {
+                                previousScreen = currentScreen
+                                currentScreen = Screen.SETTINGS
+                            },
                             window = window,
                         )
                     }
@@ -131,19 +138,22 @@ fun App(window: java.awt.Window? = null) {
                                 processingResults = emptyList()
                                 currentScreen = Screen.FILE_SELECTION
                             },
-                            onNavigateToHelp = { currentScreen = Screen.HELP },
+                            onNavigateToHelp = {
+                                previousScreen = currentScreen
+                                currentScreen = Screen.HELP
+                            },
                         )
                     }
 
                     Screen.HELP -> {
                         HelpScreen(
-                            onBack = { currentScreen = Screen.FILE_SELECTION },
+                            onBack = { currentScreen = previousScreen },
                         )
                     }
 
                     Screen.SETTINGS -> {
                         SettingsScreen(
-                            onBack = { currentScreen = Screen.FILE_SELECTION },
+                            onBack = { currentScreen = previousScreen },
                         )
                     }
                 }
