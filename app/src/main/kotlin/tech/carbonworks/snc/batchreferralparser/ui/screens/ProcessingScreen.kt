@@ -39,6 +39,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandOrange
 import tech.carbonworks.snc.batchreferralparser.util.PhiMask
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
+import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 import java.io.File
 
@@ -201,6 +202,7 @@ fun ProcessingScreen(
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth().height(8.dp),
                     color = BrandGreen,
+                    trackColor = LightGray,
                 )
             }
         }
