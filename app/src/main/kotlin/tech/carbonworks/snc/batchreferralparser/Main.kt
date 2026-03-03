@@ -59,7 +59,7 @@ fun main() = application {
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "PDF Referral Parser",
+        title = "PDF Authorization Processor",
         icon = appIcon,
         state = rememberWindowState(width = 1100.dp, height = 700.dp),
     ) {

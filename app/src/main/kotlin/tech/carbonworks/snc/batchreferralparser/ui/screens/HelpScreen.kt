@@ -62,7 +62,7 @@ fun HelpScreen(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Learn how to use the batch referral processor",
+            text = "Learn how to use the batch authorization processor",
             style = MaterialTheme.typography.bodyMedium,
             color = SoftGray,
         )
@@ -84,7 +84,7 @@ fun HelpScreen(
                         SectionHeader(text = "Getting Started")
                         HelpStep(
                             number = "1",
-                            text = "Select PDF referral files using the file picker or drag-and-drop.",
+                            text = "Select PDF authorization files using the file picker or drag-and-drop.",
                         )
                         HelpStep(
                             number = "2",
@@ -106,7 +106,7 @@ fun HelpScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         SectionHeader(text = "Supported Formats")
                         HelpBullet(
-                            text = "The tool processes SSA/DDS consultative examination referral PDFs.",
+                            text = "The tool processes Maryland DDS service authorization PDFs.",
                         )
                         HelpBullet(
                             text = "Up to 50 PDFs can be processed in a single batch.",
