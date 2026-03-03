@@ -672,7 +672,7 @@ Do NOT rename packages, classes, variable names, or file names — only user-vis
 
 ## WP-34: Feature Flag Infrastructure (F0)
 
-**Status:** ready
+**Status:** done
 **Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/FeatureFlags.kt`
 **Reads:** none
 **Touches:** none
@@ -693,7 +693,7 @@ No tests needed — it's a static constants file.
 
 ## WP-35: Export Column Configuration — Data Model and Persistence (F1)
 
-**Status:** blocked
+**Status:** done
 **Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/util/PhiPreferences.kt`
 **Touches:** `app/build.gradle.kts` (add kotlinx-serialization-json dependency if needed)
@@ -732,7 +732,7 @@ Create the data model and persistence layer for configurable export columns:
 
 ## WP-36: Refactor SpreadsheetWriter to Use ExportColumnConfig (F2)
 
-**Status:** blocked
+**Status:** done
 **Owns:** none
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/FeatureFlags.kt`
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
@@ -758,7 +758,7 @@ Refactor SpreadsheetWriter to accept and use column configuration:
 
 ## WP-37: Column Configuration UI on Settings Screen (F3)
 
-**Status:** blocked
+**Status:** done
 **Owns:** none
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt` (for existing component patterns), `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/FeatureFlags.kt`
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
@@ -783,6 +783,77 @@ Add an "Export Columns" configuration section to the Settings screen, gated behi
 8. **Scrollable content**: Wrap Settings screen content in `verticalScroll` since the column list may be tall
 
 **Acceptance:** When `EXPORT_COLUMN_CONFIG = false`, Settings screen is unchanged. When `true`, column config UI renders. Checkboxes toggle field inclusion. Up/down buttons reorder. Spacers can be added/removed. Presets work. Config persists across app restarts. All tests pass.
+
+---
+
+## WP-38: Fix Main Screen Title and Subtitle Text (E17)
+
+**Status:** ready
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Depends on:** WP-33
+
+**Scope:**
+Two text fixes on the main screen:
+1. Remove the "S&C" prefix from the header title. Change `"S&C Batch Authorization Processor"` to `"Batch Authorization Processor"`.
+2. Remove abbreviations from the subtitle. Change `"Gather authorization information from MD DDS service authorization forms"` to spell out the abbreviation — `"Gather authorization information from Maryland Disability Determination Services authorization forms"`.
+
+**Acceptance:** Main screen header reads "Batch Authorization Processor". Subtitle has no abbreviations. Build compiles and all tests pass.
+
+---
+
+## WP-39: Drag-and-Drop Column Reordering (F4)
+
+**Status:** blocked
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
+**Touches:** `app/build.gradle.kts`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** WP-37
+
+**Scope:**
+Add drag-and-drop reordering to the Export Columns configuration list on the Settings screen:
+
+1. **Add dependency**: `sh.calvin.reorderable:reorderable:3.0.0` in `app/build.gradle.kts`
+2. **Migrate to LazyColumn**: Convert the Export Columns section from `Column` + `forEachIndexed` to a `ReorderableLazyColumn` inside a fixed-height container (e.g., `400.dp`). Each row keyed by field ID or spacer ID.
+3. **Nested scroll handling**: The Export Columns list lives inside the outer Settings `verticalScroll`. Use `Modifier.nestedScroll` or a fixed-height `Box` to prevent gesture conflicts between the inner `LazyColumn` and the outer scroll.
+4. **Drag handles**: Add a `DragIndicator` icon (6-dot grip) as the leftmost element in each row, using `Modifier.draggableHandle()` from the reorderable library.
+5. **Drag feedback**: Elevated shadow on the dragged item, semi-transparent ghost at the original position, and a `BrandGreen` 2dp drop indicator line between rows showing the insertion point.
+6. **Smooth animations**: Use `animateItem()` on `LazyColumn` items for reorder transitions.
+7. **Auto-scroll**: List auto-scrolls when dragging near the top or bottom edges.
+
+The `onMove` callback should update `columnConfig` state and persist via `ExportPreferences.save()`.
+
+**Acceptance:** Drag handles visible on each row. Grabbing the handle and dragging vertically repositions the item with smooth animation. Drop indicator line shows insertion point. Auto-scroll works near edges. Existing button-based reorder (up/down arrows) still works. Config persists after drag reorder. All tests pass.
+
+---
+
+## WP-40: Overflow Menu and Spacer Insertion UX (F5)
+
+**Status:** blocked
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** WP-39
+
+**Scope:**
+Add per-row overflow menus and targeted spacer insertion to the Export Columns configuration:
+
+1. **Overflow menu**: Add a `MoreVert` (three-dot) `IconButton` as the rightmost element on each row. Clicking opens a `DropdownMenu` with:
+   - **Move to Top** (`VerticalAlignTop` icon) — moves item to position 0. Disabled when already first.
+   - **Move to Bottom** (`VerticalAlignBottom` icon) — moves item to last position. Disabled when already last.
+   - **Divider**
+   - **Insert Spacer Above** (`Add` icon) — creates a new spacer and inserts it immediately above the current row.
+   - **Insert Spacer Below** (`Add` icon) — creates a new spacer and inserts it immediately below the current row.
+   - **Divider + Remove** (spacer rows only) — removes the spacer from the list.
+2. **Relocate "Add Empty Column"**: Move from below the list to the toolbar row (next to the preset buttons), rename to "Insert Empty Column". This button appends a spacer at the bottom (existing behavior, new location).
+3. **Spacer row inline removal**: Replace the checkbox area on spacer rows with a `Close` icon button for direct single-click removal (in addition to the overflow menu "Remove" option).
+4. **Visual differentiation**:
+   - Disabled field labels rendered in `SoftGray` to signal exclusion
+   - Spacer labels rendered in `SoftGray` italic to differentiate from field rows
+   - Drag handle icons in `SoftGray`
+
+**Acceptance:** Three-dot menu visible on each row. "Move to Top" and "Move to Bottom" work correctly. "Insert Spacer Above/Below" creates spacers at the correct position. Spacers removable via inline close button or overflow menu. "Insert Empty Column" button appears in toolbar row next to presets. Disabled fields and spacers visually differentiated. Config persists. All tests pass.
 
 ---
 
