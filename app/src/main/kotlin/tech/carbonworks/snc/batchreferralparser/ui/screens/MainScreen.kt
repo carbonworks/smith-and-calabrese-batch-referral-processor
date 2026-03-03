@@ -1,10 +1,8 @@
 package tech.carbonworks.snc.batchreferralparser.ui.screens
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,8 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -180,17 +176,6 @@ fun MainScreen(
             .fillMaxSize()
             .background(WarmWhite),
     ) {
-        // CW emblem — bottom-left watermark
-        Image(
-            painter = painterResource("cw-emblem.svg"),
-            contentDescription = "Carbon Works emblem",
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(32.dp)
-                .size(48.dp)
-                .alpha(0.25f),
-        )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
