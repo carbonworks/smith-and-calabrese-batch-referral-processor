@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -163,10 +164,14 @@ fun ExportSettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Expand services checkbox
+        // Expand services checkbox — negative start padding compensates for
+        // the Checkbox's built-in touch-target padding so the row aligns
+        // flush with the preset buttons and column list above/below it.
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(x = (-12).dp),
         ) {
             Checkbox(
                 checked = columnConfig.expandServices,
