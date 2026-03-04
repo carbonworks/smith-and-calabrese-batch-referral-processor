@@ -71,7 +71,46 @@ import tech.carbonworks.snc.batchreferralparser.ui.theme.GreenTint
 import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 import java.awt.Desktop
+import java.awt.FileDialog
+import java.awt.Frame
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.prefs.Preferences
+
+/** Preferences key for the last-used save dialog directory. */
+private const val PREF_LAST_SAVE_DIRECTORY = "lastSaveDirectory"
+
+/** Timestamp format for the default save filename. */
+private val SAVE_FILENAME_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")
+
+/** User preferences node for persisting save directory. */
+private val savePrefs: Preferences =
+    Preferences.userRoot().node("tech/carbonworks/snc/batchreferralparser")
+
+/**
+ * Load the last-used save directory from preferences.
+ *
+ * @return the saved directory if it exists and is valid, or the user's
+ *         Documents folder (or home directory) as a fallback
+ */
+private fun loadLastSaveDirectory(): File {
+    val path = savePrefs.get(PREF_LAST_SAVE_DIRECTORY, null)
+    if (path != null) {
+        val dir = File(path)
+        if (dir.isDirectory) return dir
+    }
+    // Default to Documents folder, falling back to user home
+    val documents = File(System.getProperty("user.home"), "Documents")
+    return if (documents.isDirectory) documents else File(System.getProperty("user.home"))
+}
+
+/**
+ * Save the directory path to preferences for next session.
+ */
+private fun saveLastSaveDirectory(dir: File) {
+    savePrefs.put(PREF_LAST_SAVE_DIRECTORY, dir.absolutePath)
+}
 
 /**
  * Results screen: displays extracted data as per-PDF referral cards, error summary,
@@ -432,9 +471,9 @@ fun ResultsScreen(
             )
             Spacer(modifier = Modifier.width(12.dp))
             CwPrimaryButton(
-                text = "Save to XLSX",
+                text = "Save",
                 onClick = {
-                    saveToXlsx(results, referralFields) { message, error, file ->
+                    saveToXlsx(referralFields) { message, error, file ->
                         saveMessage = message
                         saveError = error
                         savedFile = file
@@ -829,26 +868,78 @@ private fun SummaryCard(
 }
 
 /**
- * Save extracted referral data to an XLSX file.
+ * Open a native save dialog and write extracted referral data to the
+ * user-chosen XLSX path.
+ *
+ * Uses [java.awt.FileDialog] in save mode for a native OS dialog.
+ * The last-used save directory is remembered across sessions via
+ * [java.util.prefs.Preferences]. On first launch, defaults to the
+ * user's Documents folder.
  */
 private fun saveToXlsx(
-    results: List<ProcessedReferral>,
     referralFields: List<ReferralFields>,
     onResult: (message: String?, error: String?, file: File?) -> Unit,
 ) {
     try {
-        // Default output directory: parent of first source PDF
-        val outputDir = results.firstOrNull()?.file?.parentFile ?: File(System.getProperty("user.home"))
-        println("[Save] Writing ${referralFields.size} referral(s) to XLSX in: ${outputDir.absolutePath}")
+        val defaultFilename = "patient-referrals-${SAVE_FILENAME_TIMESTAMP.format(LocalDateTime.now())}.xlsx"
+        val initialDir = loadLastSaveDirectory()
 
-        val columnConfig = if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
-            ExportPreferences.load()
-        } else {
-            ExportColumnConfig.default()
+        val dialog = FileDialog(null as Frame?, "Save", FileDialog.SAVE).apply {
+            directory = initialDir.absolutePath
+            file = defaultFilename
+            // AWT FileDialog on Windows/macOS supports setFilenameFilter but it is
+            // unreliable; setting the default filename with .xlsx extension is the
+            // most portable way to guide the user toward the correct file type.
         }
-        val outputFile = SpreadsheetWriter.write(referralFields, outputDir, columnConfig = columnConfig)
-        println("[Save] Saved: ${outputFile.absolutePath}")
 
+        dialog.isVisible = true
+
+        val chosenDir = dialog.directory
+        val chosenFile = dialog.file
+
+        // User cancelled the dialog
+        if (chosenDir == null || chosenFile == null) {
+            println("[Save] User cancelled save dialog")
+            return
+        }
+
+        // Ensure .xlsx extension
+        val finalName = if (chosenFile.endsWith(".xlsx", ignoreCase = true)) {
+            chosenFile
+        } else {
+            "$chosenFile.xlsx"
+        }
+        val outputFile = File(chosenDir, finalName)
+
+        println("[Save] Writing ${referralFields.size} referral(s) to: ${outputFile.absolutePath}")
+
+        // Remember this directory for next time
+        saveLastSaveDirectory(File(chosenDir))
+
+        // Write to a temp directory, then copy to the user-chosen path.
+        // SpreadsheetWriter.write generates its own filename, so we write
+        // to a temp dir and then move the result to the chosen location.
+        val tempDir = kotlin.io.path.createTempDirectory("snc-export").toFile()
+        try {
+            val columnConfig = if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
+                ExportPreferences.load()
+            } else {
+                ExportColumnConfig.default()
+            }
+            val tempFile = SpreadsheetWriter.write(referralFields, tempDir, columnConfig = columnConfig)
+
+            // Move (or copy) to user-chosen path
+            outputFile.parentFile?.mkdirs()
+            tempFile.copyTo(outputFile, overwrite = true)
+            tempFile.delete()
+            tempDir.delete()
+        } catch (e: Exception) {
+            // Clean up temp dir on failure
+            tempDir.deleteRecursively()
+            throw e
+        }
+
+        println("[Save] Saved: ${outputFile.absolutePath}")
         onResult("Saved to: ${outputFile.absolutePath}", null, outputFile)
     } catch (e: Exception) {
         println("[Save] FAILED: ${e.message}")
