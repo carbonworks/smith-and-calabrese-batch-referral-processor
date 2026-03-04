@@ -144,6 +144,10 @@ fun App(window: java.awt.Window? = null) {
                                 previousScreen = currentScreen
                                 currentScreen = Screen.HELP
                             },
+                            onNavigateToExportSettings = {
+                                previousScreen = currentScreen
+                                currentScreen = Screen.EXPORT_SETTINGS
+                            },
                         )
                     }
 
@@ -156,13 +160,16 @@ fun App(window: java.awt.Window? = null) {
                     Screen.SETTINGS -> {
                         SettingsScreen(
                             onBack = { currentScreen = previousScreen },
-                            onNavigateToExportSettings = { currentScreen = Screen.EXPORT_SETTINGS },
+                            onNavigateToExportSettings = {
+                                previousScreen = currentScreen
+                                currentScreen = Screen.EXPORT_SETTINGS
+                            },
                         )
                     }
 
                     Screen.EXPORT_SETTINGS -> {
                         ExportSettingsScreen(
-                            onBack = { currentScreen = Screen.SETTINGS },
+                            onBack = { currentScreen = previousScreen },
                         )
                     }
                 }

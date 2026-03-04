@@ -80,12 +80,14 @@ import java.io.File
  * @param results the list of processing results (successes and failures)
  * @param onStartOver callback to return to the file selection screen
  * @param onNavigateToHelp callback to navigate to the Help screen
+ * @param onNavigateToExportSettings callback to navigate to the Export Settings screen
  */
 @Composable
 fun ResultsScreen(
     results: List<ProcessedReferral>,
     onStartOver: () -> Unit,
     onNavigateToHelp: () -> Unit = {},
+    onNavigateToExportSettings: () -> Unit = {},
 ) {
     println("[Results] ResultsScreen composed with ${results.size} result(s)")
     for ((i, r) in results.withIndex()) {
@@ -417,6 +419,13 @@ fun ResultsScreen(
                 }
             }
             Spacer(modifier = Modifier.width(12.dp))
+            if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
+                CwSecondaryButton(
+                    text = "Export Settings",
+                    onClick = onNavigateToExportSettings,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
             CwSecondaryButton(
                 text = "Start Over",
                 onClick = onStartOver,
