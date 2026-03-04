@@ -254,7 +254,40 @@ class ExportColumnTest {
     }
 
     // -------------------------------------------------------------------
-    // Test 11: Default field order matches SpreadsheetWriter COLUMN_HEADINGS
+    // Test 11: ExportColumnConfig with expandServices round-trips through JSON
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `ExportColumnConfig with expandServices round-trips through JSON`() {
+        val json = Json { encodeDefaults = true }
+
+        val config = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field("firstName", "First Name"),
+                ExportColumn.Field("services", "Services"),
+            ),
+            expandServices = true,
+        )
+
+        val serialized = json.encodeToString(ExportColumnConfig.serializer(), config)
+        val deserialized = json.decodeFromString<ExportColumnConfig>(serialized)
+
+        assertEquals(config, deserialized, "Config with expandServices should survive JSON round-trip")
+        assertTrue(deserialized.expandServices, "expandServices should be true after round-trip")
+    }
+
+    // -------------------------------------------------------------------
+    // Test 12: Default config has expandServices false
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `default config has expandServices false`() {
+        val config = ExportColumnConfig.default()
+        assertEquals(false, config.expandServices, "Default config should have expandServices = false")
+    }
+
+    // -------------------------------------------------------------------
+    // Test 13: Default field order matches SpreadsheetWriter COLUMN_HEADINGS
     // -------------------------------------------------------------------
 
     @Test

@@ -96,6 +96,7 @@ sealed class ExportColumn {
 @Serializable
 data class ExportColumnConfig(
     val columns: List<ExportColumn>,
+    val expandServices: Boolean = false,
 ) {
     companion object {
         /**
@@ -105,7 +106,8 @@ data class ExportColumnConfig(
         fun default(): ExportColumnConfig = ExportColumnConfig(
             columns = DEFAULT_FIELD_ORDER.map { (fieldId, displayName) ->
                 ExportColumn.Field(fieldId = fieldId, displayName = displayName)
-            }
+            },
+            expandServices = false,
         )
     }
 }

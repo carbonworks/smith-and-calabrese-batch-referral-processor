@@ -128,7 +128,9 @@ fun ExportSettingsScreen(
             CwSecondaryButton(
                 text = "All Fields",
                 onClick = {
-                    columnConfig = ExportColumnConfig.default()
+                    columnConfig = ExportColumnConfig.default().copy(
+                        expandServices = columnConfig.expandServices,
+                    )
                     ExportPreferences.save(columnConfig)
                 },
             )
@@ -143,6 +145,7 @@ fun ExportSettingsScreen(
                                 enabled = fieldId in ESSENTIAL_FIELD_IDS,
                             )
                         },
+                        expandServices = columnConfig.expandServices,
                     )
                     ExportPreferences.save(columnConfig)
                 },
@@ -157,6 +160,32 @@ fun ExportSettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Expand services checkbox
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Checkbox(
+                checked = columnConfig.expandServices,
+                onCheckedChange = { checked ->
+                    columnConfig = columnConfig.copy(expandServices = checked)
+                    ExportPreferences.save(columnConfig)
+                },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = BrandGreen,
+                    uncheckedColor = LightGray,
+                    checkmarkColor = androidx.compose.ui.graphics.Color.White,
+                ),
+            )
+            Text(
+                text = "Place each service on its own row (duplicate other fields)",
+                style = MaterialTheme.typography.bodyMedium,
+                color = DeepInk,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Reorderable column list filling available space
         Box(modifier = Modifier.weight(1f)) {
@@ -203,7 +232,7 @@ private fun ExportColumnReorderableList(
         val updatedColumns = columnConfig.columns.toMutableList().apply {
             add(to.index, removeAt(from.index))
         }
-        onColumnConfigChanged(ExportColumnConfig(columns = updatedColumns))
+        onColumnConfigChanged(columnConfig.copy(columns = updatedColumns))
     }
 
     Box(
@@ -251,7 +280,7 @@ private fun ExportColumnReorderableList(
                                     is ExportColumn.Spacer -> column
                                 }
                                 onColumnConfigChanged(
-                                    ExportColumnConfig(
+                                    columnConfig.copy(
                                         columns = columnConfig.columns.toMutableList().apply {
                                             set(index, updated)
                                         },
@@ -260,7 +289,7 @@ private fun ExportColumnReorderableList(
                             },
                             onMoveUp = {
                                 onColumnConfigChanged(
-                                    ExportColumnConfig(
+                                    columnConfig.copy(
                                         columns = columnConfig.columns.toMutableList().apply {
                                             val item = removeAt(index)
                                             add(index - 1, item)
@@ -270,7 +299,7 @@ private fun ExportColumnReorderableList(
                             },
                             onMoveDown = {
                                 onColumnConfigChanged(
-                                    ExportColumnConfig(
+                                    columnConfig.copy(
                                         columns = columnConfig.columns.toMutableList().apply {
                                             val item = removeAt(index)
                                             add(index + 1, item)
@@ -280,7 +309,7 @@ private fun ExportColumnReorderableList(
                             },
                             onMoveToTop = {
                                 onColumnConfigChanged(
-                                    ExportColumnConfig(
+                                    columnConfig.copy(
                                         columns = columnConfig.columns.toMutableList().apply {
                                             val item = removeAt(index)
                                             add(0, item)
@@ -290,7 +319,7 @@ private fun ExportColumnReorderableList(
                             },
                             onMoveToBottom = {
                                 onColumnConfigChanged(
-                                    ExportColumnConfig(
+                                    columnConfig.copy(
                                         columns = columnConfig.columns.toMutableList().apply {
                                             val item = removeAt(index)
                                             add(item)
@@ -303,7 +332,7 @@ private fun ExportColumnReorderableList(
                                     id = "spacer-${System.currentTimeMillis()}",
                                 )
                                 onColumnConfigChanged(
-                                    ExportColumnConfig(
+                                    columnConfig.copy(
                                         columns = columnConfig.columns.toMutableList().apply {
                                             add(index, spacer)
                                         },
@@ -315,7 +344,7 @@ private fun ExportColumnReorderableList(
                                     id = "spacer-${System.currentTimeMillis()}",
                                 )
                                 onColumnConfigChanged(
-                                    ExportColumnConfig(
+                                    columnConfig.copy(
                                         columns = columnConfig.columns.toMutableList().apply {
                                             add(index + 1, spacer)
                                         },
@@ -325,7 +354,7 @@ private fun ExportColumnReorderableList(
                             onRemove = if (column is ExportColumn.Spacer) {
                                 {
                                     onColumnConfigChanged(
-                                        ExportColumnConfig(
+                                        columnConfig.copy(
                                             columns = columnConfig.columns.toMutableList().apply {
                                                 removeAt(index)
                                             },
