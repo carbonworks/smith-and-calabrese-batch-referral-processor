@@ -127,6 +127,36 @@ fun ExportSettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Expand services checkbox — negative start padding compensates for
+        // the Checkbox's built-in touch-target padding so the row aligns
+        // flush with the preset buttons and column list above/below it.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(x = (-12).dp),
+        ) {
+            Checkbox(
+                checked = columnConfig.expandServices,
+                onCheckedChange = { checked ->
+                    columnConfig = columnConfig.copy(expandServices = checked)
+                    ExportPreferences.save(columnConfig)
+                },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = BrandGreen,
+                    uncheckedColor = LightGray,
+                    checkmarkColor = androidx.compose.ui.graphics.Color.White,
+                ),
+            )
+            Text(
+                text = "Place each service on its own row (duplicate other fields)",
+                style = MaterialTheme.typography.bodyMedium,
+                color = DeepInk,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Preset buttons toolbar row
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -159,36 +189,6 @@ fun ExportSettingsScreen(
             CwSecondaryButton(
                 text = "Reset",
                 onClick = { showResetDialog = true },
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Expand services checkbox — negative start padding compensates for
-        // the Checkbox's built-in touch-target padding so the row aligns
-        // flush with the preset buttons and column list above/below it.
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(x = (-12).dp),
-        ) {
-            Checkbox(
-                checked = columnConfig.expandServices,
-                onCheckedChange = { checked ->
-                    columnConfig = columnConfig.copy(expandServices = checked)
-                    ExportPreferences.save(columnConfig)
-                },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = BrandGreen,
-                    uncheckedColor = LightGray,
-                    checkmarkColor = androidx.compose.ui.graphics.Color.White,
-                ),
-            )
-            Text(
-                text = "Place each service on its own row (duplicate other fields)",
-                style = MaterialTheme.typography.bodyMedium,
-                color = DeepInk,
             )
         }
 
