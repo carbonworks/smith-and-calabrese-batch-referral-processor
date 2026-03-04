@@ -1143,7 +1143,7 @@ Research and define a navigation animation strategy that communicates spatial re
 
 ## WP-54: Fix Expand Services Checkbox Alignment on Export Settings Screen (B15)
 
-**Status:** ready
+**Status:** done
 **Owns:** none
 **Reads:** none
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
@@ -1155,6 +1155,87 @@ The "Place each service on its own row" checkbox on the Export Settings screen i
 Review the current layout and adjust the checkbox row's padding/alignment so it sits at the same indentation level as the preset buttons and the column list header area. The checkbox is a top-level export option, not a sub-item of any particular column or preset.
 
 **Acceptance:** The expand services checkbox row is visually aligned with the preset buttons and column list — no misleading indentation. Build compiles and all tests pass.
+
+---
+
+## WP-55: Add Gutter Between Privacy Toggle Description and Switch (B16)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+On the Settings screen, the "Show extracted data by default" description text and the Switch toggle sit in a Row with no horizontal spacing between them. The description text can run right up against the toggle, lacking a visual gutter to separate the two elements.
+
+Add appropriate horizontal spacing (e.g., `Spacer(modifier = Modifier.width(16.dp))` or padding on the Column/Switch) so the description text and the toggle have a clear shared gutter between them.
+
+**Acceptance:** Visible horizontal gap between the privacy description text and the Switch toggle. The text does not crowd the toggle. Build compiles and all tests pass.
+
+---
+
+## WP-56: Replace Auto-Save with System Save Dialog (E26)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+Replace the current "Save to XLSX" button and auto-save behavior with a standard system save dialog:
+
+1. **Rename the button** from "Save to XLSX" to "Save".
+2. **Open a native file save dialog** (e.g., `java.awt.FileDialog` in save mode or `javax.swing.JFileChooser` with `showSaveDialog`) when the user clicks Save. The dialog should:
+   - Default the file type filter to `.xlsx`
+   - Suggest a default filename (e.g., `referral-export-YYYY-MM-DD.xlsx` or similar based on current behavior)
+   - Remember the last-used save directory across sessions using `java.util.prefs.Preferences` (the same pattern the app already uses for remembering the file picker directory). On first launch, default to the user's Documents folder or desktop.
+3. **Write the XLSX to the user-chosen path** only after they confirm in the dialog.
+4. **Preserve the existing save feedback UX**: inline orange clickable filename + "(Open folder)" link after a successful save, error message on failure.
+5. **Remove any auto-generated filename/path logic** that bypasses user choice.
+
+Use `java.util.prefs.Preferences` for directory memory — this is the standard JVM approach and matches the existing file picker directory persistence pattern in the app.
+
+**Acceptance:** Button reads "Save". Clicking it opens a native OS save dialog defaulting to `.xlsx`. The dialog remembers the last-used directory. File is written to the user-chosen location. Save feedback (filename link, open folder) still works. Build compiles and all tests pass.
+
+---
+
+## WP-57: Reposition Save Results Links and Polish (E27)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-56
+
+**Scope:**
+Move the save results feedback (filename link and open-folder link) from inline with the action buttons to just above the Save button, and polish the presentation:
+
+1. **Relocate the save feedback** (orange clickable filename + open-folder link) from its current position inline/right-aligned in the action buttons Row to a line immediately above the action buttons row.
+2. **Animate the layout change** when the feedback appears after saving — use `AnimatedVisibility` (or equivalent) so the feedback row slides/fades in rather than popping into existence and pushing content around.
+3. **Fix the open-folder link**: remove the parentheses from the clickable text. Instead of "(Open folder)" with the parens as part of the link, render it as "Open folder" without parentheses (or use a non-clickable separator between the filename and the folder link).
+
+**Acceptance:** Save feedback appears on its own line above the action buttons, animated into view. The filename is clickable (opens file). "Open folder" text has no parentheses and is clickable (opens directory). Layout shift is smooth, not jarring. Build compiles and all tests pass.
+
+---
+
+## WP-58: Review and Correct Default Export Filename Terminology (R5)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `docs/spec/field-mapping.json`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt` (or wherever the default filename is generated)
+**Depends on:** none
+
+**Scope:**
+The default save filename currently uses the term "patient referrals" which may not accurately describe the document contents. The PDFs being processed are service authorizations issued by Maryland DDS (Disability Determination Services), not patient referrals.
+
+1. **Research**: Review the extraction code, field mapping, and any sample output to confirm what the documents actually are — service authorizations, consultative examination authorizations, referral letters, or something else.
+2. **Determine the correct terminology** that matches the document type. The app title already uses "Authorization Processor" and the UI uses "authorization" language throughout (per WP-33 rebrand).
+3. **Update the default filename** to use consistent, accurate terminology (e.g., `service-authorizations-YYYY-MM-DD.xlsx` or `authorizations-YYYY-MM-DD.xlsx` instead of `patient-referrals-...`).
+
+**Acceptance:** Default export filename uses terminology consistent with the actual document type and the rest of the application's language. Build compiles and all tests pass.
 
 ---
 
