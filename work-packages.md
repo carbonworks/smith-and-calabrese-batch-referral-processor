@@ -965,7 +965,7 @@ Extract the Export Columns configuration into its own dedicated screen:
 
 ## WP-47: Add Reset Confirmation Dialog with Text Input (E24)
 
-**Status:** ready
+**Status:** done
 **Owns:** none
 **Reads:** none
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
@@ -987,7 +987,7 @@ Add a confirmation dialog to the Reset button on the Export Settings screen:
 
 ## WP-48: Add "Expand Services to Individual Rows" Option (F6)
 
-**Status:** ready
+**Status:** done
 **Owns:** none
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumnConfig.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
@@ -1007,7 +1007,7 @@ Add a checkbox to the Export Settings screen (above the column list) that contro
 
 ## WP-49: Add Export Settings Button on Results Screen (E25)
 
-**Status:** ready
+**Status:** done
 **Owns:** none
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
 **Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
@@ -1046,7 +1046,7 @@ The likely cause is that the Help screen's `onBack` callback is hardcoded to nav
 
 ## WP-51: Migrate to Compose Multiplatform Navigation (R3)
 
-**Status:** ready
+**Status:** done
 **Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
 **Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/*.kt`, `app/build.gradle.kts`
 **Touches:** `app/build.gradle.kts`, all screen composables (callback signature changes)
