@@ -208,15 +208,15 @@ class SpreadsheetWriterTest {
     }
 
     // -------------------------------------------------------------------
-    // Test 5: Filename matches patient-referrals-*.xlsx pattern
+    // Test 5: Filename matches authorizations-*.xlsx pattern
     // -------------------------------------------------------------------
 
     @Test
-    fun `filename matches patient-referrals pattern`() {
+    fun `filename matches authorizations pattern`() {
         val file = SpreadsheetWriter.write(emptyList(), tempDir, fixedTimestamp)
 
-        assertEquals("patient-referrals-2026-02-23-143045.xlsx", file.name)
-        assertTrue(file.name.matches(Regex("patient-referrals-\\d{4}-\\d{2}-\\d{2}-\\d{6}\\.xlsx")))
+        assertEquals("authorizations-2026-02-23-143045.xlsx", file.name)
+        assertTrue(file.name.matches(Regex("authorizations-\\d{4}-\\d{2}-\\d{2}-\\d{6}\\.xlsx")))
         assertTrue(file.exists())
     }
 
