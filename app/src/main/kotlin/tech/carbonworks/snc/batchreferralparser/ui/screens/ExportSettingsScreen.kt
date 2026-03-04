@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.VerticalAlignTop
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
@@ -38,8 +40,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -99,6 +103,7 @@ fun ExportSettingsScreen(
     onBack: () -> Unit,
 ) {
     var columnConfig by remember { mutableStateOf(ExportPreferences.load()) }
+    var showResetDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -149,10 +154,7 @@ fun ExportSettingsScreen(
             )
             CwSecondaryButton(
                 text = "Reset",
-                onClick = {
-                    ExportPreferences.reset()
-                    columnConfig = ExportColumnConfig.default()
-                },
+                onClick = { showResetDialog = true },
             )
         }
 
@@ -181,6 +183,73 @@ fun ExportSettingsScreen(
                 onClick = onBack,
             )
         }
+    }
+
+    // Reset confirmation dialog
+    if (showResetDialog) {
+        var confirmationText by remember { mutableStateOf("") }
+        val isConfirmEnabled = confirmationText.equals("reset", ignoreCase = true)
+
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = {
+                Text(
+                    text = "Reset Export Columns",
+                    color = DeepInk,
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "This will restore all columns to their default configuration. " +
+                            "Any custom ordering, visibility changes, and spacers will be lost.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DeepInk,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Type \"reset\" to confirm:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SoftGray,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = confirmationText,
+                        onValueChange = { confirmationText = it },
+                        singleLine = true,
+                        placeholder = {
+                            Text(
+                                text = "reset",
+                                color = LightGray,
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        ExportPreferences.reset()
+                        columnConfig = ExportColumnConfig.default()
+                        showResetDialog = false
+                    },
+                    enabled = isConfirmEnabled,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = BrandGreen,
+                    ),
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showResetDialog = false },
+                ) {
+                    Text("Cancel")
+                }
+            },
+        )
     }
 }
 
