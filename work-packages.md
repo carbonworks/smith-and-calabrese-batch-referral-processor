@@ -1070,6 +1070,94 @@ This is a refactor — no user-visible behavior changes. All existing navigation
 
 ---
 
+## WP-52: Define Manual End-to-End Test Script (T1)
+
+**Status:** done
+**Owns:** `docs/testing/manual-e2e-tests.md`
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/*.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `docs/spec/field-mapping.json`
+**Touches:** none
+**Depends on:** WP-51
+
+**Scope:**
+Create a concise manual end-to-end test script (`docs/testing/manual-e2e-tests.md`) designed to verify the app's core functionality within 3 minutes or less. The script should:
+
+1. **Define prerequisites**: what test PDFs are needed (count, characteristics — e.g., multi-service, single-service, malformed), how to launch the app.
+2. **Cover these functional areas** with numbered, step-by-step test cases:
+   - **File selection**: drag-and-drop, file picker, file removal, duplicate rejection
+   - **Processing**: progress bar, completion transition
+   - **Results screen**: referral cards display, field values present, warning/error indicators, PHI masking toggle (eye icon), text selection (triple-click to copy)
+   - **XLSX export**: save to file, verify file opens in Excel/Sheets, correct column order, date formatting, expand-services row expansion
+   - **Export Settings**: navigate from Settings and from Results, preset buttons (All Fields, Essential Only), drag reorder, checkbox toggle, spacer insertion via overflow menu, reset confirmation dialog (type "reset"), expand services checkbox, back navigation returns to correct screen
+   - **Settings**: privacy toggle (show/unmask by default), navigation to Export Settings via chevron row
+   - **Help screen**: accessible from Main and Results, back returns to originating screen
+   - **Navigation**: all forward/back flows, Start Over clears state, screen transitions animate
+3. **Optimize for speed**: group related checks into single test flows (e.g., process files → check results → export → verify file in one pass). Avoid redundant navigation. Aim for a tester to complete all cases in under 3 minutes with familiarity.
+4. **Mark critical vs. nice-to-have**: flag which tests are P0 (must pass for release) vs. P1 (important but not blocking).
+5. **Include a quick-pass checklist** at the top — a condensed version (10-15 checkboxes) for rapid smoke testing in under 1 minute.
+
+**Acceptance:** A `docs/testing/manual-e2e-tests.md` file exists with a complete, time-budgeted test script. Each test case has clear steps, expected results, and pass/fail criteria. The full script is executable in ≤3 minutes. A quick-pass smoke checklist is included at the top.
+
+---
+
+## WP-53: Research Navigation Animation Strategy (R4)
+
+**Status:** done
+**Owns:** `docs/research/navigation-animation-strategy.md`
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/*.kt`, `docs/brand/carbon-works-brand-guidelines.md`
+**Touches:** none
+**Depends on:** WP-51
+
+**Scope:**
+Research and define a navigation animation strategy that communicates spatial relationships and user intent through motion. Produce `docs/research/navigation-animation-strategy.md` covering:
+
+1. **Audit the current navigation graph** and categorize each transition by semantic type:
+   - **Forward workflow** (Main → Processing → Results): linear progression
+   - **Lateral/overlay** (Main → Help, Main → Settings, Results → Help): contextual detour, user expects to return
+   - **Drill-down** (Settings → Export Settings): hierarchical depth
+   - **Reset** (Start Over → Main): state clearing, return to origin
+   - **Back** (any screen → previous): reversal of the above
+
+2. **Research Compose animation APIs** relevant to communicating these semantics:
+   - `AnimatedNavHost` enter/exit/popEnter/popExit transitions
+   - `slideInHorizontally` / `slideOutHorizontally` for lateral and hierarchical motion
+   - `slideInVertically` / `slideOutVertically` for overlay/modal-feel screens
+   - `fadeIn` / `fadeOut` with `tween` / `spring` easing
+   - `scaleIn` / `scaleOut` for emphasis
+   - `SharedTransitionLayout` / `AnimatedContent` for shared element transitions (e.g., file list → processing cards)
+   - `EnterTransition` / `ExitTransition` combinators (`+` operator for layered effects)
+   - Material Motion patterns (container transform, shared axis, fade through)
+
+3. **Survey industry conventions** for desktop app navigation animation:
+   - macOS system preferences drill-down (horizontal slide)
+   - Windows Settings app (fade + slide)
+   - IntelliJ/Android Studio panel transitions
+   - Material Design motion guidelines (shared axis for related content, fade through for unrelated)
+
+4. **Propose a concrete animation map**: for each transition pair (e.g., Main→Help, Help→Main, Settings→ExportSettings, ExportSettings→Settings), specify the exact enter/exit transition combination with duration and easing. Justify each choice in terms of what it communicates to the user.
+
+5. **Identify implementation complexity**: which transitions are straightforward (`slideIn`/`fadeIn` on `AnimatedNavHost`), which require `SharedTransitionLayout` or custom work, and recommended implementation order.
+
+**Acceptance:** A research document exists at `docs/research/navigation-animation-strategy.md` with categorized transitions, API survey, industry conventions, a concrete animation map for every navigation pair, and an implementation plan with complexity ratings.
+
+---
+
+## WP-54: Fix Expand Services Checkbox Alignment on Export Settings Screen (B15)
+
+**Status:** ready
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
+**Depends on:** WP-48
+
+**Scope:**
+The "Place each service on its own row" checkbox on the Export Settings screen is indented in a way that doesn't communicate any meaningful information hierarchy. It should align with the surrounding content (preset buttons row, column list) rather than being visually nested under something it doesn't belong to.
+
+Review the current layout and adjust the checkbox row's padding/alignment so it sits at the same indentation level as the preset buttons and the column list header area. The checkbox is a top-level export option, not a sub-item of any particular column or preset.
+
+**Acceptance:** The expand services checkbox row is visually aligned with the preset buttons and column list — no misleading indentation. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
