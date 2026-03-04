@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
@@ -122,6 +123,8 @@ fun SettingsScreen(
                                     lineHeight = 18.sp,
                                 )
                             }
+
+                            Spacer(modifier = Modifier.width(16.dp))
 
                             Switch(
                                 checked = showByDefault,
