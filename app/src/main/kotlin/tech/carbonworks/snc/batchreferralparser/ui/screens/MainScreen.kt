@@ -52,6 +52,8 @@ import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SkyBlue
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
+import java.awt.Component
+import java.awt.Container
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTarget
@@ -116,58 +118,94 @@ fun MainScreen(
     var isDragOver by remember { mutableStateOf(false) }
     var limitMessage by remember { mutableStateOf<String?>(null) }
 
-    // Register AWT drag-and-drop handler on the window
+    // Use refs to always read the latest values inside the AWT callback
+    // without re-registering the DropTarget on every recomposition.
+    val filesRef = remember { mutableStateOf(files) }
+    filesRef.value = files
+    val onFilesChangedRef = remember { mutableStateOf(onFilesChanged) }
+    onFilesChangedRef.value = onFilesChanged
+
+    // Register AWT drag-and-drop handler on the window and all child components.
+    // In Compose Desktop, the rendering surface (SkiaLayer / ComposePanel) intercepts
+    // drag events before they reach the top-level window. Setting the DropTarget only
+    // on the window silently fails. The fix is to walk the AWT component tree and
+    // attach the same DropTarget to every component, ensuring drops are caught
+    // regardless of which layer the OS delivers the event to.
     DisposableEffect(window) {
         if (window == null) return@DisposableEffect onDispose {}
 
-        val dropTarget = DropTarget(
-            window,
-            DnDConstants.ACTION_COPY,
-            object : DropTargetAdapter() {
-                override fun dragEnter(dtde: DropTargetDragEvent) {
-                    isDragOver = true
-                    dtde.acceptDrag(DnDConstants.ACTION_COPY)
-                }
+        val listener = object : DropTargetAdapter() {
+            override fun dragEnter(dtde: DropTargetDragEvent) {
+                isDragOver = true
+                dtde.acceptDrag(DnDConstants.ACTION_COPY)
+            }
 
-                override fun dragExit(dte: DropTargetEvent) {
-                    isDragOver = false
-                }
+            override fun dragExit(dte: DropTargetEvent) {
+                isDragOver = false
+            }
 
-                override fun drop(dtde: DropTargetDropEvent) {
-                    isDragOver = false
-                    dtde.acceptDrop(DnDConstants.ACTION_COPY)
+            override fun drop(dtde: DropTargetDropEvent) {
+                isDragOver = false
+                dtde.acceptDrop(DnDConstants.ACTION_COPY)
 
-                    try {
-                        val transferable = dtde.transferable
-                        if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                            @Suppress("UNCHECKED_CAST")
-                            val droppedFiles = transferable.getTransferData(
-                                DataFlavor.javaFileListFlavor
-                            ) as List<File>
+                try {
+                    val transferable = dtde.transferable
+                    if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                        @Suppress("UNCHECKED_CAST")
+                        val droppedFiles = transferable.getTransferData(
+                            DataFlavor.javaFileListFlavor
+                        ) as List<File>
 
-                            val pdfFiles = droppedFiles.filter {
-                                it.extension.equals("pdf", ignoreCase = true)
-                            }
-
-                            addFilesWithLimit(files, pdfFiles, onFilesChanged) { msg ->
-                                limitMessage = msg
-                            }
-
-                            // Remember the directory of the dropped files
-                            pdfFiles.firstOrNull()?.parentFile?.let { dir ->
-                                saveLastDirectory(dir)
-                            }
+                        val pdfFiles = droppedFiles.filter {
+                            it.extension.equals("pdf", ignoreCase = true)
                         }
-                        dtde.dropComplete(true)
-                    } catch (e: Exception) {
-                        dtde.dropComplete(false)
+
+                        addFilesWithLimit(filesRef.value, pdfFiles, onFilesChangedRef.value) { msg ->
+                            limitMessage = msg
+                        }
+
+                        // Remember the directory of the dropped files
+                        pdfFiles.firstOrNull()?.parentFile?.let { dir ->
+                            saveLastDirectory(dir)
+                        }
                     }
+                    dtde.dropComplete(true)
+                } catch (e: Exception) {
+                    dtde.dropComplete(false)
                 }
-            },
-        )
+            }
+        }
+
+        // Collect all components in the window hierarchy.
+        val allComponents = mutableListOf<Component>()
+        fun collectComponents(container: Container) {
+            allComponents.add(container)
+            for (child in container.components) {
+                allComponents.add(child)
+                if (child is Container) {
+                    collectComponents(child)
+                }
+            }
+        }
+        collectComponents(window)
+
+        // Save original drop targets so we can restore them on dispose.
+        val originalTargets = allComponents.map { it to it.dropTarget }
+
+        // Set our drop target on every component.
+        for (component in allComponents) {
+            component.dropTarget = DropTarget(
+                component,
+                DnDConstants.ACTION_COPY,
+                listener,
+            )
+        }
 
         onDispose {
-            window.dropTarget = null
+            // Restore original drop targets.
+            for ((component, original) in originalTargets) {
+                component.dropTarget = original
+            }
         }
     }
 
