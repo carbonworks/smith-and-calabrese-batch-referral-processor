@@ -119,7 +119,7 @@ object SpreadsheetWriter {
             }
         }
 
-        val filename = "patient-referrals-${FILENAME_TIMESTAMP_FORMAT.format(timestamp)}.xlsx"
+        val filename = "authorizations-${FILENAME_TIMESTAMP_FORMAT.format(timestamp)}.xlsx"
         val outputFile = File(outputDir, filename)
 
         XSSFWorkbook().use { workbook ->
