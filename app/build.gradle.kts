@@ -33,6 +33,9 @@ dependencies {
     // JSON serialization (export column config persistence)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
+    // Compose Navigation (type-safe back stack management)
+    implementation("org.jetbrains.androidx.navigation:navigation-compose-desktop:2.8.0-alpha10")
+
     // Drag-and-drop reordering for LazyColumn
     implementation("sh.calvin.reorderable:reorderable:3.0.0")
 
