@@ -1,5 +1,10 @@
 package tech.carbonworks.snc.batchreferralparser.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -400,15 +405,16 @@ fun ResultsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Action buttons with inline save status
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
+        // Save feedback — animated row above the action buttons
+        AnimatedVisibility(
+            visible = savedFile != null || saveError != null,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
         ) {
-            // Save status (fills available space, right-aligned text)
             Row(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -434,7 +440,7 @@ fun ResultsScreen(
                         color = BrandOrange,
                     )
                     Text(
-                        text = "(Open folder)",
+                        text = "Open folder",
                         fontSize = 13.sp,
                         color = BrandOrange,
                         textDecoration = TextDecoration.Underline,
@@ -457,7 +463,14 @@ fun ResultsScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(12.dp))
+        }
+
+        // Action buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
                 CwSecondaryButton(
                     text = "Export Settings",
