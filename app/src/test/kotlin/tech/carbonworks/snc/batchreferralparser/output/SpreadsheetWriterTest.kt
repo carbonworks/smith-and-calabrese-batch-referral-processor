@@ -532,7 +532,162 @@ class SpreadsheetWriterTest {
     }
 
     // -------------------------------------------------------------------
-    // Test 17: Date detection works with custom column order
+    // Test 17: expandServices produces one row per service with duplicated fields
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `expandServices produces one row per service with duplicated fields`() {
+        val referral = sampleReferral() // has services: 96130, 96131
+
+        val config = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+                ExportColumn.Field(fieldId = "lastName", displayName = "Last Name"),
+                ExportColumn.Field(fieldId = "caseId", displayName = "Case ID"),
+                ExportColumn.Field(fieldId = "services", displayName = "Services"),
+            ),
+            expandServices = true,
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp, columnConfig = config,
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // Two data rows (one per service), not one
+            assertEquals(2, sheet.lastRowNum)
+
+            // Row 1: first service
+            assertEquals("Jane", cellText(wb, 1, 0))
+            assertEquals("Doe", cellText(wb, 1, 1))
+            assertEquals("CASE-001", cellText(wb, 1, 2))
+            assertEquals("96130", cellText(wb, 1, 3))
+
+            // Row 2: second service, other fields duplicated
+            assertEquals("Jane", cellText(wb, 2, 0))
+            assertEquals("Doe", cellText(wb, 2, 1))
+            assertEquals("CASE-001", cellText(wb, 2, 2))
+            assertEquals("96131", cellText(wb, 2, 3))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 18: expandServices with single service produces one row
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `expandServices with single service produces one row`() {
+        val referral = ReferralFields(
+            firstName = "Test",
+            services = listOf(ServiceLine(cptCode = "96130")),
+        )
+
+        val config = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+                ExportColumn.Field(fieldId = "services", displayName = "Services"),
+            ),
+            expandServices = true,
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp, columnConfig = config,
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // Single service = one data row (no expansion needed)
+            assertEquals(1, sheet.lastRowNum)
+            assertEquals("Test", cellText(wb, 1, 0))
+            assertEquals("96130", cellText(wb, 1, 1))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 19: expandServices false preserves comma-separated behavior
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `expandServices false preserves comma-separated behavior`() {
+        val referral = sampleReferral() // has services: 96130, 96131
+
+        val config = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+                ExportColumn.Field(fieldId = "services", displayName = "Services"),
+            ),
+            expandServices = false,
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral), tempDir, fixedTimestamp, columnConfig = config,
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // One data row with comma-separated services
+            assertEquals(1, sheet.lastRowNum)
+            assertEquals("Jane", cellText(wb, 1, 0))
+            assertEquals("96130, 96131", cellText(wb, 1, 1))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 20: expandServices with multiple referrals expands each independently
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `expandServices with multiple referrals expands each independently`() {
+        val referral1 = ReferralFields(
+            firstName = "Alice",
+            services = listOf(
+                ServiceLine(cptCode = "96130"),
+                ServiceLine(cptCode = "96131"),
+            ),
+        )
+        val referral2 = ReferralFields(
+            firstName = "Bob",
+            services = listOf(ServiceLine(cptCode = "99213")),
+        )
+
+        val config = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field(fieldId = "firstName", displayName = "First Name"),
+                ExportColumn.Field(fieldId = "services", displayName = "Services"),
+            ),
+            expandServices = true,
+        )
+
+        val file = SpreadsheetWriter.write(
+            listOf(referral1, referral2), tempDir, fixedTimestamp, columnConfig = config,
+        )
+
+        openWorkbook(file).use { wb ->
+            val sheet = wb.getSheetAt(0)
+
+            // Alice: 2 rows, Bob: 1 row => 3 data rows total
+            assertEquals(3, sheet.lastRowNum)
+
+            // Alice row 1
+            assertEquals("Alice", cellText(wb, 1, 0))
+            assertEquals("96130", cellText(wb, 1, 1))
+
+            // Alice row 2
+            assertEquals("Alice", cellText(wb, 2, 0))
+            assertEquals("96131", cellText(wb, 2, 1))
+
+            // Bob row
+            assertEquals("Bob", cellText(wb, 3, 0))
+            assertEquals("99213", cellText(wb, 3, 1))
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 21: Date detection works with custom column order
     // -------------------------------------------------------------------
 
     @Test

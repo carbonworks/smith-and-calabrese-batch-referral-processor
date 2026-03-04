@@ -154,29 +154,49 @@ object SpreadsheetWriter {
             sheet.createFreezePane(0, 1)
 
             // -- Data rows --
-            referrals.forEachIndexed { rowIndex, referral ->
-                val row = sheet.createRow(rowIndex + 1)
-                activeColumns.forEachIndexed { colIndex, column ->
-                    if (column is ExportColumn.Spacer) {
-                        // Spacer columns produce empty cells (no cell created)
-                        return@forEachIndexed
-                    }
+            // Build the flat list of data rows. When expandServices is enabled
+            // and a referral has multiple services, each service gets its own
+            // row with all other field values duplicated.
+            val expandServices = columnConfig.expandServices
+            val servicesFieldActive = activeColumns.any {
+                it is ExportColumn.Field && it.fieldId == "services"
+            }
 
-                    val field = column as ExportColumn.Field
-                    val value = referral.getFieldValue(field.fieldId)
+            var currentRow = 1
+            for (referral in referrals) {
+                val servicesCpt = referral.services.map { it.cptCode }
+                val shouldExpand = expandServices && servicesFieldActive && servicesCpt.size > 1
 
-                    if (value.isNotEmpty()) {
-                        if (field.fieldId in DATE_FIELD_IDS) {
-                            val parsedDate = tryParseDate(value)
-                            if (parsedDate != null) {
-                                val cell = row.createCell(colIndex)
-                                cell.setCellValue(java.sql.Date.valueOf(parsedDate))
-                                cell.cellStyle = dateStyle
+                val serviceValues = if (shouldExpand) servicesCpt else listOf(null)
+
+                for (singleService in serviceValues) {
+                    val row = sheet.createRow(currentRow++)
+                    activeColumns.forEachIndexed { colIndex, column ->
+                        if (column is ExportColumn.Spacer) {
+                            // Spacer columns produce empty cells (no cell created)
+                            return@forEachIndexed
+                        }
+
+                        val field = column as ExportColumn.Field
+                        val value = if (singleService != null && field.fieldId == "services") {
+                            singleService
+                        } else {
+                            referral.getFieldValue(field.fieldId)
+                        }
+
+                        if (value.isNotEmpty()) {
+                            if (field.fieldId in DATE_FIELD_IDS) {
+                                val parsedDate = tryParseDate(value)
+                                if (parsedDate != null) {
+                                    val cell = row.createCell(colIndex)
+                                    cell.setCellValue(java.sql.Date.valueOf(parsedDate))
+                                    cell.cellStyle = dateStyle
+                                } else {
+                                    row.createCell(colIndex).setCellValue(value)
+                                }
                             } else {
                                 row.createCell(colIndex).setCellValue(value)
                             }
-                        } else {
-                            row.createCell(colIndex).setCellValue(value)
                         }
                     }
                 }
