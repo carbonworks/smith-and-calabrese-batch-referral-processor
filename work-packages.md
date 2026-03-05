@@ -1727,6 +1727,60 @@ The per-referral unmask eye icon in the results card header is vertically misali
 
 ---
 
+## WP-86: Regenerate Multi-Resolution Icon for Windows Installer (E39)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/brand/carbon-works-brand-guidelines.md`
+**Touches:** `app/src/main/resources/icon.ico`
+**Depends on:** none
+
+**Scope:**
+The current `icon.ico` is only 16x16 pixels, causing blurry/pixelated appearance on modern Windows displays in the installer wizard, Start Menu, taskbar, and File Explorer. Regenerate it as a multi-resolution ICO file containing 16, 32, 48, 64, and 256 pixel layers.
+
+The source SVG is at `app/src/main/resources/icon.svg`. Use ImageMagick or a similar tool to:
+1. Render the SVG at 16, 32, 48, 64, and 256 px (square, 32-bit RGBA)
+2. Combine all sizes into a single `.ico` file
+3. Replace `app/src/main/resources/icon.ico`
+
+If ImageMagick is not available, use the Python icon generator script if one exists in `tools/`, or write a small script to do the conversion.
+
+**Acceptance:** `icon.ico` contains multiple resolutions (at minimum 16, 32, 48, 256). The file is a valid ICO. Build compiles and `./gradlew :app:packageMsi` succeeds.
+
+---
+
+## WP-87: Add License File to Windows Installer (E40)
+
+**Status:** done
+**Owns:** `app/src/main/resources/LICENSE.txt`
+**Reads:** none
+**Touches:** `app/build.gradle.kts`
+**Depends on:** License research (pending)
+
+**Scope:**
+Add a license/EULA file that is displayed during MSI installation. Create `app/src/main/resources/LICENSE.txt` with appropriate license text (to be determined by research). Add `licenseFile.set(project.file("src/main/resources/LICENSE.txt"))` to the `windows {}` block in `app/build.gradle.kts`.
+
+**Acceptance:** The installer shows a license agreement step during installation. Build compiles and `./gradlew :app:packageMsi` succeeds.
+
+---
+
+## WP-88: Update Installer Description to Reflect Brand (E41)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/brand/carbon-works-brand-guidelines.md`
+**Touches:** `app/build.gradle.kts`
+**Depends on:** none
+
+**Scope:**
+The current installer description is generic and technical: "Batch PDF data extraction tool for MD DDS service authorization processing". Update it to something that communicates the Carbon Works brand personality while remaining informative. The description appears in Windows "Apps & Features" and installer properties.
+
+Also review the `packageName` — currently "PDF Authorization Processor". Consider whether it should include "Carbon Works" branding or remain as-is (the menu group already provides "Carbon Works" context in Start Menu).
+
+**Acceptance:** The `description` field in `nativeDistributions` is updated with brand-aligned copy. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
