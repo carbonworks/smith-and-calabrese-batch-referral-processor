@@ -61,6 +61,16 @@ kotlin {
     jvmToolchain(17)
 }
 
+// Copy branded installer resources (banner, dialog, main.wxs) to jpackage resource dir
+val copyInstallerResources by tasks.registering(Copy::class) {
+    from("src/main/installer")
+    into(layout.buildDirectory.dir("compose/tmp/resources"))
+}
+
+tasks.matching { it.name == "packageMsi" }.configureEach {
+    dependsOn(copyInstallerResources)
+}
+
 compose.desktop {
     application {
         mainClass = "tech.carbonworks.snc.batchreferralparser.MainKt"
