@@ -62,6 +62,7 @@ fun HelpScreen(
     val scrollState = rememberScrollState()
     var logSaveMessage by remember { mutableStateOf<String?>(null) }
     var logSaveError by remember { mutableStateOf<String?>(null) }
+    var savedLogFile by remember { mutableStateOf<File?>(null) }
 
     Column(
         modifier = Modifier
@@ -194,9 +195,10 @@ fun HelpScreen(
                             CwSecondaryButton(
                                 text = "Save Log File",
                                 onClick = {
-                                    saveLogFile(window) { message, error ->
+                                    saveLogFile(window) { message, error, file ->
                                         logSaveMessage = message
                                         logSaveError = error
+                                        savedLogFile = file
                                     }
                                 },
                             )
@@ -205,6 +207,27 @@ fun HelpScreen(
                                     text = msg,
                                     fontSize = 13.sp,
                                     color = BrandGreen,
+                                )
+                            }
+                            savedLogFile?.let { file ->
+                                Text(
+                                    text = " ",
+                                    fontSize = 13.sp,
+                                )
+                                Text(
+                                    text = "Open folder",
+                                    fontSize = 13.sp,
+                                    color = BrandGreen,
+                                    textDecoration = TextDecoration.Underline,
+                                    modifier = Modifier.clickable {
+                                        try {
+                                            if (Desktop.isDesktopSupported()) {
+                                                Desktop.getDesktop().open(file.parentFile)
+                                            }
+                                        } catch (e: Exception) {
+                                            println("[Help] Failed to open folder: ${e::class.simpleName}")
+                                        }
+                                    },
                                 )
                             }
                             logSaveError?.let { msg ->
@@ -305,17 +328,17 @@ private val LOG_SAVE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd")
  * concatenated in chronological order (oldest first).
  *
  * @param window optional AWT window to parent the FileDialog
- * @param onResult callback with (successMessage, errorMessage)
+ * @param onResult callback with (successMessage, errorMessage, savedFile)
  */
 private fun saveLogFile(
     window: java.awt.Window?,
-    onResult: (message: String?, error: String?) -> Unit,
+    onResult: (message: String?, error: String?, file: File?) -> Unit,
 ) {
     try {
         val logDir = LoggingSetup.logDirectory()
         if (logDir == null || !logDir.isDirectory) {
             println("[Help] Log directory not available")
-            onResult(null, "Log directory not available")
+            onResult(null, "Log directory not available", null)
             return
         }
 
@@ -357,7 +380,7 @@ private fun saveLogFile(
 
         if (logFiles.isEmpty()) {
             println("[Help] No log files found in ${logDir.absolutePath}")
-            onResult(null, "No log files found")
+            onResult(null, "No log files found", null)
             return
         }
 
@@ -372,9 +395,9 @@ private fun saveLogFile(
         }
 
         println("[Help] Log saved to ${outputFile.absolutePath} (${logFiles.size} file(s) concatenated)")
-        onResult("Log saved!", null)
+        onResult("Log saved!", null, outputFile)
     } catch (e: Exception) {
         println("[Help] Failed to save log: ${e::class.simpleName}: ${e.message}")
-        onResult(null, "Failed to save log: ${e.message ?: "Unknown error"}")
+        onResult(null, "Failed to save log: ${e.message ?: "Unknown error"}", null)
     }
 }
