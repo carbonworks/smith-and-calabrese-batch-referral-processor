@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import java.awt.Dimension
 import java.io.File
+import tech.carbonworks.snc.batchreferralparser.logging.LoggingSetup
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ExportSettingsScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.FileProcessingState
 import tech.carbonworks.snc.batchreferralparser.ui.screens.HelpScreen
@@ -58,23 +59,20 @@ private fun loadAppIcon(): Painter? =
         null
     }
 
-fun main() = application {
-    println("[App] Starting S&C Batch Referral Processor")
-    println("[App] Platform: ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
-    println("[App] JVM: ${System.getProperty("java.vendor")} ${System.getProperty("java.version")}")
-    println("[App] User home: ${System.getProperty("user.home")}")
+fun main() {
+    LoggingSetup.initialize()
+    application {
+        val appIcon = loadAppIcon()
 
-    val appIcon = loadAppIcon()
-    println("[App] Icon loaded: ${appIcon != null}")
-
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "PDF Authorization Processor",
-        icon = appIcon,
-        state = rememberWindowState(width = 1100.dp, height = 700.dp),
-    ) {
-        window.minimumSize = Dimension(600, 400)
-        App(window)
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "PDF Authorization Processor",
+            icon = appIcon,
+            state = rememberWindowState(width = 1100.dp, height = 700.dp),
+        ) {
+            window.minimumSize = Dimension(600, 400)
+            App(window)
+        }
     }
 }
 
