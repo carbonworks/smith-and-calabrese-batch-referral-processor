@@ -136,7 +136,7 @@ fun ResultsScreen(
     println("[Results] ResultsScreen composed with ${results.size} result(s)")
     for ((i, r) in results.withIndex()) {
         val warnCount = r.warnings.size
-        println("[Results]   [$i] file=${r.file.name} fields=${r.fields != null} error=${r.error} warnings=$warnCount")
+        println("[Results]   [$i] fields=${r.fields != null} error=${r.error != null} warnings=$warnCount")
     }
 
     val successResults = results.filter { it.fields != null }
@@ -430,7 +430,7 @@ fun ResultsScreen(
                                     Desktop.getDesktop().open(file)
                                 }
                             } catch (e: Exception) {
-                                println("[Results] Failed to open file: ${e.message}")
+                                println("[Results] Failed to open file: ${e::class.simpleName}")
                             }
                         },
                     )
@@ -450,7 +450,7 @@ fun ResultsScreen(
                                     Desktop.getDesktop().open(file.parentFile)
                                 }
                             } catch (e: Exception) {
-                                println("[Results] Failed to open folder: ${e.message}")
+                                println("[Results] Failed to open folder: ${e::class.simpleName}")
                             }
                         },
                     )
@@ -690,7 +690,7 @@ private fun OpenPdfLink(file: File) {
                 try {
                     Desktop.getDesktop().open(file)
                 } catch (e: Exception) {
-                    println("[Results] Failed to open PDF: ${e.message}")
+                    println("[Results] Failed to open PDF: ${e::class.simpleName}")
                 }
             },
         )
@@ -962,7 +962,7 @@ private fun saveToXlsx(
         }
         val outputFile = File(chosenDir, finalName)
 
-        println("[Save] Writing ${referralFields.size} referral(s) to: ${outputFile.absolutePath}")
+        println("[Save] Writing ${referralFields.size} referral(s) to file")
 
         // Remember this directory for next time
         saveLastSaveDirectory(File(chosenDir))
@@ -990,10 +990,10 @@ private fun saveToXlsx(
             throw e
         }
 
-        println("[Save] Saved: ${outputFile.absolutePath}")
+        println("[Save] Saved successfully")
         onResult("Saved to: ${outputFile.absolutePath}", null, outputFile)
     } catch (e: Exception) {
-        println("[Save] FAILED: ${e.message}")
+        println("[Save] FAILED: ${e::class.simpleName}")
         onResult(null, "Failed to save: ${e.message ?: "Unknown error"}", null)
     }
 }

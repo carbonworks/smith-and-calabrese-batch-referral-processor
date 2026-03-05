@@ -51,7 +51,7 @@ class PdfTextExtractor {
     fun extract(file: File): ExtractionResult {
         if (!file.exists()) {
             return ExtractionResult.Error(
-                message = "File not found: ${file.absolutePath}",
+                message = "File not found",
                 sourceFile = file.name,
             )
         }
@@ -62,19 +62,19 @@ class PdfTextExtractor {
             }
         } catch (e: InvalidPasswordException) {
             ExtractionResult.Error(
-                message = "PDF is encrypted or password-protected: ${file.name}",
+                message = "PDF is encrypted or password-protected",
                 sourceFile = file.name,
                 cause = e,
             )
         } catch (e: IOException) {
             ExtractionResult.Error(
-                message = "Failed to read PDF (file may be corrupt): ${file.name} — ${e.message}",
+                message = "Failed to read PDF (file may be corrupt)",
                 sourceFile = file.name,
                 cause = e,
             )
         } catch (e: Exception) {
             ExtractionResult.Error(
-                message = "Unexpected error processing PDF: ${file.name} — ${e.message}",
+                message = "Unexpected error processing PDF: ${e::class.simpleName}",
                 sourceFile = file.name,
                 cause = e,
             )
@@ -104,7 +104,7 @@ class PdfTextExtractor {
         val success = fullResult as ExtractionResult.Success
         val targetPage = success.pages.find { it.pageNumber == pageNumber }
             ?: return ExtractionResult.Error(
-                message = "Page $pageNumber not found in ${file.name} (document has ${success.pages.size} pages)",
+                message = "Page $pageNumber not found (document has ${success.pages.size} pages)",
                 sourceFile = file.name,
             )
 
