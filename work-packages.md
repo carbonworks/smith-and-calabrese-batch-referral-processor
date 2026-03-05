@@ -1528,6 +1528,115 @@ Rename the "Save" button on the Results screen to "Save as Spreadsheet" to bette
 
 ---
 
+## WP-73: Rename "Save as Spreadsheet" to "Export" (E31)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-72
+
+**Scope:**
+Change the "Save as Spreadsheet" button text on the Results screen to "Export".
+
+**Acceptance:** The button reads "Export". Build compiles and all tests pass.
+
+---
+
+## WP-74: Replace Export Settings Button with Gear Icon on Results Screen (E32)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+On the extraction results screen, replace the "Export Settings" text button with a no-outline gear icon button. Use `Icons.Outlined.Settings` (Material) or similar. The icon should be visually lightweight — no filled background, no outline border. It should sit in the same area as the current button (right side of the action bar, next to the Export button) and navigate to the Export Settings screen on click. Add a tooltip or content description for accessibility.
+
+**Acceptance:** A gear icon replaces the "Export Settings" text button on Results. Clicking it navigates to Export Settings. No outline or filled background on the icon. Build compiles and all tests pass.
+
+---
+
+## WP-75: Essential Only Preset Should Not Delete Empty Columns (B24)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+When clicking "Essential Only" in Export Settings, it currently removes non-essential columns from the list entirely. It should instead uncheck them (set `enabled = false`) while keeping them in the list so the user can re-enable them individually without needing to hit "All Fields" and start over. The essential columns should remain checked.
+
+**Acceptance:** Clicking "Essential Only" unchecks non-essential columns but keeps them visible in the list. Clicking "All Fields" re-checks everything. Build compiles and all tests pass.
+
+---
+
+## WP-76: Rename Export Columns Screen to Export Settings (E33)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+The Export Settings screen's title currently reads "Export Columns" (or similar). Change it to "Export Settings" to match the navigation label used elsewhere.
+
+**Acceptance:** The screen title reads "Export Settings". Build compiles and all tests pass.
+
+---
+
+## WP-77: Shorten Settings Screen Export Nav Link to "Export" (E34)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+On the Settings screen, the navigation row that leads to the Export Settings screen currently reads something like "Export Settings" or "Export Column Configuration". Shorten it to just "Export".
+
+**Acceptance:** The Settings screen nav link reads "Export". Build compiles and all tests pass.
+
+---
+
+## WP-78: Add Spacing Between Back Button and List in Export Settings (E35)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+Add more vertical whitespace between the back button row and the column list in the Export Settings screen. The content currently feels cramped.
+
+**Acceptance:** Visible additional spacing between the back button area and the list content. Build compiles and all tests pass.
+
+---
+
+## WP-79: Per-Item Unmask Button in Data Preview (F8)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+Add a per-referral unmask/mask toggle button in the data preview section of the Results screen. Currently, the PHI mask toggle is global (all referrals mask/unmask together). This feature adds an individual eye icon per referral card so the user can unmask one at a time.
+
+1. **Icon placement**: Place the eye toggle icon at the end of the file name row in each referral card header. It should not overlap the "Open PDF" link — if the screen is narrow, the file name already ellipsizes, so the icon stays visible.
+2. **State management**: Each referral card gets its own `isMasked` boolean state. The global toggle still works as a "mask all" / "unmask all" control, but individual toggles override per-card.
+3. **Icon**: Use a filled eye icon for "visible" (unmasked) and a crossed-out eye icon for "masked". Keep it visually subtle — this is a secondary action.
+
+**Acceptance:** Each referral card in the results preview has its own eye toggle icon at the end of the filename row. Clicking it toggles masking for that card only. The global toggle still affects all cards. Icons don't overlap the Open PDF link. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
