@@ -708,8 +708,14 @@ private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
                 append(fields.appointmentTime)
             }
         })
-        if (addressParts.isNotEmpty()) add("Address" to addressParts.joinToString(", "))
-        if (cityStateZip.isNotEmpty()) add("" to cityStateZip)
+        if (addressParts.isNotEmpty()) {
+            add("Address" to addressParts.joinToString(", "))
+            if (cityStateZip.isNotEmpty()) add("" to cityStateZip)
+        } else if (cityStateZip.isNotEmpty()) {
+            // Street address missing — show city/state/zip with "Address" label
+            // so it doesn't appear as a label-less continuation row.
+            add("Address" to cityStateZip)
+        }
         if (!fields.phone.isNullOrEmpty()) add("Phone" to fields.phone)
     }
 

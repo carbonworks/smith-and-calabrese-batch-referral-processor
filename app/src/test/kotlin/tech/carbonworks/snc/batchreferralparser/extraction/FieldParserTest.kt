@@ -1378,4 +1378,156 @@ class FieldParserTest {
         assertEquals("a", parser.splitCamelCaseName("a"))
         assertEquals("", parser.splitCamelCaseName(""))
     }
+
+    // ===================================================================
+    // WP-63: Multi-line claimant cell parsing
+    // ===================================================================
+
+    @Test
+    fun `WP63 - multi-line claimant cell extracts all fields`() {
+        val cell = "Claimant Information\nJOHN MICHAEL DOE\n123 MAIN ST\nANYTOWN, MD 21201\n410-555-1234"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JOHN MICHAEL DOE", result.nameFromTable)
+        assertEquals("123 MAIN ST", result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertEquals("410-555-1234", result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell with two-word name`() {
+        val cell = "Claimant Information\nJANE SMITH\n456 OAK AVE\nSPRINGFIELD, VA 22150\n703-555-6789"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JANE SMITH", result.nameFromTable)
+        assertEquals("456 OAK AVE", result.streetAddress)
+        assertEquals("SPRINGFIELD", result.city)
+        assertEquals("VA", result.state)
+        assertEquals("22150", result.zipCode)
+        assertEquals("703-555-6789", result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell without phone`() {
+        val cell = "Claimant Information\nJOHN DOE\n123 MAIN ST\nANYTOWN, MD 21201"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JOHN DOE", result.nameFromTable)
+        assertEquals("123 MAIN ST", result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertNull(result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell with zip plus four`() {
+        val cell = "Claimant Information\nJOHN DOE\n789 ELM DR\nBALTIMORE, MD 21201-4567\n410-555-0000"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JOHN DOE", result.nameFromTable)
+        assertEquals("789 ELM DR", result.streetAddress)
+        assertEquals("BALTIMORE", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201-4567", result.zipCode)
+        assertEquals("410-555-0000", result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell with Windows line endings`() {
+        val cell = "Claimant Information\r\nJOHN DOE\r\n123 MAIN ST\r\nANYTOWN, MD 21201\r\n410-555-1234"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JOHN DOE", result.nameFromTable)
+        assertEquals("123 MAIN ST", result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertEquals("410-555-1234", result.phone)
+    }
+
+    @Test
+    fun `WP63 - single-line claimant cell still works`() {
+        // Original single-line format should still parse correctly
+        val cell = "Claimant Information JOHN DOE 123 MAIN ST ANYTOWN, MD 21201 410-555-1234"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("123 MAIN ST", result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertEquals("410-555-1234", result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell with no street address line`() {
+        // Edge case: name followed directly by city/state/zip (no street)
+        val cell = "Claimant Information\nJOHN DOE\nANYTOWN, MD 21201\n410-555-1234"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JOHN DOE", result.nameFromTable)
+        assertNull(result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertEquals("410-555-1234", result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell with multi-word city`() {
+        val cell = "Claimant Information\nJANE DOE\n100 BROAD ST\nNEW YORK, NY 10001\n212-555-1234"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JANE DOE", result.nameFromTable)
+        assertEquals("100 BROAD ST", result.streetAddress)
+        assertEquals("NEW YORK", result.city)
+        assertEquals("NY", result.state)
+        assertEquals("10001", result.zipCode)
+        assertEquals("212-555-1234", result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line through full parse pipeline`() {
+        // Test that multi-line claimant cells work through the full parse() method
+        val tables = tableWith(
+            "Claimant Information\nJOHN DOE\n123 MAIN ST\nANYTOWN, MD 21201\n410-555-1234"
+        )
+        val input = textResult("")
+
+        val result = parser.parse(input, tables)
+
+        assertEquals("123 MAIN ST", result.fields.streetAddress)
+        assertEquals("ANYTOWN", result.fields.city)
+        assertEquals("MD", result.fields.state)
+        assertEquals("21201", result.fields.zipCode)
+        assertEquals("410-555-1234", result.fields.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell with parenthesized phone`() {
+        val cell = "Claimant Information\nJOHN DOE\n123 MAIN ST\nANYTOWN, MD 21201\n(410) 555-1234"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JOHN DOE", result.nameFromTable)
+        assertEquals("123 MAIN ST", result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertEquals("(410) 555-1234", result.phone)
+    }
+
+    @Test
+    fun `WP63 - multi-line claimant cell with extra blank lines`() {
+        val cell = "Claimant Information\n\nJOHN DOE\n\n123 MAIN ST\n\nANYTOWN, MD 21201\n\n410-555-1234"
+        val result = parser.parseClaimantCell(cell)
+
+        assertEquals("JOHN DOE", result.nameFromTable)
+        assertEquals("123 MAIN ST", result.streetAddress)
+        assertEquals("ANYTOWN", result.city)
+        assertEquals("MD", result.state)
+        assertEquals("21201", result.zipCode)
+        assertEquals("410-555-1234", result.phone)
+    }
 }

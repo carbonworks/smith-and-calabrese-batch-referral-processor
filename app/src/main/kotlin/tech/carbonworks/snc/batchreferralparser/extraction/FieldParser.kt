@@ -551,19 +551,142 @@ class FieldParser(
     /**
      * Parse the claimant information cell.
      *
-     * Expected format:
-     *   Claimant Information FIRST MIDDLE LAST 123 STREET CITY, ST 12345 555-123-4567
+     * Multi-line format (preferred — newlines preserved from PDF):
+     * ```
+     * Claimant Information
+     * FIRST MIDDLE LAST
+     * 123 STREET ADDRESS
+     * CITY, ST 12345
+     * 555-123-4567
+     * ```
+     *
+     * Single-line fallback (when newlines are collapsed):
+     * ```
+     * Claimant Information FIRST MIDDLE LAST 123 STREET CITY, ST 12345 555-123-4567
+     * ```
+     *
+     * The method first checks for newlines. If the cell has multiple non-empty
+     * lines (after removing the "Claimant Information" prefix), it parses them
+     * structurally. Otherwise, it falls back to the single-line heuristic.
      */
     internal fun parseClaimantCell(text: String): ClaimantInfo {
-        var remaining = text.removePrefix("Claimant Information").trim()
+        val cleaned = text.removePrefix("Claimant Information").trim()
+
+        // Split on newlines and filter out blanks
+        val lines = cleaned.split(Regex("\\r?\\n"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        // Multi-line path: if we have 2+ lines, use structural parsing
+        if (lines.size >= 2) {
+            return parseClaimantCellMultiLine(lines)
+        }
+
+        // Single-line fallback: original heuristic
+        return parseClaimantCellSingleLine(cleaned)
+    }
+
+    /**
+     * Structural multi-line parser for claimant cell.
+     *
+     * Expects lines in order: name, street address, city/state/zip, phone.
+     * Lines are identified by content patterns rather than strict position,
+     * so missing lines are handled gracefully.
+     */
+    private fun parseClaimantCellMultiLine(lines: List<String>): ClaimantInfo {
+        var nameFromTable: String? = null
+        var streetAddress: String? = null
+        var city: String? = null
+        var state: String? = null
+        var zipCode: String? = null
+        var phone: String? = null
+
+        val phoneRegex = Regex("""\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}""")
+        val cityStateZipRegex = Regex("""(.+?),\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)""")
+
+        // Classify each line by its content pattern
+        val unclassified = mutableListOf<String>()
+
+        for (line in lines) {
+            when {
+                // Phone line: entire line matches a phone pattern
+                phone == null && phoneRegex.matches(line.trim()) -> {
+                    phone = line.trim()
+                }
+                // City/state/zip line: contains "CITY, ST 12345" pattern
+                city == null && cityStateZipRegex.containsMatchIn(line) -> {
+                    val match = cityStateZipRegex.find(line)!!
+                    city = match.groupValues[1].trim()
+                    state = match.groupValues[2].trim()
+                    zipCode = match.groupValues[3].trim()
+                }
+                else -> {
+                    unclassified.add(line)
+                }
+            }
+        }
+
+        // Among unclassified lines, separate name from street address.
+        // Heuristic: a street address line starts with a digit.
+        if (unclassified.isNotEmpty()) {
+            // Find the first line that starts with a digit — that's the street address
+            val streetIndex = unclassified.indexOfFirst {
+                it.isNotEmpty() && it[0].isDigit()
+            }
+
+            if (streetIndex >= 0) {
+                // Everything before the street line is the name
+                if (streetIndex > 0) {
+                    nameFromTable = unclassified.subList(0, streetIndex).joinToString(" ")
+                }
+                streetAddress = unclassified[streetIndex]
+                // If there are additional unclassified lines after street, append them
+                // (handles multi-line street addresses like "123 MAIN ST\nAPT 4")
+                if (streetIndex + 1 < unclassified.size) {
+                    val extra = unclassified.subList(streetIndex + 1, unclassified.size)
+                        .joinToString(" ")
+                    if (nameFromTable == null) {
+                        // Street was first line, remaining could be more address
+                        streetAddress = "$streetAddress $extra"
+                    }
+                }
+            } else {
+                // No digit-starting line found — treat first line as name
+                nameFromTable = unclassified.first()
+                if (unclassified.size > 1) {
+                    // Remaining unclassified lines become street address
+                    streetAddress = unclassified.subList(1, unclassified.size)
+                        .joinToString(" ")
+                }
+            }
+        }
+
+        return ClaimantInfo(
+            nameFromTable = nameFromTable,
+            streetAddress = streetAddress,
+            city = city,
+            state = state,
+            zipCode = zipCode,
+            phone = phone,
+        )
+    }
+
+    /**
+     * Single-line heuristic parser for claimant cell (original logic).
+     *
+     * Used when the entire claimant cell is a single space-separated string
+     * with no newlines.
+     */
+    private fun parseClaimantCellSingleLine(remaining: String): ClaimantInfo {
+        var text = remaining
 
         // Extract phone (at the end)
         var phone: String? = null
         val phoneRegex = Regex("""\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\s*$""")
-        val phoneMatch = phoneRegex.find(remaining)
+        val phoneMatch = phoneRegex.find(text)
         if (phoneMatch != null) {
             phone = phoneMatch.value.trim()
-            remaining = remaining.substring(0, phoneMatch.range.first).trim()
+            text = text.substring(0, phoneMatch.range.first).trim()
         }
 
         // Extract city, state, zip pattern
@@ -574,7 +697,7 @@ class FieldParser(
         var nameFromTable: String? = null
 
         val addrRegex = Regex("""(.+?),\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)""")
-        val addrMatch = addrRegex.find(remaining)
+        val addrMatch = addrRegex.find(text)
         if (addrMatch != null) {
             val cityField = addrMatch.groupValues[1].trim()
 
