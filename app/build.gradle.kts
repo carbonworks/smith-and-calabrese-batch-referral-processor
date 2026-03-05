@@ -61,14 +61,24 @@ kotlin {
     jvmToolchain(17)
 }
 
-// Copy branded installer resources (banner, dialog, main.wxs) to jpackage resource dir
-val copyInstallerResources by tasks.registering(Copy::class) {
-    from("src/main/installer")
-    into(layout.buildDirectory.dir("compose/tmp/resources"))
-}
-
+// Inject branded installer resources into jpackage resource dir right before packaging.
+// jpackage only recognizes specific filenames (main.wxs, overrides.wxi, etc.) in the
+// resource dir — it ignores BMP files. So we template main.wxs with absolute paths
+// to the BMP source files, which WiX's candle/light tools can then resolve.
 tasks.matching { it.name == "packageMsi" }.configureEach {
-    dependsOn(copyInstallerResources)
+    doFirst {
+        val resourceDir = project.layout.buildDirectory.dir("compose/tmp/resources").get().asFile
+        resourceDir.mkdirs()
+        val installerDir = project.file("src/main/installer")
+        val bannerPath = installerDir.resolve("banner.bmp").absolutePath.replace("\\", "\\\\")
+        val dialogPath = installerDir.resolve("dialog.bmp").absolutePath.replace("\\", "\\\\")
+        val templateWxs = installerDir.resolve("main.wxs").readText()
+        val resolvedWxs = templateWxs
+            .replace("Value=\"banner.bmp\"", "Value=\"$bannerPath\"")
+            .replace("Value=\"dialog.bmp\"", "Value=\"$dialogPath\"")
+        resourceDir.resolve("main.wxs").writeText(resolvedWxs)
+        println("[installer] Wrote main.wxs with absolute BMP paths to ${resourceDir.absolutePath}")
+    }
 }
 
 compose.desktop {

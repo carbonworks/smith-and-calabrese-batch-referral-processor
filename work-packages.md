@@ -1809,7 +1809,7 @@ Rewrite `app/src/main/resources/LICENSE.txt` to:
 
 ## WP-90: Brand MSI Installer with Custom Banner and Dialog Images (E42)
 
-**Status:** done
+**Status:** ready
 **Owns:** `app/src/main/installer/banner.bmp`, `app/src/main/installer/dialog.bmp`, `app/src/main/installer/main.wxs`
 **Reads:** `docs/brand/carbon-works-brand-guidelines.md`, `app/src/main/resources/icon.png`
 **Touches:** `app/build.gradle.kts`
