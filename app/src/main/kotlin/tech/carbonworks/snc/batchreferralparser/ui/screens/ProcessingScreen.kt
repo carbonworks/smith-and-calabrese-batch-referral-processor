@@ -101,7 +101,7 @@ fun ProcessingScreen(
         val fieldParser = FieldParser()
 
         for ((index, file) in files.withIndex()) {
-            println("[Pipeline] [${index + 1}/${files.size}] Processing: ${file.name}")
+            println("[Pipeline] [${index + 1}/${files.size}] Processing file")
             onFileStateUpdate(index, FileProcessingState(file, FileStatus.PROCESSING))
 
             val result = withContext(Dispatchers.IO) {
@@ -109,7 +109,7 @@ fun ProcessingScreen(
                     val textResult = textExtractor.extract(file)
 
                     if (textResult is ExtractionResult.Error) {
-                        println("[Pipeline]   Text extraction FAILED: ${textResult.message}")
+                        println("[Pipeline]   Text extraction FAILED")
                         ProcessedReferral(file, null, textResult.message)
                     } else {
                         val success = textResult as ExtractionResult.Success
@@ -118,7 +118,7 @@ fun ProcessingScreen(
                         println("[Pipeline]   Text extraction OK: $pageCount page(s), $blockCount text block(s)")
 
                         val detailedDump = FieldParser.dumpPageTextsDetailed(success)
-                        println("[Dump] ${file.name}\n$detailedDump")
+                        println("[Dump] file ${index + 1}\n$detailedDump")
 
                         val tables = tableExtractor.extract(file)
                         println("[Pipeline]   Table extraction OK: ${tables.size} table(s)")
@@ -131,7 +131,7 @@ fun ProcessingScreen(
                         ProcessedReferral(file, parseResult.fields, null, parseResult.warnings)
                     }
                 } catch (e: Exception) {
-                    println("[Pipeline]   EXCEPTION: ${e.message}")
+                    println("[Pipeline]   EXCEPTION: ${e::class.simpleName}")
                     ProcessedReferral(
                         file,
                         null,
