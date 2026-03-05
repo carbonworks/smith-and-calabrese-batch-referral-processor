@@ -10,81 +10,97 @@ Built for Smith & Calabrese Assessments by Carbon Works LLC.
 
 The Batch Authorization Processor reads Maryland DDS service authorization PDFs and extracts the data you need into a clean, organized spreadsheet. Select your files, review the results, and export — no manual data entry required.
 
-Everything runs locally on your computer. No data leaves your machine. No internet connection needed.
+- Runs entirely on your computer — no data leaves your machine
+- No internet connection, cloud services, or account required
+- Patient data is masked by default to protect privacy on screen
 
 ---
 
-## Getting Started
+## 1. Select Your Files
 
-### 1. Select Your Files
+Drag authorization PDFs from a folder directly onto the app window, or click **Add Files** to browse.
 
-Drag authorization PDFs from a folder directly onto the app window, or click **Add Files** to browse. The app accepts up to 50 PDFs at a time and automatically skips duplicates.
-
-Files appear in the **Selected Files** list with their names and sizes. Remove any file with the **X** button, or use **Clear All** to start fresh.
-
-When your batch is ready, click **Process**.
-
-### 2. Watch It Work
-
-The processing screen shows real-time progress for each file. A green checkmark means the file was read successfully. A red X means something went wrong — but one problem file won't stop the rest of the batch.
-
-Most files process in 1-3 seconds. A batch of 20 takes under a minute.
-
-### 3. Review the Results
-
-The results screen opens automatically when processing is complete.
-
-**Summary cards** at the top give you the big picture: how many files were processed, how many succeeded, and whether any had warnings or errors.
-
-Below the summary, each referral gets its own **data card** showing the extracted fields — claimant information, appointment details, services authorized, and case identifiers. Every field is pulled directly from the PDF.
-
-**Missing field warnings** appear as orange banners on individual cards, listing exactly which fields couldn't be found. These are flags for manual review, not failures — the rest of the data is still extracted and included in the spreadsheet.
-
-### 4. Privacy at a Glance
-
-Extracted data is **masked by default**. Field values appear as dots until you choose to reveal them. This protects patient information when others may be nearby.
-
-Toggle visibility for all cards at once with the **eye icon** in the top-right corner of the results screen. Or unmask individual cards using the small eye icon on each card header.
-
-The privacy default can be changed in **Settings** if your workspace is private and you prefer data to be visible immediately.
-
-### 5. Export Your Spreadsheet
-
-Click **Export** to save the extracted data as an Excel spreadsheet. The filename is automatically timestamped (`authorizations-2026-03-05-143022.xlsx`) and the save dialog remembers your last folder.
-
-After saving, a link appears to open the file directly or to open the containing folder.
-
-**What the spreadsheet includes:**
-
-- One row per authorization PDF
-- A bold, frozen header row that stays visible as you scroll
-- Date fields stored as proper Excel dates (not text) — they sort and filter correctly
-- Full compatibility with Google Sheets
-
-The spreadsheet always contains the actual extracted values, regardless of the masking toggle in the app.
+- Accepts up to 50 PDFs at a time
+- Automatically skips duplicate files
+- File picker remembers your last folder
+- Remove individual files with **X**, or use **Clear All** to start over
+- Click **Process** when your batch is ready
 
 ---
 
-## Customizing Your Export
+## 2. Watch It Work
 
-Click the **gear icon** next to the Export button (or go through **Settings**) to open **Export Settings**.
+The processing screen shows real-time progress as each file is read. One problem file won't stop the rest of the batch.
 
-From here you can:
-
-- **Choose which columns** appear in the spreadsheet and **drag to reorder** them
-- Use the **Essential Only** preset for just the core fields: name, DOB, case ID, authorization number, appointment, and services
-- Use **All Fields** to restore the complete column set
-- Toggle **Place each service on its own row** if you prefer one row per CPT code instead of a comma-separated list
-
-Your export configuration is saved automatically and persists between sessions.
+- Green checkmark — file read successfully
+- Red X — file couldn't be processed (skipped)
+- 1-3 seconds per file; a batch of 20 takes under a minute
+- Results screen opens automatically when processing is complete
 
 ---
 
-## Getting Help
+## 3. Review the Results
 
-Click the **?** icon in the top-right corner to open the Help & Support screen.
+Summary cards at the top give you the big picture. Below, each referral gets its own data card with the extracted fields.
 
-If you run into a problem, click **Save Log File** to create a copy of the application log. Personal health information in the log is automatically masked. Attach the saved file to an email to **support@carbonworks.tech** with a description of what happened.
+- **Processed** — total files in the batch
+- **Successful** — files fully extracted
+- **Warnings** — fields that couldn't be found (flags for manual review, not failures)
+- **Failed** — files that couldn't be read at all (rare)
+
+Each data card shows:
+
+- Claimant information, appointment details, services authorized, and case identifiers
+- Orange **missing field** banners listing exactly which fields need manual review
+- An **Open PDF** link to view the original document side by side
+
+---
+
+## 4. Privacy Controls
+
+Extracted data is masked by default — field values appear as dots until you choose to reveal them.
+
+- **Eye icon** (top-right) toggles visibility for all cards at once
+- **Per-card eye icon** unmasks a single card without revealing the rest
+- Privacy default can be changed in **Settings** to start unmasked
+- Masking is display-only — exported spreadsheets always contain the actual values
+
+---
+
+## 5. Export Your Spreadsheet
+
+Click **Export** to save the extracted data as an Excel spreadsheet.
+
+- Filename is automatically timestamped (`authorizations-2026-03-05-143022.xlsx`)
+- Save dialog remembers your last folder
+- Links appear after saving to open the file or the containing folder
+- One row per authorization PDF with a bold, frozen header row
+- Date fields stored as proper Excel dates — sort and filter correctly
+- Fully compatible with Google Sheets
+
+---
+
+## 6. Customizing Your Export
+
+Click the **gear icon** next to the Export button to open Export Settings.
+
+- Choose which columns appear in the spreadsheet
+- Drag to reorder columns
+- **Essential Only** preset — just the core fields (name, DOB, case ID, authorization #, appointment, services)
+- **All Fields** preset — restores the complete column set
+- **Place each service on its own row** — one row per CPT code instead of a comma-separated list
+- Settings are saved automatically and persist between sessions
+
+---
+
+## 7. Getting Help
+
+Click the **?** icon in the top-right corner to open Help & Support.
+
+- Quick-start guide and supported format details built into the app
+- **Save Log File** creates a copy of the application log for troubleshooting
+- Personal health information in logs is automatically masked
+- Email **support@carbonworks.tech** with the log file and a description of what happened
 
 ---
 
@@ -92,12 +108,12 @@ If you run into a problem, click **Save Log File** to create a copy of the appli
 
 | Deliverable | Description |
 |---|---|
-| **Batch processing tool** | Windows desktop application — installed via a standard .msi installer, no setup required |
-| **Spreadsheet output** | Timestamped .xlsx files formatted for direct use or Google Sheets import |
+| **Batch processing tool** | Windows desktop application — standard .msi installer, no setup required |
+| **Spreadsheet output** | Timestamped .xlsx files for direct use or Google Sheets import |
 | **Source code** | Full source code delivered with the project |
 | **Technical specification** | Architecture documentation and field mapping reference |
 | **User guide** | This document and the in-app Help screen |
-| **90-day warranty** | Bug fixes, real-world adjustments, and format change support (with a sample PDF provided) |
+| **90-day warranty** | Bug fixes, real-world adjustments, and format change support |
 
 After the warranty period, Carbon Works is available for ongoing support at standard consulting rates.
 
