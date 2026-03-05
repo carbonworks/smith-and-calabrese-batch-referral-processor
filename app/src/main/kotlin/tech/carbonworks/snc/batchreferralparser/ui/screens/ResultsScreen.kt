@@ -614,12 +614,14 @@ private fun ReferralCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
                         onClick = onToggleMask,
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier
+                            .size(28.dp)
+                            .align(Alignment.CenterVertically),
                     ) {
                         Icon(
                             imageVector = if (isMasked) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                             contentDescription = if (isMasked) "Unmask this referral" else "Mask this referral",
-                            tint = SoftGray,
+                            tint = BrandGreen,
                             modifier = Modifier.size(16.dp),
                         )
                     }
