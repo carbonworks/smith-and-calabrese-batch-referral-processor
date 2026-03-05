@@ -1697,6 +1697,36 @@ Update the instructional text above the "Save Log File" button on the Help scree
 
 ---
 
+## WP-84: Add Scrollbar to Selected Files List on Main Screen (B26)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Depends on:** none
+
+**Scope:**
+The selected files list on the main screen does not show a scrollbar when there are more files than fit in the visible area. Add a vertical scrollbar so the user can see there is more content and scroll through it. Use the same scrollbar pattern used elsewhere in the app (e.g., `VerticalScrollbar` with `rememberScrollbarAdapter` or `LazyListState`).
+
+**Acceptance:** A vertical scrollbar appears on the selected files list when content overflows. Build compiles and all tests pass.
+
+---
+
+## WP-85: Fix Per-Item Unmask Icon Alignment and Color (B27)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-79
+
+**Scope:**
+The per-referral unmask eye icon in the results card header is vertically misaligned with the text on the same row. Fix the vertical alignment so the icon centers with the filename text. Also change the icon tint from SoftGray to BrandGreen to match other interactive icons in the app.
+
+**Acceptance:** The eye icon is vertically centered with the filename text on the same row. The icon tint is BrandGreen. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
