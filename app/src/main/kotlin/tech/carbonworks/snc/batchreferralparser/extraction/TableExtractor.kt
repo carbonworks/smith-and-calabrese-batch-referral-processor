@@ -4,6 +4,7 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import technology.tabula.ObjectExtractor
 import technology.tabula.Page
+import technology.tabula.RectangularTextContainer
 import technology.tabula.Table
 import technology.tabula.extractors.BasicExtractionAlgorithm
 import technology.tabula.extractors.SpreadsheetExtractionAlgorithm
@@ -149,7 +150,7 @@ class TableExtractor {
 
             for (colIndex in row.indices) {
                 val cellContainer = row[colIndex]
-                val content = cellContainer?.text?.trim() ?: ""
+                val content = extractCellText(cellContainer)
                 cells.add(
                     TableCell(
                         content = content,
@@ -166,5 +167,91 @@ class TableExtractor {
             rowCount = rowCount,
             columnCount = colCount,
         )
+    }
+
+    /**
+     * Extract text from a Tabula cell container, preserving line breaks.
+     *
+     * Tabula's [RectangularTextContainer.getText] concatenates all child text elements
+     * with spaces, destroying the multi-line structure present in PDF cells. This method
+     * reconstructs line breaks by examining the Y-coordinates of child text elements.
+     * Elements with a significant vertical gap (> [LINE_Y_TOLERANCE] points) are separated
+     * by newlines instead of spaces.
+     *
+     * Falls back to [RectangularTextContainer.getText] when child elements are unavailable.
+     */
+    private fun extractCellText(cell: RectangularTextContainer<*>?): String {
+        if (cell == null) return ""
+
+        val elements = try {
+            cell.textElements
+        } catch (e: Exception) {
+            null
+        }
+
+        if (elements.isNullOrEmpty()) {
+            return cell.text?.trim() ?: ""
+        }
+
+        // Each element is a RectangularTextContainer subtype with positional data
+        // (top/left from Rectangle2D) and text (from HasText). We use the generic
+        // list and access position/text through the base class methods.
+        data class PositionedText(val top: Float, val left: Float, val text: String)
+
+        val positioned = elements.mapNotNull { elem ->
+            if (elem is technology.tabula.HasText) {
+                val rect = elem as java.awt.geom.Rectangle2D
+                PositionedText(
+                    top = rect.y.toFloat(),
+                    left = rect.x.toFloat(),
+                    text = (elem as technology.tabula.HasText).text ?: "",
+                )
+            } else {
+                null
+            }
+        }
+
+        if (positioned.isEmpty()) {
+            return cell.text?.trim() ?: ""
+        }
+
+        // Group text elements by Y position (with tolerance for minor jitter).
+        // Elements within LINE_Y_TOLERANCE points of each other are on the same line.
+        data class LineGroup(val yBaseline: Float, val elements: MutableList<PositionedText>)
+
+        val groups = mutableListOf<LineGroup>()
+
+        for (pt in positioned) {
+            val matchingGroup = groups.find {
+                kotlin.math.abs(it.yBaseline - pt.top) <= LINE_Y_TOLERANCE
+            }
+            if (matchingGroup != null) {
+                matchingGroup.elements.add(pt)
+            } else {
+                groups.add(LineGroup(pt.top, mutableListOf(pt)))
+            }
+        }
+
+        // Sort groups by Y position (top-to-bottom), then elements within each
+        // group by X position (left-to-right)
+        groups.sortBy { it.yBaseline }
+        for (group in groups) {
+            group.elements.sortBy { it.left }
+        }
+
+        // Join elements within each group (no extra separator — Tabula elements
+        // already include spacing), then join groups with newlines
+        return groups.joinToString("\n") { group ->
+            group.elements.joinToString("") { it.text }
+        }.trim()
+    }
+
+    companion object {
+        /**
+         * Y-coordinate tolerance in PDF points for grouping text elements on the
+         * same line. Elements within this many points of each other vertically are
+         * considered part of the same line.
+         */
+        private const val LINE_Y_TOLERANCE = 2.5f
     }
 }
