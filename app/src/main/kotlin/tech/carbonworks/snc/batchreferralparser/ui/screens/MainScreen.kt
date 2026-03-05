@@ -1,6 +1,7 @@
 package tech.carbonworks.snc.batchreferralparser.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -346,45 +350,53 @@ fun MainScreen(
             CwCard(
                 modifier = Modifier.weight(1f),
             ) {
-                LazyColumn(
-                    modifier = Modifier.padding(8.dp),
-                ) {
-                    items(files, key = { it.absolutePath }) { file ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 2.dp, horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            FilePathText(
-                                path = file.name,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = formatFileSize(file.length()),
-                                fontSize = 12.sp,
-                                color = SoftGray,
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            IconButton(
-                                onClick = {
-                                    onFilesChanged(files - file)
-                                    if (files.size - 1 < MAX_FILES) {
-                                        limitMessage = null
-                                    }
-                                },
-                                modifier = Modifier.size(32.dp),
+                val lazyListState = rememberLazyListState()
+                Box {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        items(files, key = { it.absolutePath }) { file ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 2.dp, horizontal = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Remove ${file.name}",
-                                    tint = SoftGray,
-                                    modifier = Modifier.size(16.dp),
+                                FilePathText(
+                                    path = file.name,
+                                    modifier = Modifier.weight(1f),
                                 )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = formatFileSize(file.length()),
+                                    fontSize = 12.sp,
+                                    color = SoftGray,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                IconButton(
+                                    onClick = {
+                                        onFilesChanged(files - file)
+                                        if (files.size - 1 < MAX_FILES) {
+                                            limitMessage = null
+                                        }
+                                    },
+                                    modifier = Modifier.size(32.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Remove ${file.name}",
+                                        tint = SoftGray,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                }
                             }
                         }
                     }
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(lazyListState),
+                    )
                 }
             }
         } else {
