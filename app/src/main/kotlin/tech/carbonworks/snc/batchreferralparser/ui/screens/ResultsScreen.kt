@@ -468,9 +468,13 @@ fun ResultsScreen(
         // Action buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            CwSecondaryButton(
+                text = "Start Over",
+                onClick = onStartOver,
+            )
+            Spacer(modifier = Modifier.weight(1f))
             if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
                 CwSecondaryButton(
                     text = "Export Settings",
@@ -478,11 +482,6 @@ fun ResultsScreen(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
-            CwSecondaryButton(
-                text = "Start Over",
-                onClick = onStartOver,
-            )
-            Spacer(modifier = Modifier.width(12.dp))
             CwPrimaryButton(
                 text = "Save",
                 onClick = {
