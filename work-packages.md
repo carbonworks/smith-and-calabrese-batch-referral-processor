@@ -1358,6 +1358,50 @@ When the parser successfully extracts a referral but certain expected fields are
 
 ---
 
+## WP-65: Fix Warning Tag Text Wrapping in Results Card (B21)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-64
+
+**Scope:**
+The per-card completeness warning banner displays text like `[completeness] Street address: Street address not found`. The bracketed tag `[completeness]` word-wraps because it doesn't fit in the space allotted. Fix the layout so the warning text doesn't break awkwardly. Options include:
+- Removing or abbreviating the stage tag (e.g., drop `[completeness]` entirely since the banner context already implies it)
+- Using `maxLines = 1` with ellipsize
+- Giving the text more horizontal space
+- Using a smaller font size for the tag
+
+Choose the simplest approach that eliminates the word-wrap issue.
+
+**Acceptance:** Warning text in the per-card banner does not word-wrap on the stage tag. Build compiles and all tests pass.
+
+---
+
+## WP-66: Preserve Line Breaks in TableExtractor Cell Text (B22)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParserTest.kt`
+**Depends on:** none
+
+**Scope:**
+Root cause fix for the street address extraction failure. Tabula's `RectangularTextContainer.text` property concatenates all text elements with spaces, destroying the line structure present in multi-line PDF cells. The claimant information cell in real PDFs has name, street address, city/state/zip, and phone on separate lines, but by the time text reaches `parseClaimantCell()` it's a single space-separated string. The multi-line parser added in WP-63 never fires because `lines.size >= 2` is always false.
+
+**Fix**: In `TableExtractor.convertTable()` (line 152), replace `cellContainer?.text` with logic that reconstructs line breaks from the cell's child text elements. Tabula's `RectangularTextContainer` contains `TextChunk` or `TextElement` children with Y-coordinate positions. When there's a significant Y-coordinate jump between consecutive chunks, insert `\n` instead of a space. This preserves the original line structure from the PDF.
+
+Specifically:
+1. In `TableExtractor.kt`, replace `cellContainer?.text?.trim()` with a helper that iterates the container's text children, groups by Y-coordinate (with a tolerance for minor vertical jitter), and joins groups with `\n` and elements within a group with spaces.
+2. Add unit tests for the new line-reconstruction logic.
+3. **Clean up superseded code in FieldParser.kt**: Remove `parseClaimantCellSingleLine()` entirely — once TableExtractor preserves newlines, the single-line fallback is dead code. Keep `parseClaimantCellMultiLine()` as the primary (and only) parsing path. Update `parseClaimantCell()` to always delegate to the multi-line parser. If there's truly only one line (a degenerate case), the multi-line parser should handle it gracefully.
+4. **Update FieldParser tests**: Remove or update any tests that feed single-line space-separated claimant cell text, since that format no longer represents real data. Ensure the integration test (`tableWith(...)`) uses newline-separated cell text to match real Tabula output.
+
+**Acceptance:** Real PDFs with multi-line claimant cells produce correct `streetAddress`, `city`, `state`, `zipCode` fields. The `parseClaimantCellSingleLine()` method is removed. TableExtractor preserves line breaks in all cell text. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
