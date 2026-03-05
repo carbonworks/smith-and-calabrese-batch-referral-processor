@@ -1682,6 +1682,21 @@ Add more vertical whitespace above the "Save Log File" button on the Help screen
 
 ---
 
+## WP-83: Update Support Log Save Instructional Text (E38)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-71
+
+**Scope:**
+Update the instructional text above the "Save Log File" button on the Help screen to: "If you encounter a problem, save a copy of the application log to attach to your email. PDF data will be in the logs but personal health and other identifying information will be masked."
+
+**Acceptance:** Text matches the specified copy exactly. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
