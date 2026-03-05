@@ -140,6 +140,10 @@ fun MainScreen(
                 dtde.acceptDrag(DnDConstants.ACTION_COPY)
             }
 
+            override fun dragOver(dtde: DropTargetDragEvent) {
+                dtde.acceptDrag(DnDConstants.ACTION_COPY)
+            }
+
             override fun dragExit(dte: DropTargetEvent) {
                 isDragOver = false
             }
@@ -196,7 +200,7 @@ fun MainScreen(
         for (component in allComponents) {
             component.dropTarget = DropTarget(
                 component,
-                DnDConstants.ACTION_COPY,
+                DnDConstants.ACTION_COPY_OR_MOVE,
                 listener,
             )
         }
