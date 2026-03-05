@@ -1,8 +1,9 @@
 # Architectural Review: S&C Batch Referral Processor
 
-**Date**: 2026-03-02
-**Scope**: Full codebase review after Wave 12 (WP-22)
-**Test count at time of review**: 98 tests across 5 files
+**Date**: 2026-03-05 (revision 2)
+**Prior review**: 2026-03-02 (post-Wave 12, WP-22)
+**Scope**: All 29 source files (6,451 lines) across 7 packages
+**Test count**: 98 tests across 5 files (unchanged since prior review)
 
 ---
 
@@ -14,9 +15,9 @@ Clean three-layer design with a linear pipeline:
 PDF Files -> PdfTextExtractor -> TableExtractor -> FieldParser -> SpreadsheetWriter -> XLSX
 ```
 
-Each stage has clear input/output contracts via data classes (`ExtractionResult`, `ExtractedTable`, `ParseResult`, `ReferralFields`). The pipeline is orchestrated in `ProcessingScreen.kt` via a `LaunchedEffect` coroutine.
+Each stage has clear input/output contracts via data classes (`ExtractionResult`, `ExtractedTable`, `ParseResult`, `ReferralFields`). The pipeline is orchestrated in `ProcessingScreen.kt` via a `LaunchedEffect` coroutine. Dependency direction is correct throughout: `ui` depends on `extraction` and `output`; `extraction` depends on `util`; no circular dependencies.
 
-**Assessment**: The layered architecture is well-suited for this application's scope. The pipeline is linear and easy to follow.
+**Assessment**: Well-suited for this application's scope. The pipeline is linear and easy to follow.
 
 ---
 
@@ -25,190 +26,307 @@ Each stage has clear input/output contracts via data classes (`ExtractionResult`
 **Package structure**:
 ```
 tech.carbonworks.snc.batchreferralparser/
-  Main.kt                          -- App entry point, screen router
+  Main.kt                          -- App entry point, NavHost routing (198 lines)
+  FeatureFlags.kt                  -- Build-time feature flag constants (13 lines)
   extraction/
-    ExtractionResult.kt            -- BoundingBox, TextBlock, PageInfo, ExtractionResult
-    PdfTextExtractor.kt            -- PDFBox text extraction
-    TableExtractor.kt              -- Tabula table extraction
-    FieldParser.kt                 -- Regex-based field parsing (~1044 lines)
-    ReferralFields.kt              -- Output data class
-    ParseResult.kt                 -- Parse result wrapper
-    ParsingWarning.kt              -- Warning data class
+    ExtractionResult.kt            -- BoundingBox, TextBlock, PageInfo, ExtractionResult (80 lines)
+    PdfTextExtractor.kt            -- PDFBox text extraction (285 lines)
+    TableExtractor.kt              -- Tabula table extraction (273 lines)
+    FieldParser.kt                 -- Regex-based field parsing (1,166 lines)
+    ReferralFields.kt              -- Output data class (77 lines)
+    ParseResult.kt                 -- Parse result wrapper (17 lines)
+    ParsingWarning.kt              -- Warning data class (20 lines)
   output/
-    SpreadsheetWriter.kt           -- Apache POI XLSX writer
+    SpreadsheetWriter.kt           -- Apache POI XLSX writer (219 lines)
+    ExportColumn.kt                -- Column config data model, serializable sealed hierarchy (145 lines)
+    ExportPreferences.kt           -- JSON persistence for column config (71 lines)
   ui/
     screens/
-      MainScreen.kt                -- File selection + drag-and-drop
-      ProcessingScreen.kt          -- Batch progress display
-      ResultsScreen.kt             -- Data preview + save action
-      SettingsScreen.kt            -- PHI toggle settings
-      HelpScreen.kt                -- Usage instructions
+      MainScreen.kt                -- File selection + drag-and-drop (535 lines)
+      ProcessingScreen.kt          -- Batch progress + pipeline orchestration (269 lines)
+      ResultsScreen.kt             -- Data preview, PHI masking, save action (1,051 lines)
+      SettingsScreen.kt            -- PHI toggle settings (205 lines)
+      HelpScreen.kt                -- Usage instructions + log export (403 lines)
+      ExportSettingsScreen.kt      -- Drag-and-drop column configuration (689 lines)
     components/
-      CwButton.kt                  -- Primary/Secondary/Accent buttons
-      CwCard.kt                    -- Styled card container
-      StatusIcon.kt                -- Processing status indicator
-      SectionHeader.kt             -- Section heading text
-      FilePathText.kt              -- Monospace path display
+      CwButton.kt                  -- Primary/Secondary/Accent buttons (94 lines)
+      CwCard.kt                    -- Styled card container (35 lines)
+      StatusIcon.kt                -- Circular status icon + FileStatus enum (74 lines)
+      SectionHeader.kt             -- Section heading text (25 lines)
+      FilePathText.kt              -- Monospace path display (29 lines)
     theme/
-      Theme.kt                     -- Color palette + Material theme
+      Theme.kt                     -- Color palette + Material theme (46 lines)
   util/
-    PhiMask.kt                     -- Runtime PHI masking
-    PhiPreferences.kt              -- Preference persistence
+    PhiMask.kt                     -- Runtime PHI masking (95 lines)
+    PhiPreferences.kt              -- Preference persistence (49 lines)
+  logging/
+    LoggingSetup.kt                -- File logging initialization (145 lines)
+    RotatingFileOutputStream.kt    -- Log file rotation (99 lines)
+    TeeOutputStream.kt             -- Stdout/stderr duplication (44 lines)
 ```
 
 **Strengths**:
 - Clear separation between extraction, output, and UI concerns
 - UI components extracted into reusable pieces (`CwButton`, `CwCard`, `StatusIcon`, etc.)
-- Naming conventions are consistent and descriptive
+- Naming conventions are consistent and descriptive throughout
+- KDoc coverage is thorough
+- `ExportColumn` sealed hierarchy with `kotlinx.serialization` is well-designed
+- `getFieldValue()` extension centralizes field ID -> value mapping without reflection
 
 **Concerns**:
-- `FieldParser.kt` at ~1044 lines is the largest file and arguably does too much. It contains the main `parse()` method, five extraction sub-methods, fallback extraction, field merging, name parsing, text reconstruction, diagnostic dump methods, and seven internal data classes. This would benefit from decomposition.
-- `ProcessedReferral` and `FileProcessingState` are defined inside `ProcessingScreen.kt` but are used by `ResultsScreen.kt` and `Main.kt`. They should be in their own file in a `model/` or `extraction/` package.
-- `FileStatus` enum lives in `StatusIcon.kt` but is referenced across multiple screens. It belongs in its own file or a shared model package.
+- `FieldParser.kt` at 1,166 lines (up from 1,044 at prior review) does too much — see D3
+- `ResultsScreen.kt` at 1,051 lines exceeds the 500-line guideline by 2x — see D11
+- `ExportSettingsScreen.kt` at 689 lines exceeds the 500-line guideline — see D12
+- `ProcessedReferral` and `FileProcessingState` defined in `ProcessingScreen.kt` but used across files — see D2
+- `FileStatus` enum lives in `StatusIcon.kt` but is a domain concept referenced across screens
 
 ---
 
-## 3. Design Patterns
+## 3. State Management
+
+**What works well**:
+- State hoisting in `App()` (`Main.kt:82-84`) is textbook Compose — `selectedFiles`, `fileStates`, and `processingResults` are hoisted to the top-level composable and threaded via parameters/callbacks
+- `rememberNavController()` with `NavHost` is the recommended Compose navigation pattern
+- Per-card mask overrides in `ResultsScreen.kt:169` using `mutableStateMapOf` is clean per-item state management
+- Navigation `popUpTo(Routes.FILE_SELECTION)` correctly prevents back-navigating to the processing screen
+
+**Issues**:
+
+**D6 — PhiMask.maskingEnabled is a plain `var`, not Compose-observable** (`PhiMask.kt:35`)
+Compose cannot observe changes to a plain Kotlin `var`. The workaround is a shadow `isMasked` state in `ResultsScreen.kt:160-163` manually kept in sync — a dual-source-of-truth anti-pattern. If `PhiMask.maskingEnabled` is changed outside ResultsScreen, the UI will not recompose.
+
+**D6a — Side effect inside `remember` initializer** (`ResultsScreen.kt:160-163`)
+`PhiMask.refreshFromPreferences()` modifies `PhiMask.maskingEnabled` as a side effect during composition. While the `remember` block only runs once, side effects during composition are a Compose anti-pattern. Should be a `LaunchedEffect(Unit)` or handled before the composable is invoked.
+
+**D8 — Preferences scattered across 4 files** (worsened from 2 at prior review)
+Four separate `Preferences.userRoot().node(...)` instances all target the same node path:
+- `MainScreen.kt:81-82` (file-scope val)
+- `ResultsScreen.kt:95-96` (file-scope val)
+- `PhiPreferences.kt:22` (object-scope)
+- `ExportPreferences.kt:21` (object-scope)
+
+No central key registry — key name conflicts could go undetected.
+
+---
+
+## 4. Design Patterns
 
 **Patterns in use**:
-
-- **Sealed class for result types** (`ExtractionResult`): Forces exhaustive handling of success/error cases. Idiomatic and appropriate.
-- **Data classes throughout**: `ReferralFields`, `TextBlock`, `BoundingBox`, `ParseResult`, `ParsingWarning`, `ServiceLine`, etc. Provides value equality, destructuring, and copy semantics.
-- **Singleton objects** (`SpreadsheetWriter`, `PhiMask`, `PhiPreferences`): `SpreadsheetWriter` as an `object` is fine since it's stateless. `PhiMask` and `PhiPreferences` as singletons are more problematic (see State Management).
-- **Compose state hoisting**: All navigation state (`currentScreen`, `selectedFiles`, `fileStates`, `processingResults`) is hoisted to the `App()` composable. Correct pattern.
-- **Strategy pattern (implicit)**: `TableExtractor` uses lattice-first, stream-fallback extraction.
-- **Multi-stage extraction with priority merging**: `FieldParser.parse()` runs five extraction stages and merges them with explicit priority.
+- **Sealed class for result types** (`ExtractionResult`): Forces exhaustive handling. Idiomatic.
+- **Immutable data classes throughout**: Value equality, destructuring, copy semantics.
+- **Singleton objects** (`SpreadsheetWriter`, `PhiMask`, `PhiPreferences`): `SpreadsheetWriter` is stateless, appropriate. `PhiMask` as a singleton is problematic (D6).
+- **Compose state hoisting**: Correct pattern throughout.
+- **Strategy pattern (implicit)**: `TableExtractor` uses lattice-first, stream-fallback.
+- **Multi-stage extraction with priority merging**: `FieldParser.parse()` runs five stages and merges with explicit priority.
+- **Serializable sealed hierarchy**: `ExportColumn` config uses `kotlinx.serialization` with discriminated polymorphism.
 
 **Concerns**:
-- No dependency injection. Every class instantiates its own dependencies directly, making testing of the pipeline orchestration impossible without real PDF files.
+- No dependency injection — every class instantiates dependencies directly, making pipeline testing impossible without real PDFs.
 - No interface abstractions for extractors.
 
 ---
 
-## 4. Error Handling
+## 5. Error Handling
 
 **Strengths**:
 - `ExtractionResult` sealed class enforces exhaustive error handling at the extraction layer
 - `PdfTextExtractor.extract()` has specific handlers for `InvalidPasswordException`, `IOException`, and generic `Exception`
-- `TableExtractor` returns `emptyList()` on failure rather than propagating exceptions -- batch processing continues even if table extraction fails for one file
-- `ProcessingScreen` wraps each file's processing in try/catch so one bad file cannot crash the batch
-- `ParsingWarning` provides structured diagnostic information when labels are found but values cannot be extracted
+- Per-file error resilience in the pipeline — one bad file cannot crash the batch
+- `ParsingWarning` provides structured diagnostics when labels found but values cannot be extracted
+- `FieldParser.generateMissingFieldWarnings()` adds completeness checking
 
 **Gaps**:
-- `TableExtractor` silently swallows all exceptions, returning empty lists. Zero logging or reporting when table extraction fails.
-- `saveToXlsx()` in `ResultsScreen.kt` catches `Exception` and displays it to the user, but does not log the stack trace.
-- No validation that `ReferralFields` has minimum required fields before saving to XLSX. A referral with zero fields extracted still produces a blank row.
+
+**D9 — TableExtractor silently swallows exceptions** (`TableExtractor.kt:95-117`)
+Multiple `catch (e: Exception)` blocks return `emptyList()` without logging stack traces. The lattice extraction catch (lines 115-117) is completely silent.
+
+`saveToXlsx()` in `ResultsScreen.kt:1033` catches generic `Exception` and displays it to the user but does not log the stack trace.
+
+No validation that `ReferralFields` has minimum required fields before saving to XLSX.
 
 ---
 
-## 5. State Management
+## 6. Coroutines & Threading
 
-**UI State**: Follows Compose best practices. All state is hoisted to `App()` using `remember { mutableStateOf(...) }`. Screen transitions are driven by the `currentScreen` enum.
+**What works well**:
+- Pipeline processing in `ProcessingScreen.kt:107` correctly uses `withContext(Dispatchers.IO)` to move PDF extraction off the main thread
+- UI state updates from the `LaunchedEffect` coroutine run on the main dispatcher — thread-safe
+- Resource cleanup with `.use {}` blocks is consistent throughout
 
-**Problem: Singleton mutable state in `PhiMask`**: `PhiMask.maskingEnabled` is a plain Kotlin `var`, not Compose state. When it changes, Compose has no way to know that composables reading `maskDisplay()` need recomposition. The code works around this by maintaining a separate `isMasked` state in `ResultsScreen` that is toggled in sync -- a fragile dual-source-of-truth. It would be cleaner to make the masking state a Compose `mutableStateOf` or pass it through the composable tree.
+**Issues**:
 
-**Preferences duplication**: Both `MainScreen.kt` and `PhiPreferences.kt` create their own `Preferences.userRoot().node(...)` instances for the same node path. Should be centralized.
+**D13 — `saveToXlsx()` performs I/O on UI thread** (`ResultsScreen.kt:1011-1029`)
+After the file dialog returns, `SpreadsheetWriter.write()`, `tempFile.copyTo()`, and file cleanup all run synchronously on the UI thread. For large batches this could visibly freeze the UI. Should use `rememberCoroutineScope().launch(Dispatchers.IO)`.
 
----
+**D14 — Blocking file dialogs on UI thread**
+`MainScreen.kt:469` (`JFileChooser.showOpenDialog`) and `ResultsScreen.kt:984` (`FileDialog.isVisible = true`) both block the main thread. This is the standard Compose Desktop pattern (no built-in non-blocking file dialog), but worth documenting.
 
-## 6. Testability
-
-**Well-covered (98 tests)**:
-- `FieldParserTest` (~69 tests): Excellent coverage of regex-based field extraction using clever test helpers that construct `ExtractionResult.Success` from plain text strings, avoiding real PDFs.
-- `SpreadsheetWriterTest` (12 tests): Covers single/multiple referrals, empty list, column headings, services flattening, date cell formatting, header formatting, unparseable date fallback.
-- `PhiMaskTest` (17 tests): Covers `maskValue`, `maskDisplay`, `PhiPreferences` round-trips, and `SpreadsheetWriter` boundary (unmasked output despite masking enabled).
-- `PdfTextExtractorTest` (5 tests, not counted in @Test grep): Programmatically creates PDFs to test normal extraction, multi-page, empty pages, corrupt files, encrypted files.
-- `TableExtractorTest` (3 tests, not counted in @Test grep): Programmatically creates PDFs with drawn tables.
-
-**Gaps**:
-- **No tests for pipeline orchestration**: The extraction pipeline wiring is embedded in a `@Composable` function with a `LaunchedEffect`. Untestable without UI.
-- **No column/field alignment test**: `SpreadsheetWriter.extractRowValues()` must keep its list in sync with `COLUMN_HEADINGS`. If a field is added to `ReferralFields` but not to both places, columns silently shift.
-- **`reconstructPageTexts` primary path untested**: Tests construct `ExtractionResult.Success` with empty `strippedText`, exercising only the fallback path. In production, the `strippedText` path is used.
+`saveLogFile()` in `HelpScreen.kt:388-395` similarly performs file I/O on the UI thread (small files, unlikely to be noticeable).
 
 ---
 
-## 7. PHI/Security
+## 7. Recomposition Safety
+
+**What works well**:
+- `LazyColumn` in `MainScreen.kt:359` uses `key = { it.absolutePath }` for stable keys
+- `ExportSettingsScreen.kt:326` uses `key = { _, column -> column.stableKey() }` for reorderable list
+
+**Issues**:
+
+**Minor — Lambda allocations in `App()` composable** (`Main.kt:100-194`)
+Inline lambda definitions for screen callbacks inside `composable(route)` blocks are re-allocated on every recomposition. Low practical impact since NavHost recomposes infrequently.
+
+**Minor — `ProcessedReferral` contains `java.io.File`** (`ProcessingScreen.kt:54`)
+`File` is mutable/unstable — Compose cannot infer stability. May cause unnecessary child recompositions.
+
+**Minor — `LazyColumn` items in `ProcessingScreen` lack stable keys** (`ProcessingScreen.kt:221`)
+Items are diffed by index rather than identity when states update.
+
+---
+
+## 8. Compose Desktop Specifics
+
+**What works well**:
+- Window management is clean: `rememberWindowState`, `window.minimumSize`, proper icon loading
+- Drag-and-drop implementation in `MainScreen.kt:138-220` is thorough — walks the AWT component tree to attach drop targets, working around the known SkiaLayer interception issue
+- `DisposableEffect` correctly saves and restores original drop targets on dispose
+
+**Issues**:
+
+**D15 — `UIManager.setLookAndFeel()` called on every file picker open** (`MainScreen.kt:450-453`)
+Global Swing L&F is set every time the file picker opens. Should be called once at startup in `main()`.
+
+**Minor — Inconsistent file dialog types**
+`MainScreen.kt` uses `JFileChooser` (Swing), while `ResultsScreen.kt` and `HelpScreen.kt` use `java.awt.FileDialog` (AWT/native). Users see different dialog styles.
+
+---
+
+## 9. PHI / Security
 
 **Strengths**:
 - `PhiMask` provides centralized masking (first-char + asterisks)
 - Default state is masked (safe by default)
 - Settings persist via Java Preferences API (OS-level storage, not files)
 - Diagnostic dumps use `PhiMask.maskDisplay()` for context lines
-- Error messages displayed in the UI are passed through `PhiMask.maskDisplay()`
+- Error messages in the UI pass through `PhiMask.maskDisplay()`
 
 **Risks and gaps**:
-- **`println` statements throughout**: If masking is disabled at runtime, any log aggregator or terminal history could capture PHI.
-- **Masking bypass via public `var`**: `PhiMask.maskingEnabled` is a public `var` -- any code can disable masking. If a developer adds a `println(someField)` without going through `PhiMask`, PHI leaks.
-- **No masking on XLSX output**: Correct behavior (the XLSX is the deliverable), but means output files are PHI artifacts requiring HIPAA handling.
-- **No audit logging**: No record of who processed which files or when masking was toggled.
-- **Masking algorithm is weak**: Preserves word count and first characters. `"CA"` becomes `"C*"`, `"90210"` becomes `"9****"`. Sufficient for shoulder-surfing prevention, not formal anonymization.
+- **`println` statements throughout**: With masking disabled, terminal history or log aggregators could capture PHI (D10)
+- **Masking bypass via public `var`**: Any code can disable masking and print fields without going through `PhiMask`
+- **No masking on XLSX output**: Correct behavior (XLSX is the deliverable), but output files are PHI artifacts
+- **No audit logging**: No record of who processed which files or when masking was toggled
+- **Masking algorithm is weak**: Preserves word count and first characters; sufficient for shoulder-surfing prevention, not formal anonymization
 
 ---
 
-## 8. Performance
+## 10. Performance
 
-**Bottlenecks and concerns**:
-- **Double PDF loading**: `PdfTextExtractor` and `TableExtractor` each call `Loader.loadPDF(file)` independently, loading the same PDF into memory twice. For 50-file batches, this doubles memory pressure.
-- **Sequential processing**: Files are processed one at a time. Parallel processing could significantly speed up batches.
-- **Regex recompilation**: `FieldParser` compiles multiple `Regex` objects on every invocation. These static patterns should be compiled once as `companion object` constants.
-- **JVM memory limit**: `app/build.gradle.kts` sets `-Xmx512m`. With Apache POI, PDFBox, and Tabula all loaded, 512MB could be tight for 50 large PDFs.
+**D4 — Regex compiled per-invocation in FieldParser**
+~25+ `Regex(...)` calls inside methods, recompiled on every file. For a 50-file batch, that's ~1,250 unnecessary compilations. Should be `companion object` constants. Specific locations:
+
+- `extractHeaderBlock()` (line 376): `headerRegex`
+- `extractHeaderFieldsIndividually()` (lines 445-452): 6 regex objects
+- `extractCaseNumberComponents()` (line 556): `footerRegex`
+- `parseClaimantCellMultiLine()` (lines 677-678): `phoneRegex`, `cityStateZipRegex`
+- `parseAppointmentCell()` (lines 756-762): `dateRegex`, `timeRegex`
+- `parseServicesCell()` (line 782+): split regex + 4 per chunk
+- `extractInvoiceFields()` (lines 842-888): 4 per page per field
+- `extractPhone()` (line 946): `phoneRegex`
+- `extractFallbackFields()` (lines 976, 982): 2 regex objects
+- `splitCamelCaseName()` (line 505), `parseNameParts()` (line 522): 1 each
+
+**D5 — Double PDF loading per file**
+`PdfTextExtractor.extract()` and `TableExtractor.extract()` each call `Loader.loadPDF(file)` independently. Doubles memory pressure and I/O for every file in the batch.
+
+**Minor**: Sequential file processing — parallel processing with `Dispatchers.IO.limitedParallelism(4)` could speed up large batches. JVM memory limit (`-Xmx512m`) could be tight with 50 large PDFs loaded through PDFBox + Tabula + POI simultaneously.
 
 ---
 
-## 9. Coupling & Dependencies
+## 11. Testability
 
-**Tight couplings**:
-- **`ProcessingScreen` couples UI to pipeline execution**: The extraction pipeline is directly coded inside a `@Composable` `LaunchedEffect`. Cannot be tested, reused, or invoked without the UI.
-- **`ResultsScreen` directly calls `SpreadsheetWriter.write()`**: Save action embedded in composable rather than handled by a callback or use case.
-- **`PhiMask` static coupling**: Every display composable calls `PhiMask.maskDisplay()` directly. No abstraction layer.
-- **`SpreadsheetWriter` column order implicitly coupled to `ReferralFields`**: No compile-time guarantee of alignment between `COLUMN_HEADINGS` and `extractRowValues()`.
+**Well-covered (98 tests)**:
+- `FieldParserTest` (~69 tests): Excellent coverage with test helpers that construct `ExtractionResult.Success` from plain text, avoiding real PDFs
+- `SpreadsheetWriterTest` (12 tests): Single/multiple referrals, empty list, column headings, services flattening, date formatting
+- `PhiMaskTest` (17 tests): `maskValue`, `maskDisplay`, preferences round-trips, boundary tests
+- `PdfTextExtractorTest` (5 tests): Programmatically creates PDFs for extraction testing
+- `TableExtractorTest` (3 tests): Programmatically creates PDFs with drawn tables
 
-**Dependency direction**: Dependencies flow correctly: `ui` depends on `extraction` and `output`; `extraction` depends on `util`; `output` depends on `extraction`. No circular dependencies.
-
-**External dependencies**: PDFBox 3.0.4, Tabula 1.0.5, POI 5.3.0 -- mature, well-maintained libraries. `DuplicatesStrategy.EXCLUDE` in `app/build.gradle.kts` handles transitive dependency conflicts.
+**Gaps**:
+- **No tests for pipeline orchestration**: Embedded in `@Composable` `LaunchedEffect`, untestable without UI (D1)
+- **No column/field alignment test**: `SpreadsheetWriter` row values must stay in sync with column headings (mitigated by `ExportColumn.getFieldValue()`)
+- **`reconstructPageTexts` primary path untested**: Tests use empty `strippedText`, exercising only the fallback path
 
 ---
 
-## 10. Prioritized Suggestions
+## Deviation Tracker
 
-### High Impact
+| # | Deviation | Severity | Status | Notes |
+|---|-----------|----------|--------|-------|
+| D1 | Pipeline orchestration in `ProcessingScreen` LaunchedEffect | Critical | Open | Core logic untestable without Compose runtime |
+| D2 | Model types (`ProcessedReferral`, `FileProcessingState`, `FileStatus`) in UI files | Major | Open | Used across multiple files, belong in `model/` |
+| D3 | `FieldParser.kt` at 1,166 lines with multiple responsibilities | Critical | Worsened | Was 1,044 at prior review; architecture doc prescribes decomposition |
+| D4 | Regex compiled per-invocation in FieldParser | Critical | Open | ~25+ patterns × 50 files = ~1,250 unnecessary compilations per batch |
+| D5 | Double PDF loading per file | Major | Open | Both extractors load independently |
+| D6 | `PhiMask.maskingEnabled` is a plain `var`, not Compose-observable | Major | Open | Shadow state in ResultsScreen creates dual source of truth |
+| D6a | Side effect inside `remember` initializer | Major | Open | `PhiMask.refreshFromPreferences()` during composition |
+| D8 | Preferences scattered across 4 files | Major | Worsened | Was 2 instances, now 4; no central key registry |
+| D9 | `TableExtractor` silent exception swallowing | Major | Improved | Some println logging added, but stack traces still lost |
+| D10 | `println` logging with no log levels | Minor | Mitigated | `logging/` package captures to file, but no level filtering |
+| D11 | `ResultsScreen.kt` at 1,051 lines | Major | New | Exceeds 500-line guideline by 2x; mixed UI + business logic |
+| D12 | `ExportSettingsScreen.kt` at 689 lines | Major | New | Exceeds 500-line guideline |
+| D13 | `saveToXlsx()` I/O on UI thread | Major | New | Should use `Dispatchers.IO` |
+| D14 | Blocking file dialogs on UI thread | Minor | New | Standard Compose Desktop pattern, documented limitation |
+| D15 | `UIManager.setLookAndFeel()` on every file picker open | Major | New | Global side effect, should call once at startup |
 
-1. **Extract pipeline from UI** -- Move `PdfTextExtractor -> TableExtractor -> FieldParser` orchestration into a standalone `BatchProcessor` class. Benefits: testable without UI, reusable for CLI mode, separates concerns.
+---
 
-2. **Decompose `FieldParser`** -- Extract internal data classes into their own file. Split extraction methods into focused classes (e.g., `HeaderExtractor`, `TableFieldExtractor`, `InvoiceExtractor`) that `FieldParser` delegates to. Each extraction stage becomes independently testable.
+## Prioritized Recommendations
 
-3. **Promote shared models** -- Move `ProcessedReferral`, `FileProcessingState`, and `FileStatus` to a `model/` package.
+### Critical (highest value)
 
-4. **Compile regexes once** -- Move repeated `Regex(...)` calls to `companion object` properties. Free performance improvement.
+1. **Extract pipeline from UI** (D1) — Move orchestration into `pipeline/BatchProcessor.kt`. Enables testing without Compose runtime, reuse for potential CLI mode, clean separation of concerns.
 
-### Medium Impact
+2. **Compile regexes once** (D4) — Lift all `Regex(...)` calls in `FieldParser` to `companion object` constants. Mechanical refactor with immediate, measurable performance benefit.
 
-5. **Share PDF document load** -- Refactor so `PdfTextExtractor` and `TableExtractor` share a single `PDDocument`, or introduce a `PdfDocumentProvider` that loads once and provides to both extractors.
+### High
 
-6. **Replace `PhiMask.maskingEnabled` with Compose-observable state** -- Use `mutableStateOf` in the `PhiMask` object or pass masking state through the composable tree. Eliminates dual-source-of-truth.
+3. **Decompose `FieldParser.kt`** (D3) — Extract internal data classes and split extraction methods into focused stage extractors (e.g., `HeaderExtractor`, `TableFieldExtractor`, `InvoiceExtractor`). Each stage becomes independently testable.
 
-7. **Add column/field alignment safety** -- Generate `extractRowValues()` reflectively from `ReferralFields`, or add a test asserting `COLUMN_HEADINGS.size == extractRowValues(emptyReferral).size`.
+4. **Decompose `ResultsScreen.kt`** (D11) — Extract `ReferralCard` and sub-composables to `ui/components/ReferralCard.kt`. Extract `saveToXlsx()` to a domain-layer export service.
 
-8. **Centralize preferences** -- Merge `MainScreen.kt`'s prefs instance with `PhiPreferences` into a single `AppPreferences` object.
+5. **Promote shared models** (D2) — Move `ProcessedReferral`, `FileProcessingState`, `FileStatus` to a `model/` package.
 
-### Low Impact
+6. **Make PhiMask Compose-observable** (D6) — Convert `maskingEnabled` to `mutableStateOf` and eliminate the shadow state in ResultsScreen.
 
-9. **Replace `println` with a logging framework** (e.g., SLF4J) -- Enable log levels, structured output, and ability to disable verbose output in production.
+7. **Move `saveToXlsx()` off the UI thread** (D13) — Wrap in `rememberCoroutineScope().launch(Dispatchers.IO)`.
 
-10. **Consider parallel file processing** -- For batches approaching 50 files, process files in parallel with `Dispatchers.IO.limitedParallelism(4)`.
+### Medium
 
-11. **Add application icons** -- TODOs exist in `app/build.gradle.kts` for `.ico`, `.icns`, and `.png` icons.
+8. **Centralize preferences** (D8) — Create `util/AppPreferences.kt` with a single Preferences instance and all key constants.
 
-12. **Add `ExtractionPipelineResult` type** -- Replace ad-hoc tuple built in `ProcessingScreen` with an explicit wrapper for the full pipeline output per file.
+9. **Share PDF document load** (D5) — Have pipeline orchestrator load `PDDocument` once and pass to both extractors.
 
-13. **Guard against `strippedText`/`reconstructPageText` divergence** -- Add a test exercising the `strippedText`-preferred path.
+10. **Move `UIManager.setLookAndFeel()` to `main()`** (D15) — Call once before `application { ... }`.
+
+11. **Add error red constant to Theme.kt** — Replace hardcoded `Color(0xFFE53E3E)` in 3 files.
+
+12. **Migrate legacy color aliases** — Replace `SkyBlue`, `WarmWhite`, `PaperTan` with actual color names.
+
+### Low
+
+13. **Add stable keys to `ProcessingScreen` LazyColumn** items.
+14. **Use `FileDialog` consistently** instead of mixing with `JFileChooser`.
+15. **Use type-safe `@Serializable` navigation routes** instead of string constants.
+16. **Use UUID for spacer IDs** instead of `System.currentTimeMillis()`.
 
 ---
 
 ## Summary
 
-This is a well-structured, purpose-built application that does one thing and does it competently. The codebase is clean, consistently styled, and documented with KDoc comments. The sealed-class result types, data class models, and Compose state hoisting all follow idiomatic Kotlin/Compose patterns.
+The codebase is well-structured for its scope as a Phase 1 desktop tool. Naming is consistent, KDoc coverage is thorough, sealed result types enforce correctness, and the UI follows Compose state hoisting patterns correctly. The extraction pipeline stages have clear contracts and the `ExportColumn` configuration system is cleanly designed.
 
-The main architectural weaknesses are: (1) pipeline logic embedded in a UI composable rather than a testable standalone class, (2) `FieldParser` accumulating too much responsibility in a single 1044-line file, (3) global mutable state in `PhiMask` outside the Compose state system, and (4) double PDF loading.
+Since the prior review (2026-03-02), the main additions are the export column configuration system (WP-35 through WP-37), per-card mask toggling (WP-91 through WP-93), and packaging/branding work (WP-86 through WP-90). The export column system is well-implemented. The mask toggle fix (WP-93) resolved a stale closure anti-pattern. However, the Preferences scattering has worsened (4 instances), `FieldParser.kt` has grown by ~120 lines, and `ResultsScreen.kt` now exceeds 1,000 lines.
 
-The test suite is strong for the extraction layer (98 tests, 2200+ lines of test code) but absent for pipeline orchestration and UI layers. **For a Phase 1 deliverable targeting 6 office machines, the current architecture is fully adequate.** The suggestions above are investments that would pay off if the tool evolves into Phase 2 or handles higher volumes.
+The two most impactful issues remain unchanged from the prior review: (1) extraction pipeline embedded in a UI composable, making core business logic untestable, and (2) regex objects compiled on every invocation in `FieldParser`, imposing unnecessary CPU cost per batch run.
+
+**For a Phase 1 deliverable targeting 6 office machines, the current architecture is fully adequate.** The recommendations above are investments for Phase 2 or if the tool evolves to handle higher volumes or additional features.
