@@ -1781,6 +1781,62 @@ Also review the `packageName` — currently "PDF Authorization Processor". Consi
 
 ---
 
+## WP-89: Rewrite License to Mirror Contract IP Terms (B28)
+
+**Status:** done
+**Owns:** `app/src/main/resources/LICENSE.txt`
+**Reads:** `docs/consulting/contract-template.md` (Section 10 — Intellectual Property), `docs/consulting/contract-summary.md`
+**Touches:** none
+**Depends on:** none
+
+**Scope:**
+The current LICENSE.txt is overly restrictive and does not align with the executed S&C contract. The contract (Section 10) grants:
+
+> "a perpetual, irrevocable, worldwide, royalty-free, non-exclusive license to use, copy, modify, and create derivative works from the work product for any purpose, without limitation."
+
+The contract also includes full source code delivery. The current EULA prohibits reverse engineering, prohibits distribution, and says "non-transferable" — all of which contradict the contract terms.
+
+Rewrite `app/src/main/resources/LICENSE.txt` to:
+1. **License Grant**: Perpetual, irrevocable, worldwide, royalty-free, non-exclusive license. May use, copy, modify, and create derivative works for any purpose without limitation. Remove prohibitions on reverse engineering (source code is delivered). Remove "non-transferable".
+2. **Intellectual Property**: Carbon Works retains ownership of all source code, tools, and methodologies. Client owns all data processed by the software. Carbon Works may reuse general approaches for other clients without disclosing client confidential information.
+3. **Keep existing sections** (with adjustments for consistency): PHI Processing, Data Validation, Warranty Disclaimer, Limitation of Liability, Open Source Components, Termination, Governing Law.
+4. **Add plain-language summary** at the top (per contract template convention): "In plain terms: Carbon Works owns the code, but you can use, modify, and build on it however you want, forever."
+5. Keep format as plain text with ~80 char line width. No markdown.
+
+**Acceptance:** LICENSE.txt reflects the contract's IP terms: perpetual, irrevocable, royalty-free license with modification and derivative work rights. No prohibitions that contradict source code delivery. Build compiles and tests pass.
+
+---
+
+## WP-90: Brand MSI Installer with Custom Banner and Dialog Images (E42)
+
+**Status:** done
+**Owns:** `app/src/main/installer/banner.bmp`, `app/src/main/installer/dialog.bmp`, `app/src/main/installer/main.wxs`
+**Reads:** `docs/brand/carbon-works-brand-guidelines.md`, `app/src/main/resources/icon.png`
+**Touches:** `app/build.gradle.kts`
+**Depends on:** none
+
+**Scope:**
+The MSI installer shows default WiX red disk images on the welcome and interior pages. Replace these with Carbon Works branded images.
+
+**Technical approach:**
+1. Generate two BMP files using Pillow from `icon.png`:
+   - `banner.bmp` (493x58 pixels) — Interior page banner. Use a WarmWhite (#FAF8F5) background with the origami bird icon on the left (~48px tall) and "PDF Authorization Processor" text on the right in dark gray.
+   - `dialog.bmp` (493x312 pixels) — Welcome/finish page background. Use a WarmWhite background with a larger origami bird icon centered-left (~200px), app name below it, and "Carbon Works" branding. Keep it clean and minimal per brand guidelines.
+2. Copy the stock `main.wxs` from the JDK's jpackage resources (`jdk.jpackage.jmod`). Add two `WixVariable` declarations inside the `<Product>` element, before `<UIRef Id="JpUI"/>`:
+   ```xml
+   <WixVariable Id="WixUIBannerBmp" Value="banner.bmp" />
+   <WixVariable Id="WixUIDialogBmp" Value="dialog.bmp" />
+   ```
+3. Add a Gradle task in `app/build.gradle.kts` that runs before `packageMsi`:
+   - Copies `banner.bmp`, `dialog.bmp`, and `main.wxs` from `src/main/installer/` to `build/compose/tmp/resources/`
+   - This resource dir is passed as jpackage's `--resource-dir`, so the custom files override the defaults
+
+**Image generation script:** Create a Python script at `tools/generate_installer_images.py` that produces the BMP files from `icon.png`. Run it once to generate the BMPs and commit them. The Gradle task only copies pre-generated BMPs — no Python dependency at build time.
+
+**Acceptance:** Running `./gradlew :app:packageMsi` produces an MSI where the installer wizard shows branded Carbon Works imagery instead of the default red disk images. Both the welcome page and interior pages show branded graphics.
+
+---
+
 ## Dependency Graph
 
 ```
