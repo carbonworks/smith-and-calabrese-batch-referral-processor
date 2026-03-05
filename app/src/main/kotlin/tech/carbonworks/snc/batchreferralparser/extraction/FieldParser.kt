@@ -37,6 +37,48 @@ class FieldParser(
         )
 
         /**
+         * Expected fields that should normally be present in a valid referral.
+         * Each entry maps a human-readable field name to an accessor on [ReferralFields].
+         * Fields not in this list (e.g., middleName, applicantName, assignedCode)
+         * are considered optional and will not trigger missing-field warnings.
+         */
+        internal val EXPECTED_FIELDS: List<Pair<String, (ReferralFields) -> String?>> = listOf(
+            "Claimant first name" to { it.firstName },
+            "Claimant last name" to { it.lastName },
+            "Date of birth" to { it.dob },
+            "Case ID" to { it.caseId },
+            "Date of issue" to { it.dateOfIssue },
+            "Authorization number" to { it.authorizationNumber },
+            "Appointment date" to { it.appointmentDate },
+            "Street address" to { it.streetAddress },
+            "City" to { it.city },
+            "State" to { it.state },
+            "ZIP code" to { it.zipCode },
+        )
+
+        /**
+         * Check [fields] for expected fields that are null or blank and return
+         * a [ParsingWarning] for each missing one.
+         *
+         * These warnings use the stage "completeness" to distinguish them from
+         * the stage-specific extraction warnings (header, table, invoice, footer).
+         */
+        fun generateMissingFieldWarnings(fields: ReferralFields): List<ParsingWarning> {
+            return EXPECTED_FIELDS.mapNotNull { (name, accessor) ->
+                val value = accessor(fields)
+                if (value.isNullOrBlank()) {
+                    ParsingWarning(
+                        field = name,
+                        stage = "completeness",
+                        message = "$name not found",
+                    )
+                } else {
+                    null
+                }
+            }
+        }
+
+        /**
          * Produce a sanitized summary dump — page line counts and which labels were found.
          */
         fun dumpPageTexts(
@@ -218,6 +260,10 @@ class FieldParser(
 
         // Merge with priority: header > table > invoice > fallback
         val fields = mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell, fallbackFields)
+
+        // Generate missing-field completeness warnings for expected fields
+        warnings.addAll(generateMissingFieldWarnings(fields))
+
         return ParseResult(fields = fields, warnings = warnings)
     }
 
