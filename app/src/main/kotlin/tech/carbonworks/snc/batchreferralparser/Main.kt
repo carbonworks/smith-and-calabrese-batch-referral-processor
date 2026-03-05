@@ -59,7 +59,13 @@ private fun loadAppIcon(): Painter? =
     }
 
 fun main() = application {
+    println("[App] Starting S&C Batch Referral Processor")
+    println("[App] Platform: ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
+    println("[App] JVM: ${System.getProperty("java.vendor")} ${System.getProperty("java.version")}")
+    println("[App] User home: ${System.getProperty("user.home")}")
+
     val appIcon = loadAppIcon()
+    println("[App] Icon loaded: ${appIcon != null}")
 
     Window(
         onCloseRequest = ::exitApplication,
@@ -98,14 +104,17 @@ fun App(window: java.awt.Window? = null) {
                         files = selectedFiles,
                         onFilesChanged = { selectedFiles = it },
                         onProcess = {
+                            println("[Nav] Navigating: FILE_SELECTION -> PROCESSING (${selectedFiles.size} file(s))")
                             fileStates = selectedFiles.map { FileProcessingState(it) }
                             processingResults = emptyList()
                             navController.navigate(Routes.PROCESSING)
                         },
                         onHelp = {
+                            println("[Nav] Navigating: FILE_SELECTION -> HELP")
                             navController.navigate(Routes.HELP)
                         },
                         onSettings = {
+                            println("[Nav] Navigating: FILE_SELECTION -> SETTINGS")
                             navController.navigate(Routes.SETTINGS)
                         },
                         window = window,
@@ -137,15 +146,18 @@ fun App(window: java.awt.Window? = null) {
                     ResultsScreen(
                         results = processingResults,
                         onStartOver = {
+                            println("[Nav] Navigating: RESULTS -> FILE_SELECTION (start over)")
                             selectedFiles = emptyList()
                             fileStates = emptyList()
                             processingResults = emptyList()
                             navController.popBackStack(Routes.FILE_SELECTION, inclusive = false)
                         },
                         onNavigateToHelp = {
+                            println("[Nav] Navigating: RESULTS -> HELP")
                             navController.navigate(Routes.HELP)
                         },
                         onNavigateToExportSettings = {
+                            println("[Nav] Navigating: RESULTS -> EXPORT_SETTINGS")
                             navController.navigate(Routes.EXPORT_SETTINGS)
                         },
                     )
@@ -153,14 +165,21 @@ fun App(window: java.awt.Window? = null) {
 
                 composable(Routes.HELP) {
                     HelpScreen(
-                        onBack = { navController.popBackStack() },
+                        onBack = {
+                            println("[Nav] Navigating: HELP -> back")
+                            navController.popBackStack()
+                        },
                     )
                 }
 
                 composable(Routes.SETTINGS) {
                     SettingsScreen(
-                        onBack = { navController.popBackStack() },
+                        onBack = {
+                            println("[Nav] Navigating: SETTINGS -> back")
+                            navController.popBackStack()
+                        },
                         onNavigateToExportSettings = {
+                            println("[Nav] Navigating: SETTINGS -> EXPORT_SETTINGS")
                             navController.navigate(Routes.EXPORT_SETTINGS)
                         },
                     )
@@ -168,7 +187,10 @@ fun App(window: java.awt.Window? = null) {
 
                 composable(Routes.EXPORT_SETTINGS) {
                     ExportSettingsScreen(
-                        onBack = { navController.popBackStack() },
+                        onBack = {
+                            println("[Nav] Navigating: EXPORT_SETTINGS -> back")
+                            navController.popBackStack()
+                        },
                     )
                 }
             }

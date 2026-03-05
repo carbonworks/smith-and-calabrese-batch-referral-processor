@@ -175,13 +175,38 @@ class FieldParser(
         // Reconstruct page-level text strings from word-level TextBlocks
         val pageTexts = reconstructPageTexts(textResult)
         val warnings = mutableListOf<ParsingWarning>()
+        println("[Parser] Parsing ${textResult.sourceFile}: ${pageTexts.size} page(s) reconstructed")
 
         // Extract from each source
         val headerFields = extractHeaderBlock(pageTexts)
+        val headerCount = listOfNotNull(
+            headerFields.dateOfIssue, headerFields.caseId, headerFields.firstName,
+            headerFields.lastName, headerFields.dob, headerFields.applicantName,
+            headerFields.authorizationNumber,
+        ).size
+        println("[Parser] Header stage: $headerCount field(s) extracted")
+
         val caseFields = extractCaseNumberComponents(pageTexts)
+        val caseCount = listOfNotNull(caseFields.caseNumberFullFooter, caseFields.assignedCode, caseFields.dccNumber).size
+        println("[Parser] Footer stage: $caseCount field(s) extracted")
+
         val tableFields = extractTableFields(tables)
+        val tableCount = listOfNotNull(
+            tableFields.streetAddress, tableFields.city, tableFields.state,
+            tableFields.zipCode, tableFields.phone, tableFields.appointmentDate,
+            tableFields.appointmentTime,
+        ).size + if (tableFields.services.isNotEmpty()) 1 else 0
+        println("[Parser] Table stage: $tableCount field(s) extracted, ${tableFields.services.size} service(s)")
+
         val invoiceFields = extractInvoiceFields(pageTexts)
+        val invoiceCount = listOfNotNull(
+            invoiceFields.federalTaxId, invoiceFields.vendorNumber,
+            invoiceFields.authorizationNumberInvoice, invoiceFields.requestId,
+        ).size
+        println("[Parser] Invoice stage: $invoiceCount field(s) extracted")
+
         val phoneFromCell = extractPhone(pageTexts)
+        if (phoneFromCell != null) println("[Parser] Phone fallback: found via CELL # pattern")
 
         // Individual fallback extraction across concatenated all-pages text
         // for fields that may not be found by their primary extractor
@@ -262,7 +287,15 @@ class FieldParser(
         val fields = mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell, fallbackFields)
 
         // Generate missing-field completeness warnings for expected fields
-        warnings.addAll(generateMissingFieldWarnings(fields))
+        val missingWarnings = generateMissingFieldWarnings(fields)
+        warnings.addAll(missingWarnings)
+
+        val filled = fields.filledFieldCount()
+        println("[Parser] Merge complete for ${textResult.sourceFile}: $filled field(s) filled, ${warnings.size} warning(s)")
+        if (missingWarnings.isNotEmpty()) {
+            val missingNames = missingWarnings.map { it.field }
+            println("[Parser] Missing expected fields: ${missingNames.joinToString(", ")}")
+        }
 
         return ParseResult(fields = fields, warnings = warnings)
     }

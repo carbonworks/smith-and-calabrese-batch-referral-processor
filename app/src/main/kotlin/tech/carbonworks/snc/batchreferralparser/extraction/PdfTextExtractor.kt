@@ -50,29 +50,40 @@ class PdfTextExtractor {
      */
     fun extract(file: File): ExtractionResult {
         if (!file.exists()) {
+            println("[PdfTextExtractor] File not found: ${file.absolutePath}")
             return ExtractionResult.Error(
                 message = "File not found",
                 sourceFile = file.name,
             )
         }
 
+        println("[PdfTextExtractor] Opening: ${file.name} (${file.length()} bytes)")
         return try {
             Loader.loadPDF(file).use { document ->
-                extractFromDocument(document, file.name)
+                val result = extractFromDocument(document, file.name)
+                if (result is ExtractionResult.Success) {
+                    val totalBlocks = result.pages.sumOf { it.textBlocks.size }
+                    val pagesWithText = result.pages.count { it.hasText }
+                    println("[PdfTextExtractor] Success: ${file.name} — ${result.pages.size} page(s), $pagesWithText with text, $totalBlocks text block(s)")
+                }
+                result
             }
         } catch (e: InvalidPasswordException) {
+            println("[PdfTextExtractor] Encrypted/password-protected: ${file.name}")
             ExtractionResult.Error(
                 message = "PDF is encrypted or password-protected",
                 sourceFile = file.name,
                 cause = e,
             )
         } catch (e: IOException) {
+            println("[PdfTextExtractor] I/O error (corrupt?): ${file.name} — ${e.message}")
             ExtractionResult.Error(
                 message = "Failed to read PDF (file may be corrupt)",
                 sourceFile = file.name,
                 cause = e,
             )
         } catch (e: Exception) {
+            println("[PdfTextExtractor] Unexpected error: ${file.name} — ${e.message}")
             ExtractionResult.Error(
                 message = "Unexpected error processing PDF: ${e::class.simpleName}",
                 sourceFile = file.name,

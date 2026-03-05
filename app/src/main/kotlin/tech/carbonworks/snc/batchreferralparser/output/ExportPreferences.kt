@@ -33,10 +33,19 @@ object ExportPreferences {
      *         no configuration is saved or the stored value cannot be deserialized.
      */
     fun load(): ExportColumnConfig {
-        val raw = prefs.get(KEY_EXPORT_COLUMN_CONFIG, null) ?: return ExportColumnConfig.default()
+        val raw = prefs.get(KEY_EXPORT_COLUMN_CONFIG, null)
+        if (raw == null) {
+            println("[ExportPreferences] No saved config, using defaults")
+            return ExportColumnConfig.default()
+        }
         return try {
-            json.decodeFromString<ExportColumnConfig>(raw)
-        } catch (_: Exception) {
+            val config = json.decodeFromString<ExportColumnConfig>(raw)
+            val enabledCount = config.columns.count { it is ExportColumn.Field && it.enabled }
+            val totalCount = config.columns.size
+            println("[ExportPreferences] Loaded config: $enabledCount/$totalCount column(s) enabled, expandServices=${config.expandServices}")
+            config
+        } catch (e: Exception) {
+            println("[ExportPreferences] Failed to deserialize saved config, using defaults: ${e.message}")
             ExportColumnConfig.default()
         }
     }
@@ -45,6 +54,8 @@ object ExportPreferences {
      * Persists the given export column configuration.
      */
     fun save(config: ExportColumnConfig) {
+        val enabledCount = config.columns.count { it is ExportColumn.Field && it.enabled }
+        println("[ExportPreferences] Saving config: $enabledCount/${config.columns.size} column(s) enabled, expandServices=${config.expandServices}")
         val raw = json.encodeToString(ExportColumnConfig.serializer(), config)
         prefs.put(KEY_EXPORT_COLUMN_CONFIG, raw)
     }
@@ -54,6 +65,7 @@ object ExportPreferences {
      * [ExportColumnConfig.default].
      */
     fun reset() {
+        println("[ExportPreferences] Reset to defaults")
         prefs.remove(KEY_EXPORT_COLUMN_CONFIG)
     }
 }

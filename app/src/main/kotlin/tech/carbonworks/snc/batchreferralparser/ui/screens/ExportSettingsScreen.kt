@@ -139,6 +139,7 @@ fun ExportSettingsScreen(
             Checkbox(
                 checked = columnConfig.expandServices,
                 onCheckedChange = { checked ->
+                    println("[ExportSettings] Expand services changed to: $checked")
                     columnConfig = columnConfig.copy(expandServices = checked)
                     ExportPreferences.save(columnConfig)
                 },
@@ -164,6 +165,7 @@ fun ExportSettingsScreen(
             CwSecondaryButton(
                 text = "All Fields",
                 onClick = {
+                    println("[ExportSettings] Preset applied: All Fields")
                     columnConfig = ExportColumnConfig.default().copy(
                         expandServices = columnConfig.expandServices,
                     )
@@ -173,6 +175,7 @@ fun ExportSettingsScreen(
             CwSecondaryButton(
                 text = "Essential Only",
                 onClick = {
+                    println("[ExportSettings] Preset applied: Essential Only")
                     columnConfig = ExportColumnConfig(
                         columns = DEFAULT_FIELD_ORDER.map { (fieldId, displayName) ->
                             ExportColumn.Field(
@@ -264,6 +267,7 @@ fun ExportSettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        println("[ExportSettings] Reset confirmed — restoring defaults")
                         ExportPreferences.reset()
                         columnConfig = ExportColumnConfig.default()
                         showResetDialog = false

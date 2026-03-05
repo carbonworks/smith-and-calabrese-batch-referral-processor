@@ -198,6 +198,7 @@ fun ResultsScreen(
                     onToggle = {
                         isMasked = !isMasked
                         PhiMask.maskingEnabled = isMasked
+                        println("[Results] PHI masking toggled: ${if (isMasked) "masked" else "visible"}")
                         // Permanently dismiss the discovery cue on first toggle
                         if (showDiscoveryCue.value) {
                             PhiPreferences.setToggleDismissed(true)

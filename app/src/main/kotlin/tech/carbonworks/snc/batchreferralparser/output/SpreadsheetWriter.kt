@@ -119,6 +119,10 @@ object SpreadsheetWriter {
             }
         }
 
+        val enabledFieldCount = activeColumns.count { it is ExportColumn.Field }
+        val spacerCount = activeColumns.count { it is ExportColumn.Spacer }
+        println("[SpreadsheetWriter] Writing ${referrals.size} referral(s): $enabledFieldCount field column(s), $spacerCount spacer column(s), expandServices=${columnConfig.expandServices}")
+
         val filename = "authorizations-${FILENAME_TIMESTAMP_FORMAT.format(timestamp)}.xlsx"
         val outputFile = File(outputDir, filename)
 
@@ -209,6 +213,7 @@ object SpreadsheetWriter {
             }
         }
 
+        println("[SpreadsheetWriter] Wrote: ${outputFile.name} (${outputFile.length()} bytes)")
         return outputFile
     }
 }
