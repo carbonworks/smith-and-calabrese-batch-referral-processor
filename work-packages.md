@@ -1402,6 +1402,132 @@ Specifically:
 
 ---
 
+## WP-67: Fix Drag-and-Drop Cursor Showing "Move" Instead of "Copy" (B23)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Depends on:** WP-59
+
+**Scope:**
+When dragging files from Windows Explorer onto the app, the cursor shows a "move" icon instead of "copy". The app only reads files — it doesn't move or modify them. The current code already uses `DnDConstants.ACTION_COPY` in `acceptDrag()`, `acceptDrop()`, and the `DropTarget` constructor, but Windows Explorer still displays the move cursor.
+
+The likely cause is that the `DropTarget` constructor's `actions` parameter needs to be `ACTION_COPY_OR_MOVE` to accept the drag source's offered actions, but then `dragEnter`/`dragOver` must explicitly call `acceptDrag(ACTION_COPY)` to signal the copy cursor. Alternatively, the `DropTargetDragEvent` may need `acceptDrag` called with the right action in a `dragOver` handler (not just `dragEnter`).
+
+Investigate and fix so the OS cursor shows the copy icon (+ badge) during drag-over, not the move icon.
+
+**Acceptance:** Dragging files from Windows Explorer onto the app shows a copy cursor (not move). Files are still correctly added to the batch on drop. Build compiles and all tests pass.
+
+---
+
+## WP-68: Audit Logging Coverage for Triage (R6)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TextExtractor.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Touches:** All source files under `app/src/main/kotlin/` (logging additions only)
+**Depends on:** none
+
+**Scope:**
+Audit the existing logging across the application to ensure it's sufficient for remote triage when a user reports an issue. The developer will receive log files, not screen shares.
+
+1. **Review all existing `println()` and logging calls** across extraction, parsing, UI, and navigation code. Identify gaps where errors or important state transitions are not logged.
+2. **Add structured logging** where missing. Key areas to cover:
+   - PDF file open/close (success/failure, page count)
+   - Table extraction results (tables found per page, cell counts)
+   - Field parsing outcomes (which fields extracted vs. missed, per file)
+   - Navigation events (screen transitions)
+   - Export/save operations (path, success/failure)
+   - Settings changes
+3. **Use a consistent format**: `[Component] message` (e.g., `[Parser] Extracted 8/11 expected fields from file.pdf`). Use `println()` for now — the file logging WP will redirect stdout/stderr to file.
+4. Do NOT log any PHI values — see WP-69 for the sanitization audit.
+
+**Acceptance:** All major operations produce log output sufficient for a developer to diagnose common issues (file not parsing, fields missing, export failures) without needing to reproduce locally. Build compiles and all tests pass.
+
+---
+
+## WP-69: Audit Logging for PHI Sanitization (S1)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`
+**Touches:** All source files under `app/src/main/kotlin/` (logging sanitization only)
+**Depends on:** none
+
+**Scope:**
+Audit all existing and newly-added logging to ensure no PHI (Protected Health Information) leaks into log output. Logs will be saved to files and potentially sent to the developer for triage, so they must be safe to transmit.
+
+1. **Search all `println()`, `print()`, logging calls, and string interpolations** that could include PHI fields: patient names, DOB, SSN, addresses, phone numbers, case IDs, diagnosis codes.
+2. **Replace any PHI in log output** with masked/sanitized versions. Use patterns like:
+   - File names: OK to log (they may contain PHI in the filename — mask anything after the last path separator that looks like a name, or just log the file count instead)
+   - Field values: NEVER log raw values. Log field presence/absence only (e.g., "firstName: present" not "firstName: JOHN")
+   - Counts and statistics: OK (e.g., "3 services extracted")
+3. **Add a `LogSanitizer` utility** if needed, or use inline masking. Keep it simple.
+
+**Acceptance:** No PHI values appear in any log output under normal operation. A grep for common PHI field names in log-producing code shows only masked/sanitized output. Build compiles and all tests pass.
+
+---
+
+## WP-70: File-Based Logging with Rotation (F6)
+
+**Status:** done
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/logging/`
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Depends on:** WP-68, WP-69
+
+**Scope:**
+Redirect application log output to a file with a reasonable rotation/size-limiting policy, so logs are available for the "Report an Issue" feature.
+
+1. **Create a logging setup** that writes to a log file in a standard location:
+   - Windows: `%LOCALAPPDATA%/CarbonWorks/BatchAuthProcessor/logs/`
+   - macOS: `~/Library/Logs/CarbonWorks/BatchAuthProcessor/`
+   - Use `System.getProperty("os.name")` to pick the right path
+2. **Rotation policy**: Keep the current log file and up to 2 rotated files. Rotate when the file exceeds 5MB. Name format: `app.log`, `app.1.log`, `app.2.log`.
+3. **Redirect `System.out` and `System.err`** to a `TeeOutputStream` or similar that writes to both the console and the log file. This way existing `println()` calls automatically go to file without changing every call site.
+4. **Initialize early** in `main()` before any other code runs.
+5. **Log session start** with timestamp, app version (if available), OS, and Java version.
+
+**Acceptance:** Application logs are written to a file in the platform-appropriate directory. Logs rotate at 5MB with 2 backups. Console output is preserved. Build compiles and all tests pass.
+
+---
+
+## WP-71: Report an Issue Feature — Save Logs to File (F7)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/Main.kt`
+**Depends on:** WP-70
+
+**Scope:**
+Add a "Report an Issue" button that lets the user save a copy of the application log file to a location of their choosing, so they can email it to the developer.
+
+1. **Add a "Report an Issue" button** to the Help screen (or a prominent location — Help screen is most natural).
+2. **On click**: Open a system save-as dialog (`java.awt.FileDialog` in save mode, same pattern as WP-56) with a default filename like `batch-auth-processor-log-YYYY-MM-DD.txt`.
+3. **Copy the current log file** to the user-chosen path. If multiple log files exist (rotated), concatenate them in chronological order into a single file.
+4. **Show success/error feedback** after the save completes, similar to the spreadsheet save feedback pattern.
+
+**Acceptance:** User can click "Report an Issue" on the Help screen, choose a save location, and receive a copy of the application logs. The saved file contains sanitized logs with no PHI. Build compiles and all tests pass.
+
+---
+
+## WP-72: Rename Save Button to "Save as Spreadsheet" (E30)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+Rename the "Save" button on the Results screen to "Save as Spreadsheet" to better communicate what the action does.
+
+**Acceptance:** The button reads "Save as Spreadsheet". Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
