@@ -484,7 +484,7 @@ fun ResultsScreen(
                 Spacer(modifier = Modifier.width(12.dp))
             }
             CwPrimaryButton(
-                text = "Save as Spreadsheet",
+                text = "Export",
                 onClick = {
                     saveToXlsx(referralFields) { message, error, file ->
                         saveMessage = message
