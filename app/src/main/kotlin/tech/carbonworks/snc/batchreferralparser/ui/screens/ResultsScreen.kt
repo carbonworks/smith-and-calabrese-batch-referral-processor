@@ -27,7 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.icons.Icons
@@ -42,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -161,6 +162,11 @@ fun ResultsScreen(
         mutableStateOf(PhiMask.maskingEnabled)
     }
 
+    // Per-card mask overrides. When the global toggle changes, all overrides
+    // are cleared so every card follows the new global state. Individual card
+    // toggles insert entries here that take precedence over the global flag.
+    val perCardMaskOverrides = remember { mutableStateMapOf<Int, Boolean>() }
+
     // Discovery cue: track whether animation should play
     val showDiscoveryCue = remember { mutableStateOf(!PhiPreferences.getToggleDismissed()) }
 
@@ -199,6 +205,8 @@ fun ResultsScreen(
                     onToggle = {
                         isMasked = !isMasked
                         PhiMask.maskingEnabled = isMasked
+                        // Reset all per-card overrides to follow the new global state
+                        perCardMaskOverrides.clear()
                         println("[Results] PHI masking toggled: ${if (isMasked) "masked" else "visible"}")
                         // Permanently dismiss the discovery cue on first toggle
                         if (showDiscoveryCue.value) {
@@ -391,10 +399,14 @@ fun ResultsScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(successResults) { result ->
+                    itemsIndexed(successResults) { index, result ->
+                        val cardMasked = perCardMaskOverrides[index] ?: isMasked
                         ReferralCard(
                             processedReferral = result,
-                            isMasked = isMasked,
+                            isMasked = cardMasked,
+                            onToggleMask = {
+                                perCardMaskOverrides[index] = !cardMasked
+                            },
                         )
                     }
                 }
@@ -576,6 +588,7 @@ private fun PhiToggleButton(
 private fun ReferralCard(
     processedReferral: ProcessedReferral,
     isMasked: Boolean,
+    onToggleMask: () -> Unit = {},
 ) {
     val fields = processedReferral.fields ?: return
     val file = processedReferral.file
@@ -583,7 +596,7 @@ private fun ReferralCard(
     CwCard {
         SelectionContainer {
             Column(modifier = Modifier.padding(16.dp)) {
-                // Card header — filename + Open PDF link
+                // Card header — filename + per-card mask toggle + Open PDF link
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -598,7 +611,19 @@ private fun ReferralCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onToggleMask,
+                        modifier = Modifier.size(28.dp),
+                    ) {
+                        Icon(
+                            imageVector = if (isMasked) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                            contentDescription = if (isMasked) "Unmask this referral" else "Mask this referral",
+                            tint = SoftGray,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     OpenPdfLink(file = file)
                 }
 
