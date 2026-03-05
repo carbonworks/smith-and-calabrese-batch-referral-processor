@@ -180,13 +180,13 @@ fun HelpScreen(
                                 }
                             },
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = "If you encounter a problem, save a copy of the application log to attach to your email:",
                             style = MaterialTheme.typography.bodyMedium,
                             color = SoftGray,
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
