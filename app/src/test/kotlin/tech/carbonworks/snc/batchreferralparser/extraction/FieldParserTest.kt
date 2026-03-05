@@ -626,35 +626,38 @@ class FieldParserTest {
     // -------------------------------------------------------------------
 
     @Test
-    fun `dumpPageTexts shows label presence without values`() {
+    fun `dumpPageTexts shows label presence for target pages and skips non-target pages`() {
         val input = textResult(
+            "some clinical notes that should not be dumped",
             "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 Applicant: Jane Smith Authorization #: AUTH-999",
-            "some random text with no labels",
             "Federal Tax ID Number: 123456789 Vendor Number: V-123 RQID: RQ-1"
         )
 
         val dump = FieldParser.dumpPageTexts(input)
 
-        // Page 1 should list header labels
+        // Page 1 (non-target) should be skipped — no content examined
         assertTrue(dump.contains("[Page 1]"), "Should have Page 1 header")
-        assertTrue(dump.contains("Date:"), "Should find Date label")
-        assertTrue(dump.contains("Case ID:"), "Should find Case ID label")
-        assertTrue(dump.contains("RE:"), "Should find RE label")
-        assertTrue(dump.contains("DOB:"), "Should find DOB label")
+        assertTrue(dump.contains("skipped"), "Page 1 should be marked as skipped")
 
-        // Page 2 should show no labels
+        // Page 2 (target) should list header labels
         assertTrue(dump.contains("[Page 2]"), "Should have Page 2 header")
-        assertTrue(dump.contains("(none)"), "Page 2 should have no labels")
+        assertTrue(dump.contains("Date:"), "Should find Date label on page 2")
+        assertTrue(dump.contains("Case ID:"), "Should find Case ID label on page 2")
+        assertTrue(dump.contains("RE:"), "Should find RE label on page 2")
+        assertTrue(dump.contains("DOB:"), "Should find DOB label on page 2")
 
-        // Page 3 should list invoice labels
+        // Page 3 (target) should list invoice labels
         assertTrue(dump.contains("[Page 3]"), "Should have Page 3 header")
-        assertTrue(dump.contains("RQID:"), "Should find RQID label")
+        assertTrue(dump.contains("RQID:"), "Should find RQID label on page 3")
 
         // Verify PHI values are NOT in the dump
         assertFalse(dump.contains("09/15/2024"), "Should not contain date value")
         assertFalse(dump.contains("ABC-123"), "Should not contain case ID value")
         assertFalse(dump.contains("John"), "Should not contain name value")
         assertFalse(dump.contains("123456789"), "Should not contain tax ID value")
+
+        // Verify page 1 content is NOT in the dump
+        assertFalse(dump.contains("clinical notes"), "Should not contain page 1 content")
     }
 
     // -------------------------------------------------------------------

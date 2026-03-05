@@ -25,6 +25,13 @@ class FieldParser(
         /** Y-coordinate tolerance for grouping text blocks on the same line. */
         private const val LINE_Y_TOLERANCE = 3f
 
+        /**
+         * 1-based page numbers that contain structured referral data and are
+         * safe to dump. Pages outside this set may contain unpredictable
+         * free-text clinical notes with PHI that cannot be reliably sanitized.
+         */
+        private val TARGET_PAGES = setOf(2, 3)
+
         /** Known field labels used by diagnostic dump methods. */
         private val knownLabels = listOf(
             "Date:", "Case ID:", "RE:", "DOB:", "Applicant:",
@@ -80,6 +87,10 @@ class FieldParser(
 
         /**
          * Produce a sanitized summary dump — page line counts and which labels were found.
+         *
+         * Only target pages (pages 2–3) have their content examined. Other pages
+         * log only their page number to avoid leaking PHI from free-text clinical
+         * notes on non-target pages.
          */
         fun dumpPageTexts(
             textResult: ExtractionResult.Success,
@@ -89,10 +100,15 @@ class FieldParser(
             val pageTexts = parser.reconstructPageTexts(textResult)
 
             return pageTexts.mapIndexed { index, text ->
-                val lineCount = if (text.isBlank()) 0 else text.lines().size
-                val foundLabels = knownLabels.filter { label -> label in text }
-                val labelsStr = if (foundLabels.isEmpty()) "(none)" else foundLabels.joinToString(", ")
-                "[Page ${index + 1}] $lineCount lines -- labels found: $labelsStr"
+                val pageNumber = index + 1
+                if (pageNumber !in TARGET_PAGES) {
+                    "[Page $pageNumber] (skipped — non-target page)"
+                } else {
+                    val lineCount = if (text.isBlank()) 0 else text.lines().size
+                    val foundLabels = knownLabels.filter { label -> label in text }
+                    val labelsStr = if (foundLabels.isEmpty()) "(none)" else foundLabels.joinToString(", ")
+                    "[Page $pageNumber] $lineCount lines -- labels found: $labelsStr"
+                }
             }.joinToString("\n")
         }
 
@@ -102,6 +118,10 @@ class FieldParser(
          * For each page, outputs lines containing a known label plus [contextRadius]
          * lines above and below, with content masked via [PhiMask.maskDisplay].
          * Pages with no label matches are skipped.
+         *
+         * Only target pages (pages 2–3) have their content examined. Non-target
+         * pages are skipped entirely to avoid leaking PHI from free-text clinical
+         * notes.
          */
         fun dumpPageTextsDetailed(
             textResult: ExtractionResult.Success,
@@ -113,6 +133,11 @@ class FieldParser(
             val output = StringBuilder()
 
             for ((pageIndex, text) in pageTexts.withIndex()) {
+                val pageNumber = pageIndex + 1
+
+                // Skip non-target pages — only log page number, no content
+                if (pageNumber !in TARGET_PAGES) continue
+
                 if (text.isBlank()) continue
 
                 val lines = text.lines()
@@ -139,7 +164,7 @@ class FieldParser(
                 val matchCount = labelLineMap.size
                 val matchWord = if (matchCount == 1) "label match" else "label matches"
                 if (output.isNotEmpty()) output.append("\n")
-                output.appendLine("=== Page ${pageIndex + 1} ($matchCount $matchWord) ===")
+                output.appendLine("=== Page $pageNumber ($matchCount $matchWord) ===")
 
                 var prevIndex = -1
                 for (idx in includedIndices) {
