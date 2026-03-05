@@ -1897,6 +1897,25 @@ Also check the `ReferralCard` composable and its `onToggleMask` callback — the
 
 ---
 
+## WP-94: Restrict Logging to Pages 2–3 to Prevent PHI Leakage (S2)
+
+**Status:** done
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/PdfTextExtractor.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`
+**Reads:** `docs/architecture/architectural-review.md`, `CLAUDE.md`
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+The extraction pipeline has `dump` methods (e.g., `dumpExtractionContext`) that log page content from all pages of each PDF. Pages 2 and 3 contain the structured referral data the app extracts; other pages contain unpredictable free-text content (clinical notes, medical records, etc.) with PHI in formats that cannot be reliably sanitized.
+
+1. Find all `dump` methods in the extraction pipeline and restrict them to only output content from pages 2–3
+2. For non-target pages, log only the page number/index — no content
+3. Check any other `println` statements that reference page content and apply the same restriction
+
+**Acceptance:** No dump method or log statement in the extraction pipeline outputs text content from pages other than 2 and 3. Page numbers may still be logged for non-target pages, but no content. All existing tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
