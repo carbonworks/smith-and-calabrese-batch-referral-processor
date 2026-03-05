@@ -57,7 +57,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
-import tech.carbonworks.snc.batchreferralparser.output.DEFAULT_FIELD_ORDER
 import tech.carbonworks.snc.batchreferralparser.output.ExportColumn
 import tech.carbonworks.snc.batchreferralparser.output.ExportColumnConfig
 import tech.carbonworks.snc.batchreferralparser.output.ExportPreferences
@@ -176,15 +175,15 @@ fun ExportSettingsScreen(
                 text = "Essential Only",
                 onClick = {
                     println("[ExportSettings] Preset applied: Essential Only")
-                    columnConfig = ExportColumnConfig(
-                        columns = DEFAULT_FIELD_ORDER.map { (fieldId, displayName) ->
-                            ExportColumn.Field(
-                                fieldId = fieldId,
-                                displayName = displayName,
-                                enabled = fieldId in ESSENTIAL_FIELD_IDS,
-                            )
+                    columnConfig = columnConfig.copy(
+                        columns = columnConfig.columns.map { column ->
+                            when (column) {
+                                is ExportColumn.Field -> column.copy(
+                                    enabled = column.fieldId in ESSENTIAL_FIELD_IDS,
+                                )
+                                is ExportColumn.Spacer -> column
+                            }
                         },
-                        expandServices = columnConfig.expandServices,
                     )
                     ExportPreferences.save(columnConfig)
                 },
