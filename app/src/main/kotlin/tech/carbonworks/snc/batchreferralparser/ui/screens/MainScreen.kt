@@ -226,7 +226,7 @@ fun MainScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Drop zone
         val dropBorderColor = if (isDragOver) SkyBlue else LightGray

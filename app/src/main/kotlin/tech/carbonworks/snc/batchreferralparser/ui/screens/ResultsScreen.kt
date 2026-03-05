@@ -219,7 +219,7 @@ fun ResultsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Summary cards row
         Row(
