@@ -1239,6 +1239,75 @@ The default save filename currently uses the term "patient referrals" which may 
 
 ---
 
+## WP-59: Fix File Drag-and-Drop on Main Screen (B17)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Depends on:** none
+
+**Scope:**
+File drag-and-drop on the main file selection screen is not working. Investigate and fix the drop handling so users can drag PDF files from the OS file explorer onto the app to add them to the batch.
+
+1. **Diagnose**: Read MainScreen.kt and identify how drag-and-drop is currently implemented. Check whether it uses Compose `Modifier.onExternalDrag` APIs, AWT `DropTarget`, or `java.awt.dnd` — and whether the handler is actually wired up and receiving events.
+2. **Fix**: Ensure the drop zone correctly receives file drop events, filters for `.pdf` files, and adds them to the file list. The drop zone should provide visual feedback (hover state) when files are dragged over it.
+3. **Test on Desktop**: Drag-and-drop on Compose Desktop typically requires AWT interop (`java.awt.dnd.DropTarget` on the ComposeWindow) or the Compose `DragAndDropTarget` modifier. Ensure the approach works on Windows (primary target).
+
+**Acceptance:** Users can drag PDF files from Windows Explorer onto the app's file selection area and have them added to the batch. Visual hover feedback is shown during drag. Non-PDF files are ignored or filtered. Build compiles and all tests pass.
+
+---
+
+## WP-60: Move Expand Services Checkbox Above Preset Buttons (E28)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`
+**Depends on:** WP-54
+
+**Scope:**
+Move the "Place each service on its own row" checkbox from its current position (between the preset buttons and the column list) to above the preset buttons row. The checkbox is a global export option and should appear before the column-specific controls.
+
+**Acceptance:** The expand services checkbox appears above the All Fields / Essential Only / Reset buttons row. Build compiles and all tests pass.
+
+---
+
+## WP-61: Add Spacing Below Subtitle Text on Main and Results Screens (B18)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Depends on:** none
+
+**Scope:**
+Add more vertical whitespace below subtitle text on two screens:
+
+1. **Results screen**: Add spacing below the "[#] successful extraction[s]" summary text. It currently sits too close to the content below it.
+2. **Main screen**: Add spacing below the "Gather authorization..." subtitle text. It currently sits too close to the content below it.
+
+**Acceptance:** Visible additional spacing below the subtitle text on both screens. Build compiles and all tests pass.
+
+---
+
+## WP-62: Move Start Over Button to Far Left on Results Screen (E29)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-57
+
+**Scope:**
+Move the "Start Over" button from its current position (grouped with Save and Export Settings) to the far left of the action buttons row, where the Back button typically sits on other screens. This provides consistent placement for the "go back / leave this screen" action.
+
+The Save button and Export Settings button should remain right-aligned. The layout should be: Start Over on the left, spacer in the middle, Export Settings and Save on the right.
+
+**Acceptance:** Start Over button sits at the far left of the action bar. Save and Export Settings remain right-aligned. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
