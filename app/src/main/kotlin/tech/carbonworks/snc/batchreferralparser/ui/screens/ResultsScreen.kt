@@ -597,6 +597,39 @@ private fun ReferralCard(
                 HorizontalDivider(color = LightGray, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Per-card warnings (completeness check)
+                if (processedReferral.warnings.isNotEmpty()) {
+                    val missingFieldWarnings = processedReferral.warnings.filter { it.stage == "completeness" }
+                    if (missingFieldWarnings.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    BrandOrange.copy(alpha = 0.08f),
+                                    shape = MaterialTheme.shapes.small,
+                                )
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            Text(
+                                text = "Missing fields:",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = BrandOrange,
+                                modifier = Modifier.padding(end = 6.dp),
+                            )
+                            Text(
+                                text = missingFieldWarnings.joinToString(", ") { it.field },
+                                fontSize = 12.sp,
+                                color = BrandOrange.copy(alpha = 0.85f),
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
                 // Body — patient metadata (left) + services (right)
                 Row(
                     modifier = Modifier.fillMaxWidth(),

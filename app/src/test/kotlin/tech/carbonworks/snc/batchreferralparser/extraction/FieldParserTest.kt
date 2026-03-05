@@ -141,7 +141,8 @@ class FieldParserTest {
         assertEquals("03/22/1990", result.fields.dob)
         assertEquals("Jane Smith", result.fields.applicantName)
         assertEquals("AUTH-9876", result.fields.authorizationNumber)
-        assertTrue(result.warnings.isEmpty(), "Full header match should produce no warnings")
+        val extractionWarnings = result.warnings.filter { it.stage != "completeness" }
+        assertTrue(extractionWarnings.isEmpty(), "Full header match should produce no extraction warnings")
     }
 
     // -------------------------------------------------------------------
@@ -299,7 +300,12 @@ class FieldParserTest {
         assertNull(result.fields.federalTaxId)
         assertTrue(result.fields.services.isEmpty())
         assertEquals(0, result.fields.filledFieldCount())
-        assertTrue(result.warnings.isEmpty(), "Empty input should produce no warnings")
+        // Empty input produces no stage-specific extraction warnings (header, table, etc.)
+        // but does produce completeness warnings for missing expected fields
+        val extractionWarnings = result.warnings.filter { it.stage != "completeness" }
+        assertTrue(extractionWarnings.isEmpty(), "Empty input should produce no extraction warnings")
+        val completenessWarnings = result.warnings.filter { it.stage == "completeness" }
+        assertTrue(completenessWarnings.isNotEmpty(), "Empty input should produce completeness warnings")
     }
 
     // -------------------------------------------------------------------
@@ -1377,5 +1383,179 @@ class FieldParserTest {
         assertEquals("Already Spaced", parser.splitCamelCaseName("Already Spaced"))
         assertEquals("a", parser.splitCamelCaseName("a"))
         assertEquals("", parser.splitCamelCaseName(""))
+    }
+
+    // ===================================================================
+    // Missing-field completeness warnings (WP-64)
+    // ===================================================================
+
+    @Test
+    fun `completeness warnings generated for all missing expected fields on empty input`() {
+        val input = textResult("")
+        val result = parser.parse(input)
+
+        val completenessWarnings = result.warnings.filter { it.stage == "completeness" }
+        // All expected fields should be missing for empty input
+        val expectedCount = FieldParser.EXPECTED_FIELDS.size
+        assertEquals(expectedCount, completenessWarnings.size,
+            "All $expectedCount expected fields should generate completeness warnings on empty input")
+
+        // Verify the stage is "completeness" for all
+        assertTrue(completenessWarnings.all { it.stage == "completeness" },
+            "All missing-field warnings should have stage 'completeness'")
+
+        // Verify each expected field name is represented
+        val warningFieldNames = completenessWarnings.map { it.field }.toSet()
+        for ((name, _) in FieldParser.EXPECTED_FIELDS) {
+            assertTrue(name in warningFieldNames,
+                "Expected field '$name' should have a completeness warning")
+        }
+    }
+
+    @Test
+    fun `no completeness warnings when all expected fields are present`() {
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 Applicant: Jane Smith Authorization #: AUTH-999"
+        )
+        val tables = tableWith(
+            "Claimant Information JOHN DOE 123 MAIN ST ANYTOWN, MD 21201 410-555-1234",
+            "Date and Time Thursday September 5th, 2024 10:00 AM Eastern Standard Time",
+            "Services Authorized Code: 96130 Procedure Type Code: P Desc: Test Fee: \$ 100.00",
+        )
+
+        val result = parser.parse(input, tables)
+
+        val completenessWarnings = result.warnings.filter { it.stage == "completeness" }
+        assertTrue(completenessWarnings.isEmpty(),
+            "No completeness warnings should appear when all expected fields are extracted. " +
+            "Got: ${completenessWarnings.map { it.field }}")
+    }
+
+    @Test
+    fun `completeness warnings only for specific missing fields`() {
+        // Header provides name, DOB, case ID, date of issue, auth number
+        // but NO address, city, state, zip, or appointment date
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 Applicant: Jane Smith Authorization #: AUTH-999"
+        )
+
+        val result = parser.parse(input)
+
+        val completenessWarnings = result.warnings.filter { it.stage == "completeness" }
+        val warningFieldNames = completenessWarnings.map { it.field }.toSet()
+
+        // These fields should NOT have warnings (they were extracted)
+        assertFalse("Claimant first name" in warningFieldNames,
+            "First name was extracted, should not have a warning")
+        assertFalse("Claimant last name" in warningFieldNames,
+            "Last name was extracted, should not have a warning")
+        assertFalse("Date of birth" in warningFieldNames,
+            "DOB was extracted, should not have a warning")
+        assertFalse("Case ID" in warningFieldNames,
+            "Case ID was extracted, should not have a warning")
+        assertFalse("Date of issue" in warningFieldNames,
+            "Date of issue was extracted, should not have a warning")
+        assertFalse("Authorization number" in warningFieldNames,
+            "Authorization number was extracted, should not have a warning")
+
+        // These fields SHOULD have warnings (not provided by header alone)
+        assertTrue("Appointment date" in warningFieldNames,
+            "Appointment date should have a completeness warning")
+        assertTrue("Street address" in warningFieldNames,
+            "Street address should have a completeness warning")
+        assertTrue("City" in warningFieldNames,
+            "City should have a completeness warning")
+        assertTrue("State" in warningFieldNames,
+            "State should have a completeness warning")
+        assertTrue("ZIP code" in warningFieldNames,
+            "ZIP code should have a completeness warning")
+    }
+
+    @Test
+    fun `completeness warnings do not include optional fields`() {
+        val input = textResult("")
+        val result = parser.parse(input)
+
+        val completenessWarnings = result.warnings.filter { it.stage == "completeness" }
+        val warningFieldNames = completenessWarnings.map { it.field }.toSet()
+
+        // Optional fields should NEVER appear in completeness warnings
+        assertFalse("middleName" in warningFieldNames || warningFieldNames.any { "middle" in it.lowercase() },
+            "Middle name is optional, should not generate a completeness warning")
+        assertFalse(warningFieldNames.any { "applicant" in it.lowercase() },
+            "Applicant name is optional, should not generate a completeness warning")
+        assertFalse(warningFieldNames.any { "phone" in it.lowercase() },
+            "Phone is optional, should not generate a completeness warning")
+        assertFalse(warningFieldNames.any { "federal" in it.lowercase() || "tax" in it.lowercase() },
+            "Federal Tax ID is optional, should not generate a completeness warning")
+        assertFalse(warningFieldNames.any { "vendor" in it.lowercase() },
+            "Vendor Number is optional, should not generate a completeness warning")
+        assertFalse(warningFieldNames.any { "assigned" in it.lowercase() },
+            "Assigned Code is optional, should not generate a completeness warning")
+        assertFalse(warningFieldNames.any { "dcc" in it.lowercase() },
+            "DCC Number is optional, should not generate a completeness warning")
+    }
+
+    @Test
+    fun `generateMissingFieldWarnings is callable as a static utility`() {
+        // Verify the companion object method works directly with a ReferralFields instance
+        val fields = ReferralFields(
+            firstName = "John",
+            lastName = "Doe",
+            dob = "01/01/2000",
+            caseId = "ABC-123",
+            dateOfIssue = "09/15/2024",
+            authorizationNumber = "AUTH-999",
+            appointmentDate = "September 5th, 2024",
+            streetAddress = "123 Main St",
+            city = "Anytown",
+            state = "MD",
+            zipCode = "21201",
+        )
+
+        val warnings = FieldParser.generateMissingFieldWarnings(fields)
+        assertTrue(warnings.isEmpty(),
+            "No warnings should be generated when all expected fields are present")
+    }
+
+    @Test
+    fun `generateMissingFieldWarnings detects blank strings as missing`() {
+        // Blank (whitespace-only) strings should be treated as missing
+        val fields = ReferralFields(
+            firstName = "  ",
+            lastName = "Doe",
+            dob = "01/01/2000",
+            caseId = "",
+            dateOfIssue = "09/15/2024",
+            authorizationNumber = "AUTH-999",
+            appointmentDate = "September 5th, 2024",
+            streetAddress = "123 Main St",
+            city = "Anytown",
+            state = "MD",
+            zipCode = "21201",
+        )
+
+        val warnings = FieldParser.generateMissingFieldWarnings(fields)
+        val warningFieldNames = warnings.map { it.field }.toSet()
+
+        assertEquals(2, warnings.size, "Should warn about 2 blank/empty fields")
+        assertTrue("Claimant first name" in warningFieldNames,
+            "Blank first name should generate a warning")
+        assertTrue("Case ID" in warningFieldNames,
+            "Empty Case ID should generate a warning")
+    }
+
+    @Test
+    fun `completeness warning messages follow expected format`() {
+        val fields = ReferralFields() // All null
+        val warnings = FieldParser.generateMissingFieldWarnings(fields)
+
+        // Each warning message should be "{field name} not found"
+        for (warning in warnings) {
+            assertEquals("${warning.field} not found", warning.message,
+                "Warning message should follow '{field} not found' format")
+            assertEquals("completeness", warning.stage,
+                "Warning stage should be 'completeness'")
+        }
     }
 }
