@@ -345,7 +345,7 @@ fun ResultsScreen(
                                         fontSize = 11.sp,
                                         fontFamily = FontFamily.Monospace,
                                         color = BrandOrange,
-                                        modifier = Modifier.width(64.dp),
+                                        modifier = Modifier.width(100.dp),
                                     )
                                     Text(
                                         text = "${warning.field}: ${if (isMasked) PhiMask.maskDisplay(warning.message) else warning.message}",
