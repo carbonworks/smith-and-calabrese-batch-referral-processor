@@ -1637,6 +1637,51 @@ Add a per-referral unmask/mask toggle button in the data preview section of the 
 
 ---
 
+## WP-80: Add Right Padding to Title and Description on Main Screen (B25)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Depends on:** none
+
+**Scope:**
+The title text and the description text below it on the main screen get too close to the Help and Settings icons on the right side of the header. Add right padding to the title and description text so they don't crowd the icons when the window is narrow.
+
+**Acceptance:** Title and description text have visible spacing from the icons on the right. Build compiles and all tests pass.
+
+---
+
+## WP-81: Add Open Folder Link to Log Save Feedback on Help Screen (E36)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-71
+
+**Scope:**
+When the user saves a log file via "Save Log File" on the Help screen, the success feedback text should include a clickable link to open the folder where the log was saved. The link text can be part of the save result message (e.g., "Log saved! Open folder"). Follow the same pattern used for the "Open folder" link on the Results screen after saving a spreadsheet — clickable text that calls `Desktop.getDesktop().open(parentFolder)`.
+
+**Acceptance:** After successfully saving a log file, the feedback text includes a clickable "Open folder" link that opens the containing directory in the OS file manager. Build compiles and all tests pass.
+
+---
+
+## WP-82: Add Spacing Above Save Log File Button on Help Screen (E37)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-71
+
+**Scope:**
+Add more vertical whitespace above the "Save Log File" button on the Help screen. The button currently sits too close to the content above it.
+
+**Acceptance:** Visible additional spacing above the Save Log File button. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
