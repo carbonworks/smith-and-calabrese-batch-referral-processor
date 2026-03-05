@@ -82,6 +82,7 @@ compose.desktop {
                 dirChooser = true
                 shortcut = true
                 iconFile.set(project.file("src/main/resources/icon.ico"))
+                licenseFile.set(project.file("src/main/resources/LICENSE.txt"))
             }
 
             macOS {
