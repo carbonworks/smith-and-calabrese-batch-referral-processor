@@ -619,9 +619,7 @@ private fun ReferralCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
                         onClick = onToggleMask,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .align(Alignment.CenterVertically),
+                        modifier = Modifier.size(28.dp),
                     ) {
                         Icon(
                             imageVector = if (isMasked) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
