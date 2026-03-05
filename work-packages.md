@@ -1875,6 +1875,28 @@ Currently, `perCardMaskOverrides.clear()` is called on global toggle, which caus
 
 ---
 
+## WP-93: Fix Per-Card Mask Toggles When Global Is Unmasked (B31)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-92
+
+**Scope:**
+After WP-92, the global toggle explicitly sets every card's state in `perCardMaskOverrides`. However, per-card toggles do not work when the global toggle is set to unmasked. They should — clicking a per-card eye icon when everything is unmasked should re-mask that individual card.
+
+Debug the issue in `ResultsScreen.kt`. The relevant code:
+- Line ~208: global toggle sets `isMasked = !isMasked`, then `perCardMaskOverrides[i] = isMasked` for all cards
+- Line ~408: per-card state resolved as `val cardMasked = perCardMaskOverrides[index] ?: isMasked`
+- Line ~413: per-card toggle sets `perCardMaskOverrides[index] = !cardMasked`
+
+Also check the `ReferralCard` composable and its `onToggleMask` callback — the toggle button may not be clickable or may not fire when `isMasked` is false. Trace the full path from the per-card eye icon click through to the state update to find where it breaks.
+
+**Acceptance:** When the global toggle is set to unmasked, clicking a per-card eye icon re-masks that individual card. When the global toggle is set to masked, clicking a per-card eye icon unmasks that individual card. All tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
