@@ -113,7 +113,7 @@ fun ExportSettingsScreen(
     ) {
         // Header
         Text(
-            text = "Export Columns",
+            text = "Export Settings",
             style = MaterialTheme.typography.headlineSmall,
             color = DeepInk,
         )
