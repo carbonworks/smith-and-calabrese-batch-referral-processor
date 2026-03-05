@@ -408,7 +408,8 @@ fun ResultsScreen(
                             processedReferral = result,
                             isMasked = cardMasked,
                             onToggleMask = {
-                                perCardMaskOverrides[index] = !cardMasked
+                                val currentMasked = perCardMaskOverrides[index] ?: isMasked
+                                perCardMaskOverrides[index] = !currentMasked
                             },
                         )
                     }
