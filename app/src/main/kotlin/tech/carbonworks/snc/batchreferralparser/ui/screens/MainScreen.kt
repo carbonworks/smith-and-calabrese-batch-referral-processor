@@ -231,7 +231,7 @@ fun MainScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
                 Text(
                     text = "Batch Authorization Processor",
                     style = MaterialTheme.typography.headlineSmall,
