@@ -20,12 +20,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import tech.carbonworks.snc.batchreferralparser.logging.LoggingSetup
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwCard
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
@@ -34,19 +40,28 @@ import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
 import java.awt.Desktop
+import java.awt.FileDialog
+import java.awt.Frame
+import java.io.File
 import java.net.URI
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * Help & Support screen: displays usage instructions, supported formats,
  * tips, and support contact information.
  *
  * @param onBack callback to return to the main (file selection) screen
+ * @param window optional AWT window reference used as parent for the save dialog
  */
 @Composable
 fun HelpScreen(
     onBack: () -> Unit,
+    window: java.awt.Window? = null,
 ) {
     val scrollState = rememberScrollState()
+    var logSaveMessage by remember { mutableStateOf<String?>(null) }
+    var logSaveError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -165,6 +180,41 @@ fun HelpScreen(
                                 }
                             },
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "If you encounter a problem, save a copy of the application log to attach to your email:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SoftGray,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            CwSecondaryButton(
+                                text = "Save Log File",
+                                onClick = {
+                                    saveLogFile(window) { message, error ->
+                                        logSaveMessage = message
+                                        logSaveError = error
+                                    }
+                                },
+                            )
+                            logSaveMessage?.let { msg ->
+                                Text(
+                                    text = msg,
+                                    fontSize = 13.sp,
+                                    color = BrandGreen,
+                                )
+                            }
+                            logSaveError?.let { msg ->
+                                Text(
+                                    text = msg,
+                                    fontSize = 13.sp,
+                                    color = Color(0xFFE53E3E),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -243,5 +293,88 @@ private fun HelpBullet(
             style = MaterialTheme.typography.bodyMedium,
             color = SoftGray,
         )
+    }
+}
+
+/** Date format for the default log save filename. */
+private val LOG_SAVE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+/**
+ * Open a native save-as dialog and copy the application log files to the
+ * user-chosen path. If multiple rotated log files exist, they are
+ * concatenated in chronological order (oldest first).
+ *
+ * @param window optional AWT window to parent the FileDialog
+ * @param onResult callback with (successMessage, errorMessage)
+ */
+private fun saveLogFile(
+    window: java.awt.Window?,
+    onResult: (message: String?, error: String?) -> Unit,
+) {
+    try {
+        val logDir = LoggingSetup.logDirectory()
+        if (logDir == null || !logDir.isDirectory) {
+            println("[Help] Log directory not available")
+            onResult(null, "Log directory not available")
+            return
+        }
+
+        val dateStamp = LOG_SAVE_DATE_FORMAT.format(LocalDate.now())
+        val defaultFilename = "batch-auth-processor-log-$dateStamp.txt"
+
+        // Use Documents folder as default save location
+        val documents = File(System.getProperty("user.home"), "Documents")
+        val initialDir = if (documents.isDirectory) documents else File(System.getProperty("user.home"))
+
+        val dialog = FileDialog(null as Frame?, "Save Log File", FileDialog.SAVE).apply {
+            directory = initialDir.absolutePath
+            file = defaultFilename
+        }
+
+        dialog.isVisible = true
+
+        val chosenDir = dialog.directory
+        val chosenFile = dialog.file
+
+        if (chosenDir == null || chosenFile == null) {
+            println("[Help] User cancelled log save dialog")
+            return
+        }
+
+        val outputFile = File(chosenDir, chosenFile)
+
+        // Collect log files in chronological order (oldest first).
+        // Rotated files: app.2.log (oldest), app.1.log, app.log (newest).
+        val logFiles = buildList {
+            val appLog = File(logDir, "app.log")
+            // Check for rotated files in reverse order (oldest first)
+            for (i in 2 downTo 1) {
+                val rotated = File(logDir, "app.$i.log")
+                if (rotated.exists()) add(rotated)
+            }
+            if (appLog.exists()) add(appLog)
+        }
+
+        if (logFiles.isEmpty()) {
+            println("[Help] No log files found in ${logDir.absolutePath}")
+            onResult(null, "No log files found")
+            return
+        }
+
+        // Concatenate all log files into the output file
+        outputFile.parentFile?.mkdirs()
+        outputFile.outputStream().use { out ->
+            for (logFile in logFiles) {
+                logFile.inputStream().use { input ->
+                    input.copyTo(out)
+                }
+            }
+        }
+
+        println("[Help] Log saved to ${outputFile.absolutePath} (${logFiles.size} file(s) concatenated)")
+        onResult("Log saved!", null)
+    } catch (e: Exception) {
+        println("[Help] Failed to save log: ${e::class.simpleName}: ${e.message}")
+        onResult(null, "Failed to save log: ${e.message ?: "Unknown error"}")
     }
 }

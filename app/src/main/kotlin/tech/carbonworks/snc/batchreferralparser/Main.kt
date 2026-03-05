@@ -167,6 +167,7 @@ fun App(window: java.awt.Window? = null) {
                             println("[Nav] Navigating: HELP -> back")
                             navController.popBackStack()
                         },
+                        window = window,
                     )
                 }
 
