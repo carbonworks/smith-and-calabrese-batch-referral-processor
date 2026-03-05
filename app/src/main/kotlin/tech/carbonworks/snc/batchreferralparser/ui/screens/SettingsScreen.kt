@@ -159,7 +159,7 @@ fun SettingsScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Export Columns",
+                                    text = "Export",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = DeepInk,
                                 )
