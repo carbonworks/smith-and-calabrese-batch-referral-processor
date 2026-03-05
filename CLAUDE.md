@@ -59,6 +59,7 @@ tools/                   # PDF generation toolchain for deliverable documents
 
 | Need | Location |
 |------|----------|
+| Feature list | `docs/feature-list.md` |
 | Architecture | `docs/architecture/architecture.md` |
 | Architectural review | `docs/architecture/architectural-review.md` |
 | Build plan & timeline | `docs/spec/build-plan.md` |
