@@ -597,7 +597,8 @@ class FieldParser(
     /**
      * Parse the claimant information cell.
      *
-     * Multi-line format (preferred — newlines preserved from PDF):
+     * Expects newline-separated format (TableExtractor now preserves line breaks
+     * from PDF cell structure):
      * ```
      * Claimant Information
      * FIRST MIDDLE LAST
@@ -606,14 +607,9 @@ class FieldParser(
      * 555-123-4567
      * ```
      *
-     * Single-line fallback (when newlines are collapsed):
-     * ```
-     * Claimant Information FIRST MIDDLE LAST 123 STREET CITY, ST 12345 555-123-4567
-     * ```
-     *
-     * The method first checks for newlines. If the cell has multiple non-empty
-     * lines (after removing the "Claimant Information" prefix), it parses them
-     * structurally. Otherwise, it falls back to the single-line heuristic.
+     * If only a single line remains after stripping the prefix (degenerate case),
+     * the multi-line parser handles it gracefully by classifying the line by its
+     * content pattern.
      */
     internal fun parseClaimantCell(text: String): ClaimantInfo {
         val cleaned = text.removePrefix("Claimant Information").trim()
@@ -623,13 +619,11 @@ class FieldParser(
             .map { it.trim() }
             .filter { it.isNotEmpty() }
 
-        // Multi-line path: if we have 2+ lines, use structural parsing
-        if (lines.size >= 2) {
-            return parseClaimantCellMultiLine(lines)
+        if (lines.isEmpty()) {
+            return ClaimantInfo()
         }
 
-        // Single-line fallback: original heuristic
-        return parseClaimantCellSingleLine(cleaned)
+        return parseClaimantCellMultiLine(lines)
     }
 
     /**
@@ -704,79 +698,6 @@ class FieldParser(
                     streetAddress = unclassified.subList(1, unclassified.size)
                         .joinToString(" ")
                 }
-            }
-        }
-
-        return ClaimantInfo(
-            nameFromTable = nameFromTable,
-            streetAddress = streetAddress,
-            city = city,
-            state = state,
-            zipCode = zipCode,
-            phone = phone,
-        )
-    }
-
-    /**
-     * Single-line heuristic parser for claimant cell (original logic).
-     *
-     * Used when the entire claimant cell is a single space-separated string
-     * with no newlines.
-     */
-    private fun parseClaimantCellSingleLine(remaining: String): ClaimantInfo {
-        var text = remaining
-
-        // Extract phone (at the end)
-        var phone: String? = null
-        val phoneRegex = Regex("""\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\s*$""")
-        val phoneMatch = phoneRegex.find(text)
-        if (phoneMatch != null) {
-            phone = phoneMatch.value.trim()
-            text = text.substring(0, phoneMatch.range.first).trim()
-        }
-
-        // Extract city, state, zip pattern
-        var city: String? = null
-        var state: String? = null
-        var zipCode: String? = null
-        var streetAddress: String? = null
-        var nameFromTable: String? = null
-
-        val addrRegex = Regex("""(.+?),\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)""")
-        val addrMatch = addrRegex.find(text)
-        if (addrMatch != null) {
-            val cityField = addrMatch.groupValues[1].trim()
-
-            // The city field (group 1) captures everything before the comma,
-            // including the name, street address, and city name. The actual city
-            // is the last word; everything before it is name + street address.
-            val cityWords = cityField.split(Regex("\\s+"))
-            city = cityWords.lastOrNull()
-            state = addrMatch.groupValues[2].trim()
-            zipCode = addrMatch.groupValues[3].trim()
-
-            // Everything in group 1 except the last word (city) is name + street
-            val beforeCityWords = if (cityWords.size > 1) {
-                cityWords.subList(0, cityWords.size - 1)
-            } else {
-                emptyList()
-            }
-
-            // Separate name from street address
-            if (beforeCityWords.size >= 4) {
-                // Heuristic: street addresses start with a digit
-                val streetStartIndex = beforeCityWords
-                    .indexOfFirst { it.isNotEmpty() && it[0].isDigit() }
-                if (streetStartIndex > 0) {
-                    nameFromTable = beforeCityWords
-                        .subList(0, streetStartIndex).joinToString(" ")
-                    streetAddress = beforeCityWords
-                        .subList(streetStartIndex, beforeCityWords.size).joinToString(" ")
-                } else {
-                    nameFromTable = beforeCityWords.joinToString(" ")
-                }
-            } else if (beforeCityWords.isNotEmpty()) {
-                nameFromTable = beforeCityWords.joinToString(" ")
             }
         }
 
