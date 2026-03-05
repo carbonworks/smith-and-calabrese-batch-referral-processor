@@ -1308,6 +1308,56 @@ The Save button and Export Settings button should remain right-aligned. The layo
 
 ---
 
+## WP-63: Fix Claimant Cell Parsing to Handle Multi-Line Address (B19)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/spec/field-mapping.json`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+The `parseClaimantCell()` method in FieldParser.kt assumes the claimant information cell is a single run of text (name + street + city/state/zip + phone all space-separated). In reality, the PDF cell contains multiple lines:
+
+```
+Claimant Information
+FIRST MIDDLE LAST
+123 STREET ADDRESS
+CITY, ST 12345
+555-123-4567
+```
+
+The current heuristic (line 597) tries to split name from street address by finding the first digit-starting word, but only when there are 4+ words before the city. This fails when newlines are collapsed or the word count doesn't match expectations, causing `streetAddress` to come back null even when the data is present in the document.
+
+Two fixes needed:
+
+1. **Extraction fix**: Rewrite `parseClaimantCell()` to be line-aware. Split on newlines first (after removing the "Claimant Information" prefix). If the cell has distinct lines, parse them structurally: line 1 = name, line 2 = street address, line 3 = city/state/zip, line 4 = phone. Fall back to the current single-line heuristic only if the cell is truly one line. Update or add unit tests for both multi-line and single-line cell formats.
+
+2. **Display fix**: In ResultsScreen.kt, when `streetAddress` is missing but city/state/zip exists, show the city/state/zip with the "Address" label instead of as a label-less continuation row. This provides a safety net for any remaining edge cases where street address extraction still fails.
+
+**Acceptance:** Street address is correctly extracted from multi-line claimant cells. City/state/zip displays with "Address" label when street address is missing. Existing single-line parsing still works. Unit tests cover both formats. Build compiles and all tests pass.
+
+---
+
+## WP-64: Add Processing Warnings for Missing Expected Fields (B20)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/spec/field-mapping.json`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+When the parser successfully extracts a referral but certain expected fields are null/empty, there is no warning surfaced to the user. The app silently skips missing fields in the results preview. Add processing warnings for missing-but-expected fields so the user knows data may be incomplete.
+
+1. **Define expected fields**: Identify which fields should normally be present in a valid referral (e.g., claimant name, DOB, case ID, street address, city, state, zip, appointment date). Reference `field-mapping.json` for the full field list.
+2. **Generate warnings**: After parsing, check the extracted `ReferralFields` for any expected fields that are null/empty. For each missing field, add a warning message (e.g., "Street address not found").
+3. **Display warnings**: Ensure warnings are visible in the results card for that referral. The app already has a warnings display mechanism — use or extend it.
+
+**Acceptance:** When a referral is parsed but expected fields are missing, the results card shows a warning listing the missing fields. Warnings do not appear for optional/rare fields. Build compiles and all tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
