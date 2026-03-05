@@ -162,9 +162,10 @@ fun ResultsScreen(
         mutableStateOf(PhiMask.maskingEnabled)
     }
 
-    // Per-card mask overrides. When the global toggle changes, all overrides
-    // are cleared so every card follows the new global state. Individual card
-    // toggles insert entries here that take precedence over the global flag.
+    // Per-card mask overrides. When the global toggle changes, every card is
+    // explicitly set to match the new global state — this ensures no stale
+    // overrides persist. Individual card toggles update entries here and
+    // take precedence over the global flag when present.
     val perCardMaskOverrides = remember { mutableStateMapOf<Int, Boolean>() }
 
     // Discovery cue: track whether animation should play
@@ -205,8 +206,12 @@ fun ResultsScreen(
                     onToggle = {
                         isMasked = !isMasked
                         PhiMask.maskingEnabled = isMasked
-                        // Reset all per-card overrides to follow the new global state
+                        // Explicitly set every card to match the new global state so
+                        // no stale overrides persist and every card visually agrees.
                         perCardMaskOverrides.clear()
+                        for (i in successResults.indices) {
+                            perCardMaskOverrides[i] = isMasked
+                        }
                         println("[Results] PHI masking toggled: ${if (isMasked) "masked" else "visible"}")
                         // Permanently dismiss the discovery cue on first toggle
                         if (showDiscoveryCue.value) {
