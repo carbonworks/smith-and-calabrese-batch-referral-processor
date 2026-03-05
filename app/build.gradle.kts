@@ -72,7 +72,7 @@ compose.desktop {
             packageName = "PDF Authorization Processor"
             packageVersion = "1.0.0"
             vendor = "Carbon Works"
-            description = "Batch PDF data extraction tool for MD DDS service authorization processing"
+            description = "Turns referral PDFs into organized spreadsheets, quickly and accurately."
             copyright = "Copyright 2026 Carbon Works"
 
             windows {
