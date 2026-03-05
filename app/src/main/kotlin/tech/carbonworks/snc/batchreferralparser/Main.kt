@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import java.awt.Dimension
 import java.io.File
+import tech.carbonworks.snc.batchreferralparser.logging.LoggingSetup
 import tech.carbonworks.snc.batchreferralparser.ui.screens.ExportSettingsScreen
 import tech.carbonworks.snc.batchreferralparser.ui.screens.FileProcessingState
 import tech.carbonworks.snc.batchreferralparser.ui.screens.HelpScreen
@@ -58,17 +59,20 @@ private fun loadAppIcon(): Painter? =
         null
     }
 
-fun main() = application {
-    val appIcon = loadAppIcon()
+fun main() {
+    LoggingSetup.initialize()
+    application {
+        val appIcon = loadAppIcon()
 
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "PDF Authorization Processor",
-        icon = appIcon,
-        state = rememberWindowState(width = 1100.dp, height = 700.dp),
-    ) {
-        window.minimumSize = Dimension(600, 400)
-        App(window)
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "PDF Authorization Processor",
+            icon = appIcon,
+            state = rememberWindowState(width = 1100.dp, height = 700.dp),
+        ) {
+            window.minimumSize = Dimension(600, 400)
+            App(window)
+        }
     }
 }
 
