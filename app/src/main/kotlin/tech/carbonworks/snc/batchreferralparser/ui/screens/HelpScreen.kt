@@ -183,7 +183,7 @@ fun HelpScreen(
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = "If you encounter a problem, save a copy of the application log to attach to your email:",
+                            text = "If you encounter a problem, save a copy of the application log to attach to your email. PDF data will be in the logs but personal health and other identifying information will be masked.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = SoftGray,
                         )
