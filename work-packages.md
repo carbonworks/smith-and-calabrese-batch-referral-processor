@@ -1837,6 +1837,44 @@ The MSI installer shows default WiX red disk images on the welcome and interior 
 
 ---
 
+## WP-91: Fix Vertical Alignment of Per-Card Header Row (B29)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+On the results screen, the per-card header row containing the unmask eye icon, filename text, and "Open PDF" link is vertically misaligned. All elements in this row should be vertically centered with each other.
+
+Inspect the Row composable for the card header in `ResultsScreen.kt` and ensure all children use `Modifier.align(Alignment.CenterVertically)` or that the Row itself uses `verticalAlignment = Alignment.CenterVertically`. Check the eye IconButton, the filename Text, and the "Open PDF" ClickableText for consistent alignment.
+
+**Acceptance:** The eye icon, filename, and Open PDF link are visually centered on the same horizontal line in the card header row. No vertical offset between any of the three elements.
+
+---
+
+## WP-92: Fix Per-Card Mask Toggle Interaction with Global Toggle (B30)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** none
+
+**Scope:**
+The per-card mask toggle and the screen-level global toggle have incorrect interaction behavior. The correct behavior should be:
+
+1. When the **global toggle** is clicked to unmask, ALL individual card toggles should be set to unmasked. When clicked to mask, ALL should be set to masked. The global toggle is a bulk "set all" operation.
+2. The global toggle does NOT lock any individual state. After a global toggle, individual cards can still be flipped independently.
+3. Individual card toggles work freely regardless of the current global state — they just flip that one card.
+
+Currently, `perCardMaskOverrides.clear()` is called on global toggle, which causes cards to fall back to the global `isMasked` state. The issue is that individual per-card overrides can persist across or conflict with the global toggle in ways the user doesn't expect. Review the `perCardMaskOverrides` map logic at ~line 168 and the global toggle handler at ~line 206 in `ResultsScreen.kt`. Ensure the global toggle explicitly sets every card's visible state to match, and that subsequent individual toggles still work independently.
+
+**Acceptance:** Clicking the global eye icon sets all cards to the same masked/unmasked state (visually and logically). Individual card eye icons can still be toggled independently after a global toggle. No card retains a stale override that contradicts the most recent global action.
+
+---
+
 ## Dependency Graph
 
 ```
