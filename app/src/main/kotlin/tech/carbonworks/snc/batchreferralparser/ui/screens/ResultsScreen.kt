@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
@@ -477,11 +478,18 @@ fun ResultsScreen(
             )
             Spacer(modifier = Modifier.weight(1f))
             if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
-                CwSecondaryButton(
-                    text = "Export Settings",
+                IconButton(
                     onClick = onNavigateToExportSettings,
-                )
-                Spacer(modifier = Modifier.width(12.dp))
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = "Export Settings",
+                        tint = BrandGreen,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
             }
             CwPrimaryButton(
                 text = "Export",
