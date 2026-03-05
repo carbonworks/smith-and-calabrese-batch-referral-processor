@@ -1,69 +1,89 @@
-PDF AUTHORIZATION PROCESSOR
+S&C BATCH REFERRAL PROCESSOR
 END USER LICENSE AGREEMENT (EULA)
 
-Version 1.0
+Version 2.0
 Effective Date: March 2026
 
-This End User License Agreement ("Agreement") is a legal agreement
-between Smith & Calabrese Assessments, LLC ("Licensee") and Carbon
-Works LLC ("Vendor") for the PDF Authorization Processor software
+This End User License Agreement ("Agreement") is between Smith &
+Calabrese Assessments, LLC ("Licensee") and Carbon Works LLC
+("Vendor") for the S&C Batch Referral Processor software
 application ("Software").
 
+In plain terms: Carbon Works owns the code, but you can use,
+modify, and build on it however you want, forever. Carbon Works
+can reuse the general approach for other clients but will never
+share your data or business information.
+
 By installing, copying, or otherwise using the Software, Licensee
-agrees to be bound by the terms of this Agreement. If Licensee does
-not agree to these terms, do not install or use the Software.
+agrees to be bound by the terms of this Agreement. This Agreement
+is consistent with and subject to the Services Agreement between
+the parties dated February 2026, which governs the overall
+engagement.
 
 
 LICENSE GRANT
 
-Vendor grants Licensee a non-exclusive, non-transferable license to
-use the Software for authorized business purposes, subject to the
-following terms:
+Vendor grants Licensee a perpetual, irrevocable, worldwide,
+royalty-free, non-exclusive license to use the Software, subject
+to the following terms:
 
 Licensee MAY:
-  - Install and use the Software on computers owned or controlled
-    by Licensee's organization.
-  - Create reasonable backup copies of the Software for archival
-    purposes.
+  - Use, copy, modify, and create derivative works from the
+    Software and its source code for any purpose, without
+    limitation.
+  - Install the Software on any computers owned or controlled by
+    Licensee.
   - Allow authorized employees and contractors of Licensee to use
     the Software in the course of their duties.
+  - Create backup copies of the Software.
 
-Licensee MAY NOT:
-  - Distribute, sublicense, lease, rent, or lend the Software to
-    any third party.
-  - Reverse engineer, decompile, disassemble, or otherwise attempt
-    to derive the source code of the Software.
-  - Remove, alter, or obscure any proprietary notices, labels, or
-    marks on the Software.
-  - Use the Software for any purpose other than Licensee's
-    internal business operations.
+
+INTELLECTUAL PROPERTY
+
+The Software, including all source code, object code, algorithms,
+designs, documentation, methodologies, and associated intellectual
+property, is and shall remain the property of Carbon Works LLC.
+This Agreement does not transfer ownership rights to Licensee.
+
+Licensee is granted the perpetual, irrevocable, worldwide,
+royalty-free, non-exclusive license described in the License Grant
+section above.
+
+Carbon Works may reuse the Software, including any code,
+techniques, and general methodologies, for other clients or
+purposes without limitation, provided that Licensee's confidential
+information is not disclosed.
+
+Licensee retains all right, title, and interest in any data,
+documents, or other materials provided to Carbon Works or processed
+by the Software, including all input documents and output files.
 
 
 PROTECTED HEALTH INFORMATION (PHI) PROCESSING
 
 Licensee acknowledges that the Software is designed to process
-Protected Health Information (PHI) as defined by the Health Insurance
-Portability and Accountability Act of 1996 (HIPAA), including data
-from Social Security Administration (SSA) and Disability
-Determination Services (DDS) consultative examination referral
-documents.
+Protected Health Information (PHI) as defined by the Health
+Insurance Portability and Accountability Act of 1996 (HIPAA),
+including data from Social Security Administration (SSA) and
+Disability Determination Services (DDS) consultative examination
+referral documents.
 
 Licensee agrees to:
   - Comply with all applicable federal, state, and local laws and
     regulations governing the handling of PHI, including HIPAA and
     the HITECH Act.
-  - Implement and maintain appropriate administrative, physical, and
-    technical safeguards to protect the confidentiality, integrity,
-    and availability of PHI processed by the Software.
+  - Implement and maintain appropriate administrative, physical,
+    and technical safeguards to protect the confidentiality,
+    integrity, and availability of PHI processed by the Software.
   - Restrict access to the Software and any data it processes to
     authorized personnel who have a legitimate need to access such
     information.
   - Promptly notify Vendor of any breach or suspected breach of
     unsecured PHI that involves the Software.
 
-Vendor does not store, transmit, or have access to any PHI processed
-by the Software. All data processing occurs locally on Licensee's
-computers.
+Vendor does not store, transmit, or have access to any PHI
+processed by the Software. All data processing occurs locally on
+Licensee's computers.
 
 
 DATA VALIDATION
@@ -75,8 +95,8 @@ acknowledges and agrees that:
   - Automated data extraction is inherently imperfect and may
     produce incomplete, inaccurate, or incorrectly formatted
     results.
-  - Licensee is solely responsible for reviewing and validating all
-    extracted data before relying on it for clinical, legal,
+  - Licensee is solely responsible for reviewing and validating
+    all extracted data before relying on it for clinical, legal,
     administrative, or any other decisions.
   - Vendor makes no representations regarding the accuracy or
     completeness of extracted data.
@@ -118,18 +138,6 @@ TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:
     FROM VENDOR'S GROSS NEGLIGENCE OR WILLFUL MISCONDUCT.
 
 
-INTELLECTUAL PROPERTY
-
-The Software, including all source code, object code, algorithms,
-designs, documentation, and associated intellectual property, is
-and shall remain the exclusive property of Carbon Works LLC.
-This Agreement does not transfer any ownership rights to Licensee.
-
-Licensee retains all rights, title, and interest in any data owned
-by Licensee that is processed by the Software, including all input
-documents and output files.
-
-
 OPEN SOURCE COMPONENTS
 
 The Software incorporates open-source software components that are
@@ -145,28 +153,28 @@ their licenses include:
     with the Classpath Exception
 
 The terms of these open-source licenses are not superseded,
-modified, or restricted by this Agreement. Copies of the applicable
-open-source licenses are available upon request. In the event of a
-conflict between this Agreement and any open-source license, the
-open-source license shall govern with respect to that component.
+modified, or restricted by this Agreement. Copies of the
+applicable open-source licenses are available upon request. In the
+event of a conflict between this Agreement and any open-source
+license, the open-source license shall govern with respect to that
+component.
 
 
 TERMINATION
 
-This license is effective until terminated. Licensee's rights under
-this Agreement will terminate automatically and without notice if
-Licensee fails to comply with any material term of this Agreement.
+The license granted under this Agreement is irrevocable and shall
+survive any termination of the Services Agreement or this
+Agreement.
 
-Upon termination, Licensee shall:
-  - Cease all use of the Software.
-  - Destroy or return all copies of the Software in Licensee's
-    possession or control.
-  - Certify in writing to Vendor that such destruction or return
-    has been completed.
+Vendor's warranty and support obligations, as described in the
+Services Agreement, are limited to the warranty period specified
+therein. After expiration of the warranty period, Vendor has no
+further obligation to provide support, maintenance, or updates
+unless separately agreed to in writing.
 
-Termination of this Agreement shall not relieve Licensee of any
-obligations arising prior to termination, including obligations
-related to PHI processing and data security.
+Termination of warranty or support obligations shall not affect
+Licensee's perpetual license to use, copy, modify, and create
+derivative works from the Software.
 
 
 GOVERNING LAW
@@ -177,14 +185,6 @@ conflict of law provisions. Any disputes arising under or in
 connection with this Agreement shall be subject to the exclusive
 jurisdiction of the state and federal courts located in the State
 of Maryland.
-
-
-ENTIRE AGREEMENT
-
-This Agreement constitutes the entire agreement between the parties
-regarding the Software and supersedes all prior or contemporaneous
-understandings, whether written or oral. This Agreement may only be
-modified by a written instrument signed by both parties.
 
 
 Copyright 2026 Carbon Works LLC. All rights reserved.
