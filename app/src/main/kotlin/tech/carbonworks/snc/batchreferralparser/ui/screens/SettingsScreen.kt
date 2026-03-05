@@ -129,6 +129,7 @@ fun SettingsScreen(
                             Switch(
                                 checked = showByDefault,
                                 onCheckedChange = { checked ->
+                                    println("[Settings] PHI show-by-default changed to: $checked")
                                     showByDefault = checked
                                     PhiPreferences.setShowByDefault(checked)
                                     // Dismiss the discovery cue permanently when the setting is changed

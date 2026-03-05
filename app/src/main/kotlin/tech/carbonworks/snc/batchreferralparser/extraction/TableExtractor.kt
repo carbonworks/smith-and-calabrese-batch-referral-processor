@@ -51,10 +51,12 @@ class TableExtractor {
      *         or if the file cannot be read
      */
     fun extract(file: File): List<ExtractedTable> {
+        println("[TableExtractor] Opening: ${file.name}")
         val document: PDDocument
         try {
             document = Loader.loadPDF(file)
         } catch (e: Exception) {
+            println("[TableExtractor] Failed to load PDF: ${file.name} — ${e.message}")
             return emptyList()
         }
 
@@ -64,11 +66,13 @@ class TableExtractor {
                 extractor.use { oe ->
                     val results = mutableListOf<ExtractedTable>()
                     val pageCount = doc.numberOfPages
+                    println("[TableExtractor] Scanning $pageCount page(s) for tables: ${file.name}")
 
                     for (pageIndex in 1..pageCount) {
                         val page: Page = try {
                             oe.extract(pageIndex)
                         } catch (e: Exception) {
+                            println("[TableExtractor] Failed to extract page $pageIndex: ${e.message}")
                             continue
                         }
 
@@ -77,13 +81,19 @@ class TableExtractor {
                             val extracted = convertTable(table, pageIndex)
                             if (extracted.cells.isNotEmpty()) {
                                 results.add(extracted)
+                                println("[TableExtractor] Page $pageIndex: table found — ${extracted.rowCount} row(s), ${extracted.columnCount} col(s), ${extracted.cells.size} cell(s)")
                             }
+                        }
+                        if (tables.isEmpty()) {
+                            println("[TableExtractor] Page $pageIndex: no tables found")
                         }
                     }
 
+                    println("[TableExtractor] Total: ${results.size} table(s) from ${file.name}")
                     results
                 }
             } catch (e: Exception) {
+                println("[TableExtractor] Extraction error: ${file.name} — ${e.message}")
                 emptyList()
             }
         }
@@ -107,7 +117,9 @@ class TableExtractor {
         }
 
         if (latticeTables.isNotEmpty() && latticeTables.any { it.rowCount > 0 }) {
-            return latticeTables.filter { it.rowCount > 0 }
+            val filtered = latticeTables.filter { it.rowCount > 0 }
+            println("[TableExtractor] Lattice strategy succeeded: ${filtered.size} table(s)")
+            return filtered
         }
 
         // Step 2: Fall back to stream extraction only if the page has ruling lines.
@@ -122,10 +134,14 @@ class TableExtractor {
             return emptyList()
         }
 
+        println("[TableExtractor] Lattice found nothing, falling back to stream strategy")
         return try {
             val streamTables = streamExtractor.extract(page)
-            streamTables.filter { it.rowCount > 0 }
+            val filtered = streamTables.filter { it.rowCount > 0 }
+            println("[TableExtractor] Stream strategy: ${filtered.size} table(s)")
+            filtered
         } catch (e: Exception) {
+            println("[TableExtractor] Stream strategy failed: ${e.message}")
             emptyList()
         }
     }

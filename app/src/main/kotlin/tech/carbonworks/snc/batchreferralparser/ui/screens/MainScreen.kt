@@ -160,6 +160,7 @@ fun MainScreen(
                             it.extension.equals("pdf", ignoreCase = true)
                         }
 
+                        println("[FileSelection] Drag-drop: ${droppedFiles.size} file(s) dropped, ${pdfFiles.size} PDF(s) accepted")
                         addFilesWithLimit(filesRef.value, pdfFiles, onFilesChangedRef.value) { msg ->
                             limitMessage = msg
                         }
@@ -171,6 +172,7 @@ fun MainScreen(
                     }
                     dtde.dropComplete(true)
                 } catch (e: Exception) {
+                    println("[FileSelection] Drag-drop error: ${e.message}")
                     dtde.dropComplete(false)
                 }
             }
@@ -328,6 +330,7 @@ fun MainScreen(
                 CwSecondaryButton(
                     text = "Clear All",
                     onClick = {
+                        println("[FileSelection] Cleared all ${files.size} file(s)")
                         onFilesChanged(emptyList())
                         limitMessage = null
                     },
@@ -446,15 +449,19 @@ private fun openFilePicker(
         }
     }
 
+    println("[FileSelection] File picker opened")
     val result = chooser.showOpenDialog(null)
     if (result == JFileChooser.APPROVE_OPTION) {
         val selected = chooser.selectedFiles.toList()
+        println("[FileSelection] File picker: ${selected.size} file(s) selected")
         addFilesWithLimit(currentFiles, selected, onFilesChanged, onLimitMessage)
 
         // Remember the directory for next time
         selected.firstOrNull()?.parentFile?.let { dir ->
             saveLastDirectory(dir)
         }
+    } else {
+        println("[FileSelection] File picker cancelled")
     }
 }
 
@@ -469,9 +476,11 @@ private fun addFilesWithLimit(
 ) {
     val existingPaths = currentFiles.map { it.absolutePath }.toSet()
     val uniqueNew = newFiles.filter { it.absolutePath !in existingPaths }
+    val duplicateCount = newFiles.size - uniqueNew.size
 
     val available = MAX_FILES - currentFiles.size
     if (available <= 0) {
+        println("[FileSelection] Add rejected: limit of $MAX_FILES already reached")
         onLimitMessage("Maximum of $MAX_FILES files reached. Remove files before adding more.")
         return
     }
@@ -481,11 +490,17 @@ private fun addFilesWithLimit(
 
     if (uniqueNew.size > available) {
         val skipped = uniqueNew.size - available
+        println("[FileSelection] Added ${toAdd.size} file(s), skipped $skipped (limit: $MAX_FILES), $duplicateCount duplicate(s) ignored")
         onLimitMessage(
             "Added ${toAdd.size} file${if (toAdd.size != 1) "s" else ""}. " +
                 "$skipped file${if (skipped != 1) "s" else ""} skipped (limit: $MAX_FILES)."
         )
     } else {
+        if (duplicateCount > 0) {
+            println("[FileSelection] Added ${toAdd.size} file(s), $duplicateCount duplicate(s) ignored — total: ${merged.size}")
+        } else {
+            println("[FileSelection] Added ${toAdd.size} file(s) — total: ${merged.size}")
+        }
         onLimitMessage(null)
     }
 
