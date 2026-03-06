@@ -106,7 +106,7 @@ fun HelpScreen(
                         )
                         HelpStep(
                             number = "2",
-                            text = "Click \"Process\" to extract data from all selected files.",
+                            text = "Click the Process button to extract data from all selected files.",
                         )
                         HelpStep(
                             number = "3",
@@ -143,7 +143,7 @@ fun HelpScreen(
                             text = "If fields are missing, check the warnings panel on the results screen.",
                         )
                         HelpBullet(
-                            text = "The file picker remembers the last directory used.",
+                            text = "Both the file picker and the export save dialog remember the last directory used.",
                         )
                         HelpBullet(
                             text = "Drag and drop multiple files at once for faster batch loading.",
@@ -152,7 +152,7 @@ fun HelpScreen(
                             text = "Extracted data is masked by default for privacy. Use the eye toggle on the results screen to reveal values, or change the default in Settings.",
                         )
                         HelpBullet(
-                            text = "Triple-click on any field value in the results to select the entire value for copying.",
+                            text = "Triple-click on any field value in the results to select it for copying. Unmask the card first to see actual values.",
                         )
                     }
                 }
