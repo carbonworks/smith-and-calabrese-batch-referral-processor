@@ -337,8 +337,11 @@ private val OPEN_SOURCE_COMPONENTS = listOf(
     OpenSourceComponent("Apache PDFBox", "Apache License 2.0"),
     OpenSourceComponent("Tabula-java", "MIT License"),
     OpenSourceComponent("Apache POI", "Apache License 2.0"),
-    OpenSourceComponent("Tess4J", "Apache License 2.0"),
     OpenSourceComponent("Compose Multiplatform", "Apache License 2.0"),
+    OpenSourceComponent("Kotlin", "Apache License 2.0"),
+    OpenSourceComponent("kotlinx-serialization", "Apache License 2.0"),
+    OpenSourceComponent("Navigation Compose", "Apache License 2.0"),
+    OpenSourceComponent("Reorderable", "Apache License 2.0"),
     OpenSourceComponent("OpenJDK", "GPL v2 with Classpath Exception"),
 )
 
@@ -360,7 +363,7 @@ private fun LicensingCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Licensed to Smith & Calabrese Assessments, LLC under a perpetual, royalty-free license. See the full EULA bundled with the application for details.",
+                text = "Licensed under the Apache License, Version 2.0.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = SoftGray,
             )
