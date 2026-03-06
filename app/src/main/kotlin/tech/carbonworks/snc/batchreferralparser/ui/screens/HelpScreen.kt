@@ -17,6 +17,7 @@ import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +38,7 @@ import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.SectionHeader
 import tech.carbonworks.snc.batchreferralparser.ui.theme.BrandGreen
 import tech.carbonworks.snc.batchreferralparser.ui.theme.DeepInk
+import tech.carbonworks.snc.batchreferralparser.ui.theme.LightGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.SoftGray
 import tech.carbonworks.snc.batchreferralparser.ui.theme.WarmWhite
 import java.awt.Desktop
@@ -240,6 +242,9 @@ fun HelpScreen(
                         }
                     }
                 }
+
+                // Licensing section
+                LicensingCard()
             }
 
             VerticalScrollbar(
@@ -316,6 +321,113 @@ private fun HelpBullet(
             style = MaterialTheme.typography.bodyMedium,
             color = SoftGray,
         )
+    }
+}
+
+/**
+ * Open-source component entry for the licensing section.
+ */
+private data class OpenSourceComponent(
+    val name: String,
+    val license: String,
+)
+
+/** Third-party open-source components bundled with the application. */
+private val OPEN_SOURCE_COMPONENTS = listOf(
+    OpenSourceComponent("Apache PDFBox", "Apache License 2.0"),
+    OpenSourceComponent("Tabula-java", "MIT License"),
+    OpenSourceComponent("Apache POI", "Apache License 2.0"),
+    OpenSourceComponent("Tess4J", "Apache License 2.0"),
+    OpenSourceComponent("Compose Multiplatform", "Apache License 2.0"),
+    OpenSourceComponent("OpenJDK", "GPL v2 with Classpath Exception"),
+)
+
+/**
+ * Licensing and attribution card displaying the application license,
+ * copyright notice, and a collapsible list of open-source components.
+ */
+@Composable
+private fun LicensingCard() {
+    var componentsExpanded by remember { mutableStateOf(false) }
+
+    CwCard {
+        Column(modifier = Modifier.padding(16.dp)) {
+            SectionHeader(text = "Licensing")
+            Text(
+                text = "Copyright 2026 Carbon Works LLC. All rights reserved.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = SoftGray,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Licensed to Smith & Calabrese Assessments, LLC under a perpetual, royalty-free license. See the full EULA bundled with the application for details.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = SoftGray,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = LightGray)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Collapsible open-source components list
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { componentsExpanded = !componentsExpanded },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Open-Source Components",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = DeepInk,
+                )
+                Text(
+                    text = if (componentsExpanded) "Collapse" else "Expand",
+                    fontSize = 13.sp,
+                    color = DeepInk,
+                )
+            }
+            if (componentsExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "This software incorporates the following open-source components:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SoftGray,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                for (component in OPEN_SOURCE_COMPONENTS) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 3.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        Text(
+                            text = "\u2022",
+                            fontSize = 14.sp,
+                            color = SoftGray,
+                            modifier = Modifier.width(16.dp),
+                        )
+                        Text(
+                            text = component.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = DeepInk,
+                        )
+                        Text(
+                            text = " \u2014 ",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SoftGray,
+                        )
+                        Text(
+                            text = component.license,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SoftGray,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
