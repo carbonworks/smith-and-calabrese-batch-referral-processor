@@ -80,7 +80,7 @@ fun HelpScreen(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Learn how to use the batch authorization processor",
+            text = "Learn how to use the Batch Authorization Processor",
             style = MaterialTheme.typography.bodyMedium,
             color = SoftGray,
         )
@@ -110,11 +110,11 @@ fun HelpScreen(
                         )
                         HelpStep(
                             number = "3",
-                            text = "Review the extracted data in the preview table.",
+                            text = "Review the extracted data in the results cards.",
                         )
                         HelpStep(
                             number = "4",
-                            text = "Click \"Save to XLSX\" to export the results as a spreadsheet.",
+                            text = "Click \"Export\" to export the results as a spreadsheet.",
                         )
                     }
                 }
@@ -124,7 +124,7 @@ fun HelpScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         SectionHeader(text = "Supported Formats")
                         HelpBullet(
-                            text = "The tool processes Maryland DDS service authorization PDFs.",
+                            text = "The tool processes Maryland DDS authorization PDFs.",
                         )
                         HelpBullet(
                             text = "Up to 50 PDFs can be processed in a single batch.",
@@ -140,7 +140,7 @@ fun HelpScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         SectionHeader(text = "Tips")
                         HelpBullet(
-                            text = "If fields are missing, check the warnings panel on the results screen.",
+                            text = "If fields are missing, check the Warnings section on the results screen.",
                         )
                         HelpBullet(
                             text = "The file picker remembers the last directory used.",
@@ -185,7 +185,7 @@ fun HelpScreen(
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = "If you encounter a problem, save a copy of the application log to attach to your email. PDF data will be in the logs but personal health and other identifying information will be masked.",
+                            text = "If you encounter a problem, save a copy of the application log to attach to your email. Processing status and error information are logged, but extracted field values are never written to the log file.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = SoftGray,
                         )
@@ -270,7 +270,7 @@ fun HelpScreen(
                             text = "Always review all extracted data before relying on it for scheduling or clinical purposes.",
                         )
                         HelpBullet(
-                            text = "Check the warnings panel on the results screen for fields that could not be confidently extracted.",
+                            text = "Check the Warnings section on the results screen for fields that could not be confidently extracted.",
                         )
                     }
                 }
@@ -389,7 +389,7 @@ private fun LicensingCard() {
         Column(modifier = Modifier.padding(16.dp)) {
             SectionHeader(text = "Licensing")
             Text(
-                text = "Copyright 2026 Carbon Works LLC. All rights reserved.",
+                text = "Copyright 2026 Carbon Works LLC.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = SoftGray,
             )
