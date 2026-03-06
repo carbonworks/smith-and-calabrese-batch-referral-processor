@@ -106,7 +106,7 @@ fun HelpScreen(
                         )
                         HelpStep(
                             number = "2",
-                            text = "Click \"Process\" to extract data from all selected files.",
+                            text = "Click \"Process\" to extract data from all selected files. Each file shows a green checkmark on success or a red X if it cannot be processed. One problem file will not stop the rest of the batch.",
                         )
                         HelpStep(
                             number = "3",
@@ -114,7 +114,11 @@ fun HelpScreen(
                         )
                         HelpStep(
                             number = "4",
-                            text = "Click \"Save to XLSX\" to export the results as a spreadsheet.",
+                            text = "Click \"Export\" to save the results as a spreadsheet.",
+                        )
+                        HelpStep(
+                            number = "5",
+                            text = "Click \"Start Over\" on the results screen to return to file selection for a new batch.",
                         )
                     }
                 }
@@ -143,16 +147,56 @@ fun HelpScreen(
                             text = "If fields are missing, check the warnings panel on the results screen.",
                         )
                         HelpBullet(
+                            text = "Each result card shows an orange banner listing any fields that could not be extracted and may need manual review.",
+                        )
+                        HelpBullet(
                             text = "The file picker remembers the last directory used.",
                         )
                         HelpBullet(
                             text = "Drag and drop multiple files at once for faster batch loading.",
                         )
                         HelpBullet(
+                            text = "Files added more than once are automatically skipped.",
+                        )
+                        HelpBullet(
                             text = "Extracted data is masked by default for privacy. Use the eye toggle on the results screen to reveal values, or change the default in Settings.",
                         )
                         HelpBullet(
+                            text = "Each result card has its own eye icon to unmask just that card without revealing all others.",
+                        )
+                        HelpBullet(
+                            text = "Click \"Open PDF\" on any result card to view the original source document.",
+                        )
+                        HelpBullet(
+                            text = "After exporting, click the filename to open the spreadsheet or \"Open folder\" to see it in your file manager.",
+                        )
+                        HelpBullet(
+                            text = "The gear icon on the main screen opens Settings, where you can change the default privacy masking behavior.",
+                        )
+                        HelpBullet(
                             text = "Triple-click on any field value in the results to select the entire value for copying.",
+                        )
+                    }
+                }
+
+                // Export Settings section
+                CwCard {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        SectionHeader(text = "Export Settings")
+                        HelpBullet(
+                            text = "Click the gear icon next to the Export button on the results screen to open Export Settings.",
+                        )
+                        HelpBullet(
+                            text = "Use column visibility toggles to choose which fields appear in the spreadsheet.",
+                        )
+                        HelpBullet(
+                            text = "Drag columns to reorder them in the exported spreadsheet.",
+                        )
+                        HelpBullet(
+                            text = "Use \"All Fields\" or \"Essential Only\" presets to quickly configure column visibility.",
+                        )
+                        HelpBullet(
+                            text = "Enable \"Place each service on its own row\" to expand multi-service referrals into separate rows.",
                         )
                     }
                 }
