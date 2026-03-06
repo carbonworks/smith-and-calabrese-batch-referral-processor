@@ -2046,6 +2046,90 @@ Keep the tone informational and concise — operational reminders, not legal boi
 
 ---
 
+## WP-101: Fix Clipped Ripple on Open-Source Components Expand Control (B32)
+
+**Status:** done
+**Owns:** none
+**Reads:** `CLAUDE.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** nothing
+
+**Scope:**
+The "Open-Source Components" expand/collapse row in the Licensing card on the Help screen has a square ripple effect because the parent `CwCard` clips its children. Add a rounded corner clip to the clickable row so the ripple follows the rounded shape instead of being cut off square.
+
+**Acceptance:** The ripple on the expand/collapse row has rounded corners matching the card shape. All tests pass.
+
+---
+
+## WP-102: Fix Inaccurate Text in Help Screen (B33)
+
+**Status:** done
+**Owns:** none
+**Reads:** `CLAUDE.md`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** nothing
+
+**Scope:**
+Fix all factually inaccurate text in the Help screen. These are critical and major issues where the Help text does not match the actual UI:
+
+1. Change `Click "Save to XLSX"` → `Click "Export"` (the button is labeled "Export", not "Save to XLSX")
+2. Change `preview table` → `results cards` (the results screen uses cards, not a table)
+3. Change `warnings panel` → `warnings summary` or `Warnings section` in all occurrences (there is no panel; there is a collapsible Warnings card and per-card orange banners)
+4. Change the log masking claim `PDF data will be in the logs but personal health and other identifying information will be masked` → `Processing status and error information are logged, but extracted field values are never written to the log file.` (logs avoid PHI by design but do not actively mask)
+5. Change `Maryland DDS service authorization PDFs` → `Maryland DDS authorization PDFs` (consistent with app terminology)
+6. Remove `All rights reserved.` from the copyright line to match LICENSE.txt
+7. Capitalize `batch authorization processor` → `Batch Authorization Processor` in subtitle to match app title
+
+**Acceptance:** All text in the Help screen accurately matches the actual UI labels, features, and behavior. All tests pass.
+
+---
+
+## WP-103: Add Missing Feature Documentation to Help Screen (E43)
+
+**Status:** done
+**Owns:** none
+**Reads:** `CLAUDE.md`, `docs/demo/walkthrough.md`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ExportSettingsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/SettingsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-102
+
+**Scope:**
+Several major app features are not documented in the Help screen. Add coverage for:
+
+1. **Export Settings**: Add a section or bullets covering the gear icon on the results screen, column visibility toggles, drag-and-drop reordering, "All Fields" and "Essential Only" presets, "Place each service on its own row" option
+2. **Settings screen**: Mention the gear icon on the main screen and the "Show extracted data by default" privacy toggle
+3. **Per-card masking**: Add a bullet noting each card has its own eye icon to unmask individually without revealing all others
+4. **Open PDF link**: Add a tip that each result card has an "Open PDF" link to view the source document
+5. **Post-export links**: After exporting, click the filename to open the file or "Open folder" to see it in the file manager
+6. **Start Over**: Click "Start Over" on the results screen to return to file selection for a new batch
+7. **Processing screen**: Brief note between the "Process" and "Review" steps — green checkmarks indicate success, red X marks indicate errors
+8. **Per-card missing field banners**: Each card shows an orange banner listing fields that need manual review
+9. **Duplicate file skipping**: Files added more than once are automatically skipped
+
+Use the existing Help screen style (CwCard, SectionHeader, HelpBullet, Tips sections). Keep additions concise — brief bullets, not paragraphs. Reference the walkthrough (`docs/demo/walkthrough.md`) for accurate descriptions.
+
+**Acceptance:** All major app features are covered in the Help screen. New content follows existing visual style. All tests pass.
+
+---
+
+## WP-104: Minor Wording and Consistency Fixes in Help Screen (B34)
+
+**Status:** done
+**Owns:** none
+**Reads:** `CLAUDE.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-103
+
+**Scope:**
+Minor wording improvements for accuracy and completeness:
+
+1. Change `Click "Process"` to `Click the Process button` (actual label is dynamic: "Process N File(s)")
+2. Update triple-click tip to note that data must be unmasked first to select real values
+3. Add note that both the file picker and export save dialog remember the last directory used
+
+**Acceptance:** All wording is accurate and consistent. All tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
