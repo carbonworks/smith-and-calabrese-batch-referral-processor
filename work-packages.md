@@ -1916,6 +1916,31 @@ The extraction pipeline has `dump` methods (e.g., `dumpExtractionContext`) that 
 
 ---
 
+## WP-95: Remove All PDF Content Logging from Extraction Pipeline (S3)
+
+**Status:** done
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/PdfTextExtractor.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/TableExtractor.kt`
+**Reads:** `CLAUDE.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ProcessingScreen.kt`
+**Depends on:** WP-94
+
+**Scope:**
+Remove all capability to log PDF content from the extraction pipeline. The dump methods and any println that outputs text extracted from PDFs should be deleted — not gated, not masked, removed entirely. PDF content should never reach the log file.
+
+1. Delete `dumpPageTexts()` and `dumpPageTextsDetailed()` methods from `FieldParser.kt` and all call sites (including in `ProcessingScreen.kt`)
+2. Delete any associated test coverage for the dump methods
+3. Remove the `TARGET_PAGES` constant added in WP-94 (no longer needed)
+4. Audit remaining `println` statements in the three extraction files — keep only:
+   - Structural metadata: page counts, block counts, table dimensions, strategy names
+   - Parsing outcomes: field counts, warning counts, stage results
+   - Error class names (e.g., `IOException`, `InvalidPasswordException`) — no `e.message` content
+5. Remove or replace any `println` that outputs file names/paths (they may contain patient names) — use file index or a generic label instead
+6. Remove or replace any `println` that outputs `e.message` from PDF library exceptions (messages may embed PDF content) — log `e::class.simpleName` only
+
+**Acceptance:** No `println` or log statement in the extraction pipeline outputs any text content from PDFs. No dump methods exist. File names are not logged. Exception messages are not logged (class names only). Structural metadata and parsing outcome counts are still logged. All remaining tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
