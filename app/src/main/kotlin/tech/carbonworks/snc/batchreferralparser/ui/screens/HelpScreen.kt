@@ -106,7 +106,7 @@ fun HelpScreen(
                         )
                         HelpStep(
                             number = "2",
-                            text = "Click \"Process\" to extract data from all selected files. Each file shows a green checkmark on success or a red X if it cannot be processed. One problem file will not stop the rest of the batch.",
+                            text = "Click the Process button to extract data from all selected files. Each file shows a green checkmark on success or a red X if it cannot be processed. One problem file will not stop the rest of the batch.",
                         )
                         HelpStep(
                             number = "3",
@@ -150,7 +150,7 @@ fun HelpScreen(
                             text = "Each result card shows an orange banner listing any fields that could not be extracted and may need manual review.",
                         )
                         HelpBullet(
-                            text = "The file picker remembers the last directory used.",
+                            text = "Both the file picker and the export save dialog remember the last directory used.",
                         )
                         HelpBullet(
                             text = "Drag and drop multiple files at once for faster batch loading.",
@@ -174,7 +174,7 @@ fun HelpScreen(
                             text = "The gear icon on the main screen opens Settings, where you can change the default privacy masking behavior.",
                         )
                         HelpBullet(
-                            text = "Triple-click on any field value in the results to select the entire value for copying.",
+                            text = "Triple-click on any field value in the results to select it for copying. Unmask the card first to see actual values.",
                         )
                     }
                 }
