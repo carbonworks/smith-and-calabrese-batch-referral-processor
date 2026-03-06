@@ -1941,6 +1941,111 @@ Remove all capability to log PDF content from the extraction pipeline. The dump 
 
 ---
 
+## WP-96: Replace EULA with Apache 2.0 License (L1)
+
+**Status:** done
+**Owns:** `app/src/main/resources/LICENSE.txt`
+**Reads:** `CLAUDE.md`
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+Replace the custom EULA in `app/src/main/resources/LICENSE.txt` with the standard Apache License 2.0 text. Add `Copyright 2026 Carbon Works LLC` as the copyright header above the license body. Remove all client-specific, PHI, data validation, and liability language — those belong in the services contract, not the software license.
+
+Use the canonical Apache 2.0 text from https://www.apache.org/licenses/LICENSE-2.0.txt.
+
+**Acceptance:** `LICENSE.txt` contains the standard Apache 2.0 license text with `Copyright 2026 Carbon Works LLC` header. No client name, PHI clauses, or EULA language remains. File is well-formatted plain text.
+
+---
+
+## WP-97: Add NOTICE File for Third-Party Attributions (L2)
+
+**Status:** done
+**Owns:** `app/src/main/resources/NOTICE.txt`
+**Reads:** `app/build.gradle.kts` (dependency list), `CLAUDE.md`
+**Touches:** none
+**Depends on:** WP-96
+
+**Scope:**
+Create a `NOTICE.txt` file following the Apache convention for third-party attributions. List all bundled dependencies and their licenses:
+
+- Apache PDFBox 3.0.4 — Apache License 2.0
+- Tabula-java 1.0.5 — MIT License
+- Apache POI 5.3.0 — Apache License 2.0
+- Compose Multiplatform 1.7.3 — Apache License 2.0
+- Kotlin 2.1.10 — Apache License 2.0
+- kotlinx-serialization 1.7.3 — Apache License 2.0
+- Navigation Compose 2.8.0-alpha10 — Apache License 2.0
+- Reorderable 3.0.0 — Apache License 2.0
+- OpenJDK 17 (bundled JRE) — GPL v2 with Classpath Exception
+
+Place at `app/src/main/resources/NOTICE.txt`.
+
+**Acceptance:** `NOTICE.txt` lists all runtime dependencies with their names, versions, and license types. Format is clean, scannable plain text.
+
+---
+
+## WP-98: Remove Installer License Screen (L3)
+
+**Status:** done
+**Owns:** none
+**Reads:** `CLAUDE.md`
+**Touches:** `app/build.gradle.kts`
+**Depends on:** WP-96
+
+**Scope:**
+Remove the click-through license agreement dialog from the MSI installer. Apache 2.0 does not require click-through acceptance, and the client relationship is governed by the services contract.
+
+1. Remove the `licenseFile.set(...)` line from the `windows {}` block in `app/build.gradle.kts`
+
+**Acceptance:** Building the MSI with `./gradlew :app:packageMsi` succeeds. The installer no longer shows a license acceptance screen during installation.
+
+---
+
+## WP-99: Add Licensing and Attribution Info to Help Screen (L4)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/resources/LICENSE.txt`, `app/src/main/resources/NOTICE.txt`, `CLAUDE.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-96, WP-97
+
+**Scope:**
+Add a "Licensing" or "About" section to the Help screen that surfaces:
+
+1. A brief notice: "Licensed under the Apache License, Version 2.0"
+2. Copyright line: "Copyright 2026 Carbon Works LLC"
+3. A collapsible or scrollable section listing open-source components from `NOTICE.txt`
+
+Keep it concise — this is informational, not a legal gate. Follow the existing Help screen's visual style (use `SectionHeader`, `CwCard`, etc.).
+
+**Acceptance:** Help screen shows Apache 2.0 license notice, copyright, and third-party attributions. Styling matches existing Help screen sections. All tests pass.
+
+---
+
+## WP-100: Add PHI and Data Validation Notices to Help Screen (L5)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/resources/LICENSE.txt` (current EULA for reference), `CLAUDE.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-99
+
+**Scope:**
+The PHI Processing and Data Validation content currently in the EULA is operationally valuable as user-facing reminders. Move this content into the Help screen as informational sections (not legal acceptance gates).
+
+Add two sections to the Help screen:
+
+1. **Data Privacy**: Brief reminder that the software processes PHI locally, no data leaves the machine, no internet connection required. Remind users to follow their organization's PHI handling policies.
+
+2. **Data Validation**: Brief reminder that automated extraction may produce incomplete or inaccurate results and that users should review all extracted data before relying on it.
+
+Keep the tone informational and concise — operational reminders, not legal boilerplate. Follow the existing Help screen style.
+
+**Acceptance:** Help screen includes Data Privacy and Data Validation informational sections. Content is concise and non-legal in tone. Styling matches existing Help screen. All tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
