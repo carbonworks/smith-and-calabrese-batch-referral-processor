@@ -3,7 +3,6 @@ package tech.carbonworks.snc.batchreferralparser.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -403,30 +401,32 @@ private fun LicensingCard() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(color = LightGray)
-            Spacer(modifier = Modifier.height(12.dp))
+        }
 
-            // Collapsible open-source components list
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { componentsExpanded = !componentsExpanded },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Open-Source Components",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = DeepInk,
-                )
-                Text(
-                    text = if (componentsExpanded) "Collapse" else "Expand",
-                    fontSize = 13.sp,
-                    color = DeepInk,
-                )
-            }
-            if (componentsExpanded) {
-                Spacer(modifier = Modifier.height(8.dp))
+        // Collapsible open-source components list — placed outside the padded
+        // Column so the clickable ripple fills the full card width naturally
+        // and is clipped by the card's own RoundedCornerShape(12.dp).
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { componentsExpanded = !componentsExpanded }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Open-Source Components",
+                style = MaterialTheme.typography.titleSmall,
+                color = DeepInk,
+            )
+            Text(
+                text = if (componentsExpanded) "Collapse" else "Expand",
+                fontSize = 13.sp,
+                color = DeepInk,
+            )
+        }
+        if (componentsExpanded) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
                 Text(
                     text = "This software incorporates the following open-source components:",
                     style = MaterialTheme.typography.bodySmall,
