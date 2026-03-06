@@ -243,6 +243,38 @@ fun HelpScreen(
                     }
                 }
 
+                // Data Privacy section
+                CwCard {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        SectionHeader(text = "Data Privacy")
+                        HelpBullet(
+                            text = "All data processing happens locally on this computer. No information is transmitted over the internet.",
+                        )
+                        HelpBullet(
+                            text = "The application does not require an internet connection to operate.",
+                        )
+                        HelpBullet(
+                            text = "Please follow your organization's policies for handling protected health information (PHI).",
+                        )
+                    }
+                }
+
+                // Data Validation section
+                CwCard {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        SectionHeader(text = "Data Validation")
+                        HelpBullet(
+                            text = "Automated extraction may produce incomplete or inaccurate results depending on PDF formatting.",
+                        )
+                        HelpBullet(
+                            text = "Always review all extracted data before relying on it for scheduling or clinical purposes.",
+                        )
+                        HelpBullet(
+                            text = "Check the warnings panel on the results screen for fields that could not be confidently extracted.",
+                        )
+                    }
+                }
+
                 // Licensing section
                 LicensingCard()
             }
