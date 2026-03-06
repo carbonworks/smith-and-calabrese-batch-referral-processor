@@ -117,9 +117,6 @@ fun ProcessingScreen(
                         val blockCount = success.pages.sumOf { it.textBlocks.size }
                         println("[Pipeline]   Text extraction OK: $pageCount page(s), $blockCount text block(s)")
 
-                        val detailedDump = FieldParser.dumpPageTextsDetailed(success)
-                        println("[Dump] file ${index + 1}\n$detailedDump")
-
                         val tables = tableExtractor.extract(file)
                         println("[Pipeline]   Table extraction OK: ${tables.size} table(s)")
 
@@ -135,7 +132,7 @@ fun ProcessingScreen(
                     ProcessedReferral(
                         file,
                         null,
-                        "Unexpected error: ${e.message ?: "Unknown error"}",
+                        "Unexpected error: ${e::class.simpleName ?: "Unknown error"}",
                     )
                 }
             }

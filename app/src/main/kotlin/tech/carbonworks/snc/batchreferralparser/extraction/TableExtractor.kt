@@ -51,12 +51,12 @@ class TableExtractor {
      *         or if the file cannot be read
      */
     fun extract(file: File): List<ExtractedTable> {
-        println("[TableExtractor] Opening: ${file.name}")
+        println("[TableExtractor] Opening file")
         val document: PDDocument
         try {
             document = Loader.loadPDF(file)
         } catch (e: Exception) {
-            println("[TableExtractor] Failed to load PDF: ${file.name} — ${e.message}")
+            println("[TableExtractor] Failed to load PDF: ${e::class.simpleName}")
             return emptyList()
         }
 
@@ -66,13 +66,13 @@ class TableExtractor {
                 extractor.use { oe ->
                     val results = mutableListOf<ExtractedTable>()
                     val pageCount = doc.numberOfPages
-                    println("[TableExtractor] Scanning $pageCount page(s) for tables: ${file.name}")
+                    println("[TableExtractor] Scanning $pageCount page(s) for tables")
 
                     for (pageIndex in 1..pageCount) {
                         val page: Page = try {
                             oe.extract(pageIndex)
                         } catch (e: Exception) {
-                            println("[TableExtractor] Failed to extract page $pageIndex: ${e.message}")
+                            println("[TableExtractor] Failed to extract page $pageIndex: ${e::class.simpleName}")
                             continue
                         }
 
@@ -89,11 +89,11 @@ class TableExtractor {
                         }
                     }
 
-                    println("[TableExtractor] Total: ${results.size} table(s) from ${file.name}")
+                    println("[TableExtractor] Total: ${results.size} table(s)")
                     results
                 }
             } catch (e: Exception) {
-                println("[TableExtractor] Extraction error: ${file.name} — ${e.message}")
+                println("[TableExtractor] Extraction error: ${e::class.simpleName}")
                 emptyList()
             }
         }
@@ -141,7 +141,7 @@ class TableExtractor {
             println("[TableExtractor] Stream strategy: ${filtered.size} table(s)")
             filtered
         } catch (e: Exception) {
-            println("[TableExtractor] Stream strategy failed: ${e.message}")
+            println("[TableExtractor] Stream strategy failed: ${e::class.simpleName}")
             emptyList()
         }
     }

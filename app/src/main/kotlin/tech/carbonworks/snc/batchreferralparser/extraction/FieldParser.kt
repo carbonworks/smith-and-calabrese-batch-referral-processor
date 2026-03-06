@@ -1,7 +1,5 @@
 package tech.carbonworks.snc.batchreferralparser.extraction
 
-import tech.carbonworks.snc.batchreferralparser.util.PhiMask
-
 /**
  * Extracts structured referral fields from raw PDF extraction results.
  *
@@ -24,24 +22,6 @@ class FieldParser(
     companion object {
         /** Y-coordinate tolerance for grouping text blocks on the same line. */
         private const val LINE_Y_TOLERANCE = 3f
-
-        /**
-         * 1-based page numbers that contain structured referral data and are
-         * safe to dump. Pages outside this set may contain unpredictable
-         * free-text clinical notes with PHI that cannot be reliably sanitized.
-         */
-        private val TARGET_PAGES = setOf(2, 3)
-
-        /** Known field labels used by diagnostic dump methods. */
-        private val knownLabels = listOf(
-            "Date:", "Case ID:", "RE:", "DOB:", "Applicant:",
-            "Authorization #:", "Authorization Number:",
-            "Federal Tax ID Number:", "Federal Tax ID:",
-            "Fed Tax ID:", "Vendor Number:", "RQID:",
-            "Claimant Information", "Date and Time",
-            "Services Authorized", "Code:", "CELL #",
-            "Assigned",
-        )
 
         /**
          * Expected fields that should normally be present in a valid referral.
@@ -85,105 +65,6 @@ class FieldParser(
             }
         }
 
-        /**
-         * Produce a sanitized summary dump — page line counts and which labels were found.
-         *
-         * Only target pages (pages 2–3) have their content examined. Other pages
-         * log only their page number to avoid leaking PHI from free-text clinical
-         * notes on non-target pages.
-         */
-        fun dumpPageTexts(
-            textResult: ExtractionResult.Success,
-            lineYTolerance: Float = 5.0f,
-        ): String {
-            val parser = FieldParser(lineYTolerance)
-            val pageTexts = parser.reconstructPageTexts(textResult)
-
-            return pageTexts.mapIndexed { index, text ->
-                val pageNumber = index + 1
-                if (pageNumber !in TARGET_PAGES) {
-                    "[Page $pageNumber] (skipped — non-target page)"
-                } else {
-                    val lineCount = if (text.isBlank()) 0 else text.lines().size
-                    val foundLabels = knownLabels.filter { label -> label in text }
-                    val labelsStr = if (foundLabels.isEmpty()) "(none)" else foundLabels.joinToString(", ")
-                    "[Page $pageNumber] $lineCount lines -- labels found: $labelsStr"
-                }
-            }.joinToString("\n")
-        }
-
-        /**
-         * Produce a focused diagnostic dump showing only lines near known labels.
-         *
-         * For each page, outputs lines containing a known label plus [contextRadius]
-         * lines above and below, with content masked via [PhiMask.maskDisplay].
-         * Pages with no label matches are skipped.
-         *
-         * Only target pages (pages 2–3) have their content examined. Non-target
-         * pages are skipped entirely to avoid leaking PHI from free-text clinical
-         * notes.
-         */
-        fun dumpPageTextsDetailed(
-            textResult: ExtractionResult.Success,
-            lineYTolerance: Float = 5.0f,
-            contextRadius: Int = 2,
-        ): String {
-            val parser = FieldParser(lineYTolerance)
-            val pageTexts = parser.reconstructPageTexts(textResult)
-            val output = StringBuilder()
-
-            for ((pageIndex, text) in pageTexts.withIndex()) {
-                val pageNumber = pageIndex + 1
-
-                // Skip non-target pages — only log page number, no content
-                if (pageNumber !in TARGET_PAGES) continue
-
-                if (text.isBlank()) continue
-
-                val lines = text.lines()
-
-                val labelLineMap = mutableMapOf<Int, MutableList<String>>()
-                for ((lineIndex, line) in lines.withIndex()) {
-                    val matchedLabels = knownLabels.filter { label -> label in line }
-                    if (matchedLabels.isNotEmpty()) {
-                        labelLineMap[lineIndex] = matchedLabels.toMutableList()
-                    }
-                }
-
-                if (labelLineMap.isEmpty()) continue
-
-                val includedIndices = sortedSetOf<Int>()
-                for (labelLine in labelLineMap.keys) {
-                    val rangeStart = (labelLine - contextRadius).coerceAtLeast(0)
-                    val rangeEnd = (labelLine + contextRadius).coerceAtMost(lines.size - 1)
-                    for (i in rangeStart..rangeEnd) {
-                        includedIndices.add(i)
-                    }
-                }
-
-                val matchCount = labelLineMap.size
-                val matchWord = if (matchCount == 1) "label match" else "label matches"
-                if (output.isNotEmpty()) output.append("\n")
-                output.appendLine("=== Page $pageNumber ($matchCount $matchWord) ===")
-
-                var prevIndex = -1
-                for (idx in includedIndices) {
-                    if (prevIndex >= 0 && idx > prevIndex + 1) {
-                        output.appendLine("  ...")
-                    }
-
-                    val annotation = if (idx in labelLineMap) {
-                        "<< ${labelLineMap[idx]!!.first()}"
-                    } else {
-                        "(context)"
-                    }
-                    output.appendLine("  Line ${idx + 1}: ${PhiMask.maskDisplay(lines[idx])}        $annotation")
-                    prevIndex = idx
-                }
-            }
-
-            return output.toString().trimEnd()
-        }
     }
 
     /**
@@ -200,7 +81,7 @@ class FieldParser(
         // Reconstruct page-level text strings from word-level TextBlocks
         val pageTexts = reconstructPageTexts(textResult)
         val warnings = mutableListOf<ParsingWarning>()
-        println("[Parser] Parsing ${textResult.sourceFile}: ${pageTexts.size} page(s) reconstructed")
+        println("[Parser] Parsing: ${pageTexts.size} page(s) reconstructed")
 
         // Extract from each source
         val headerFields = extractHeaderBlock(pageTexts)
@@ -316,7 +197,7 @@ class FieldParser(
         warnings.addAll(missingWarnings)
 
         val filled = fields.filledFieldCount()
-        println("[Parser] Merge complete for ${textResult.sourceFile}: $filled field(s) filled, ${warnings.size} warning(s)")
+        println("[Parser] Merge complete: $filled field(s) filled, ${warnings.size} warning(s)")
         if (missingWarnings.isNotEmpty()) {
             val missingNames = missingWarnings.map { it.field }
             println("[Parser] Missing expected fields: ${missingNames.joinToString(", ")}")
