@@ -52,6 +52,49 @@ If a hotfix is needed after release:
 
 All tags use the `v` prefix: `v1.0.0-rc1`, `v1.0.0`, `v1.0.1`.
 
+## Pre-Release Checklist
+
+Before tagging an RC, verify the following:
+
+### 1. jlink Module Scan
+
+Run `jdeps` against the app JAR to ensure all required Java platform modules are available in the jlink runtime image:
+
+```bash
+# Build the mapping file (generated during packageMsi)
+MAPPING="app/build/compose/tmp/packageMsi/libs-mapping.txt"
+
+# Extract required modules
+CP=$(sed 's/;.*//' "$MAPPING" | tr '\n' ';')
+jdeps --print-module-deps --ignore-missing-deps --multi-release 17 \
+  --class-path "$CP" app/build/libs/app-*.jar
+
+# Compare against the runtime image
+cat app/build/compose/tmp/main/runtime/release
+```
+
+Every module listed by `jdeps` must appear in the runtime image's `MODULES` line. If a module is missing, either:
+- **Preferred**: Remove the dependency from application code (e.g., replace `java.sql.Date` with a `java.time` equivalent)
+- **Fallback**: Add the module explicitly in `build.gradle.kts` via `nativeDistributions { modules("java.sql") }`
+
+### 2. FOSS Licensing Review
+
+Verify that `app/src/main/resources/NOTICE.txt` accurately reflects the current dependency tree:
+
+```bash
+./gradlew :app:dependencies --configuration runtimeClasspath
+```
+
+Check for:
+- **New dependencies** added since the last release — each needs an entry in NOTICE.txt with name, version, copyright holder, license type, and project URL
+- **Version bumps** — update version numbers in existing NOTICE.txt entries
+- **Removed dependencies** — delete entries for libraries no longer in the dependency tree
+- **Help screen sync** — the open-source components list in `HelpScreen.kt` (LicensingCard) must match NOTICE.txt
+
+### 3. Version Number
+
+The version in `app/build.gradle.kts` (`nativeDistributions.packageVersion`) must match the release version before tagging.
+
 ## Build Artifacts
 
-Installers are built from tagged commits. The version in `app/build.gradle.kts` (`nativeDistributions.packageVersion`) should match the release version before tagging.
+Installers are built from tagged commits.
