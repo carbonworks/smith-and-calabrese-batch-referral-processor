@@ -2130,6 +2130,26 @@ Minor wording improvements for accuracy and completeness:
 
 ---
 
+## WP-105: Replace java.sql.Date with LocalDate in SpreadsheetWriter (B35)
+
+**Status:** done
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`
+**Reads:** none
+**Touches:** none
+**Depends on:** nothing
+
+**Scope:**
+Fix `NoClassDefFoundError: java/sql/Date` crash in packaged MSI installer. The jlink runtime image does not include the `java.sql` module, so `java.sql.Date.valueOf()` fails at runtime.
+
+1. In `SpreadsheetWriter.kt` line 196, replace `cell.setCellValue(java.sql.Date.valueOf(parsedDate))` with `cell.setCellValue(parsedDate)` — POI 5.3.0 natively accepts `java.time.LocalDate` in `setCellValue()`
+2. Remove the `java.sql.Date` import if present (it may be used via fully-qualified name only)
+3. Verify no other references to `java.sql` exist anywhere in the codebase
+4. All existing tests must pass
+
+**Acceptance:** No references to `java.sql` remain in the codebase. All tests pass. Date cells in exported XLSX files still render as formatted dates (mm/dd/yyyy).
+
+---
+
 ## Dependency Graph
 
 ```
