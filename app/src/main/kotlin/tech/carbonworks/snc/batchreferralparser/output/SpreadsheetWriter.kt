@@ -193,7 +193,7 @@ object SpreadsheetWriter {
                                 val parsedDate = tryParseDate(value)
                                 if (parsedDate != null) {
                                     val cell = row.createCell(colIndex)
-                                    cell.setCellValue(java.sql.Date.valueOf(parsedDate))
+                                    cell.setCellValue(parsedDate)
                                     cell.cellStyle = dateStyle
                                 } else {
                                     row.createCell(colIndex).setCellValue(value)
