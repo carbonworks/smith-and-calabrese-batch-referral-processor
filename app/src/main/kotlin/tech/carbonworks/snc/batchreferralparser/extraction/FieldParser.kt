@@ -106,7 +106,7 @@ class FieldParser(
 
         val invoiceFields = extractInvoiceFields(pageTexts)
         val invoiceCount = listOfNotNull(
-            invoiceFields.federalTaxId, invoiceFields.vendorNumber,
+            invoiceFields.providerName, invoiceFields.federalTaxId, invoiceFields.vendorNumber,
             invoiceFields.authorizationNumberInvoice, invoiceFields.requestId,
         ).size
         println("[Parser] Invoice stage: $invoiceCount field(s) extracted")
@@ -730,6 +730,7 @@ class FieldParser(
      * (e.g., "Federal Tax ID" vs "Federal Tax ID Number:", "Fed Tax ID:").
      */
     internal fun extractInvoiceFields(pageTexts: List<String>): InvoiceFields {
+        var providerName: String? = null
         var federalTaxId: String? = null
         var vendorNumber: String? = null
         var authorizationNumberInvoice: String? = null
@@ -793,9 +794,49 @@ class FieldParser(
                     requestId = extractCrossLineValue(text, "RQID:")
                 }
             }
+
+            if (providerName == null) {
+                // "Pay to:" followed by the provider name (first line of mailing address).
+                // The name may be on the same line or the next line.
+                val m = Regex(
+                    """Pay\s+to\s*:\s*(.+)""",
+                    RegexOption.IGNORE_CASE,
+                ).find(text)
+                if (m != null) {
+                    // Collapse whitespace and take the first line as the provider name
+                    val raw = m.groupValues[1].trim()
+                    val firstLine = raw.split(Regex("\\r?\\n")).first().trim()
+                    if (firstLine.isNotEmpty()) {
+                        providerName = firstLine
+                    }
+                } else {
+                    // Cross-line fallback: "Pay to:" on one line, name on the next
+                    val crossLine = extractCrossLineValue(text, "Pay to:")
+                    if (crossLine != null) {
+                        // extractCrossLineValue returns only the first token;
+                        // for provider name we want the full line after the label
+                        val lines = text.split('\n')
+                        for (i in lines.indices) {
+                            if ("Pay to:" in lines[i]) {
+                                val afterLabel = lines[i].substringAfter("Pay to:").trim()
+                                if (afterLabel.isNotEmpty()) {
+                                    providerName = afterLabel
+                                } else if (i + 1 < lines.size) {
+                                    val nextLine = lines[i + 1].trim()
+                                    if (nextLine.isNotEmpty()) {
+                                        providerName = nextLine
+                                    }
+                                }
+                                break
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return InvoiceFields(
+            providerName = providerName,
             federalTaxId = federalTaxId,
             vendorNumber = vendorNumber,
             authorizationNumberInvoice = authorizationNumberInvoice,
@@ -932,6 +973,7 @@ class FieldParser(
         var zipCode: String? = null
         var phone: String? = null
         var services: List<ServiceLine> = emptyList()
+        var providerName: String? = null
         var federalTaxId: String? = null
         var vendorNumber: String? = null
 
@@ -940,6 +982,7 @@ class FieldParser(
         fallbackFields.requestId?.let { requestId = it }
 
         // Invoice fields (low-medium priority for overlapping fields)
+        invoiceFields.providerName?.let { providerName = it }
         invoiceFields.federalTaxId?.let { federalTaxId = it }
         invoiceFields.vendorNumber?.let { vendorNumber = it }
         invoiceFields.authorizationNumberInvoice?.let { authorizationNumber = it }
@@ -990,6 +1033,7 @@ class FieldParser(
             zipCode = zipCode,
             phone = phone,
             services = services,
+            providerName = providerName,
             federalTaxId = federalTaxId,
             vendorNumber = vendorNumber,
             caseNumberFullFooter = caseFields.caseNumberFullFooter,
@@ -1044,6 +1088,7 @@ class FieldParser(
     }
 
     internal data class InvoiceFields(
+        val providerName: String? = null,
         val federalTaxId: String? = null,
         val vendorNumber: String? = null,
         val authorizationNumberInvoice: String? = null,

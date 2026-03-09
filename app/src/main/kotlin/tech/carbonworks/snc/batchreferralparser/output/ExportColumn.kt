@@ -29,6 +29,7 @@ val DEFAULT_FIELD_ORDER: List<Pair<String, String>> = listOf(
     "zipCode" to "ZIP",
     "phone" to "Phone",
     "services" to "Services",
+    "providerName" to "Provider Name",
     "federalTaxId" to "Federal Tax ID",
     "vendorNumber" to "Vendor Number",
     "caseNumberFullFooter" to "Case Number (Footer)",
@@ -91,7 +92,7 @@ sealed class ExportColumn {
  * The complete export column configuration: an ordered list of columns that
  * determines which fields appear in the XLSX output and in what order.
  *
- * Use [ExportColumnConfig.default] to obtain the canonical 22-field layout.
+ * Use [ExportColumnConfig.default] to obtain the canonical 23-field layout.
  */
 @Serializable
 data class ExportColumnConfig(
@@ -100,7 +101,7 @@ data class ExportColumnConfig(
 ) {
     companion object {
         /**
-         * Returns the default column configuration with all 22 fields enabled,
+         * Returns the default column configuration with all 23 fields enabled,
          * in the canonical order defined by [DEFAULT_FIELD_ORDER].
          */
         fun default(): ExportColumnConfig = ExportColumnConfig(
@@ -136,6 +137,7 @@ fun ReferralFields.getFieldValue(fieldId: String): String = when (fieldId) {
     "zipCode" -> zipCode.orEmpty()
     "phone" -> phone.orEmpty()
     "services" -> services.joinToString(", ") { it.cptCode }
+    "providerName" -> providerName.orEmpty()
     "federalTaxId" -> federalTaxId.orEmpty()
     "vendorNumber" -> vendorNumber.orEmpty()
     "caseNumberFullFooter" -> caseNumberFullFooter.orEmpty()

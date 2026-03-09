@@ -1676,4 +1676,87 @@ class FieldParserTest {
                 "Warning stage should be 'completeness'")
         }
     }
+
+    // -------------------------------------------------------------------
+    // Provider name extraction (Pay to:)
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `provider name extracted from Pay to on same line`() {
+        val input = textResult(
+            "Pay to: Smith & Calabrese Assessments LLC"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Smith & Calabrese Assessments LLC", result.fields.providerName)
+    }
+
+    @Test
+    fun `provider name extracted from Pay to with multiline address`() {
+        val input = multiLineTextResult(
+            "Pay to: Dr. Jane Provider",
+            "123 Medical Center Drive",
+            "Suite 200",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Jane Provider", result.fields.providerName)
+    }
+
+    @Test
+    fun `provider name extracted from Pay to on next line`() {
+        val input = multiLineTextResult(
+            "Pay to:",
+            "Assessment Services Inc",
+            "456 Office Park",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Assessment Services Inc", result.fields.providerName)
+    }
+
+    @Test
+    fun `provider name is null when Pay to is absent`() {
+        val input = textResult(
+            "Federal Tax ID Number: 123456789 Vendor Number: V-999"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.providerName)
+    }
+
+    @Test
+    fun `provider name extraction is case insensitive`() {
+        val input = textResult(
+            "PAY TO: Provider Name Here"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Provider Name Here", result.fields.providerName)
+    }
+
+    @Test
+    fun `provider name included in filledFieldCount`() {
+        val fields = ReferralFields(providerName = "Test Provider")
+        assertEquals(1, fields.filledFieldCount())
+    }
+
+    @Test
+    fun `provider name wired through full parse pipeline`() {
+        // Simulate a page with both invoice fields and Pay to
+        val input = textResult(
+            "Federal Tax ID Number: 123456789 Vendor Number: V-999 Pay to: My Clinic Name"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("My Clinic Name", result.fields.providerName)
+        assertEquals("123456789", result.fields.federalTaxId)
+        assertEquals("V-999", result.fields.vendorNumber)
+    }
 }
