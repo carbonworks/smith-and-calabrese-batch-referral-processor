@@ -959,6 +959,17 @@ class FieldParser(
      * - Text between common end-of-table markers (e.g., last "Fee:" line) and "Thank you"
      * - Text between "Eastern" timezone reference and "Thank you"
      *
+     * The standard referral form flow is:
+     *   1. Services authorization table (Fee, CPT codes, etc.)
+     *   2. Boilerplate instructional paragraph ("Here is what you need to do next..."
+     *      ending with "Thank you for your help.")
+     *   3. Examiner name and contact info
+     *
+     * Text between the table and "Thank you" is predominantly boilerplate. This method
+     * filters it out, only returning text that is structurally distinct (e.g., explicitly
+     * labeled "Special Instructions:" or clearly not matching the standard boilerplate
+     * paragraph pattern).
+     *
      * @param allText the concatenated text from all pages
      * @param thankYouStart the character index where "Thank you" begins
      * @return the extracted special instructions text, or null if not found
@@ -981,6 +992,10 @@ class FieldParser(
         //
         // Each marker regex is searched; we pick whichever match ends latest
         // (closest to the "Thank you" marker) to minimize noise.
+        //
+        // After extracting the candidate, we check whether it is standard form
+        // boilerplate (e.g., "Here is what you need to do next..."). If so, it
+        // is not a special instruction from the examiner and is excluded.
         val sectionEndMarkers = listOf(
             Regex("""(?:Eastern\s+\w+\s+Time|E[SD]T)""", RegexOption.IGNORE_CASE),
             Regex("Fee:" + "\\s*" + "\\$" + "\\s*" + "[\\d,.]+" ),
@@ -1003,12 +1018,61 @@ class FieldParser(
             if (candidateStart < beforeThankYou.length) {
                 val candidate = beforeThankYou.substring(candidateStart).trim()
                 if (candidate.isNotBlank()) {
-                    return normalizeWhitespace(candidate)
+                    val normalized = normalizeWhitespace(candidate)
+                    // Filter out standard form boilerplate that appears between
+                    // the services table and "Thank you for your help."
+                    if (isBoilerplateText(normalized)) return null
+                    return normalized
                 }
             }
         }
 
         return null
+    }
+
+    /**
+     * Determine whether text is standard referral form boilerplate rather than
+     * a genuine special instruction from the examiner.
+     *
+     * The standard SSA/DDS referral letter contains a boilerplate instructional
+     * paragraph between the services authorization table and "Thank you for your
+     * help." This paragraph typically contains language like:
+     * - "Here is what you need to do next"
+     * - "what you need to do"
+     * - "need to do next"
+     * - "following the instructions"
+     * - "complete the enclosed"
+     * - "return the completed"
+     * - "submit your report"
+     * - "within ... days"
+     *
+     * This is NOT a special instruction from the examiner — it is part of the
+     * standard form template. True special instructions are either explicitly
+     * labeled ("Special Instructions:") or are short, actionable directives that
+     * do not match this boilerplate structure.
+     *
+     * @param text the normalized candidate text to check
+     * @return true if the text is standard form boilerplate, false otherwise
+     */
+    private fun isBoilerplateText(text: String): Boolean {
+        // Boilerplate indicator phrases (case-insensitive). If the candidate
+        // contains any of these, it is almost certainly boilerplate.
+        val boilerplatePatterns = listOf(
+            Regex("""(?:here\s+is|here\s*['']s)\s+what\s+you\s+need\s+to\s+do""", RegexOption.IGNORE_CASE),
+            Regex("""what\s+you\s+need\s+to\s+do\s+next""", RegexOption.IGNORE_CASE),
+            Regex("""need\s+to\s+do\s+next""", RegexOption.IGNORE_CASE),
+            Regex("""following\s+(?:the\s+)?instructions""", RegexOption.IGNORE_CASE),
+            Regex("""complete\s+the\s+enclosed""", RegexOption.IGNORE_CASE),
+            Regex("""return\s+the\s+completed""", RegexOption.IGNORE_CASE),
+            Regex("""submit\s+your\s+report""", RegexOption.IGNORE_CASE),
+            Regex("""(?:within|no\s+later\s+than)\s+\d+\s+(?:calendar\s+)?days""", RegexOption.IGNORE_CASE),
+            Regex("""report\s+must\s+be\s+(?:received|submitted|returned)""", RegexOption.IGNORE_CASE),
+            Regex("""(?:please\s+)?(?:contact|call)\s+(?:us|the\s+office|DDS)""", RegexOption.IGNORE_CASE),
+            Regex("""attached\s+(?:you\s+will\s+find|are\s+the|is\s+the)""", RegexOption.IGNORE_CASE),
+            Regex("""enclosed\s+(?:you\s+will\s+find|are\s+the|is\s+the|please)""", RegexOption.IGNORE_CASE),
+        )
+
+        return boilerplatePatterns.any { it.containsMatchIn(text) }
     }
 
     /**
