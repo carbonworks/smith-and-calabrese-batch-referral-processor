@@ -709,19 +709,6 @@ private fun ReferralCard(
                     }
                 }
 
-                // Post-table fields — special instructions, examiner contact
-                val hasPostTableFields = listOf(
-                    fields.specialInstructions,
-                    fields.examinerNameContact,
-                ).any { !it.isNullOrEmpty() }
-
-                if (hasPostTableFields) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    HorizontalDivider(color = LightGray, thickness = 1.dp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    PostTableSection(fields = fields, isMasked = isMasked)
-                }
-
                 // Footer — invoice/case fields (only if any are present)
                 val hasFooterFields = listOf(
                     fields.providerName,
@@ -827,6 +814,8 @@ private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
             add("Address" to cityStateZip)
         }
         if (!fields.phone.isNullOrEmpty()) add("Phone" to fields.phone)
+        if (!fields.specialInstructions.isNullOrEmpty()) add("Special Instructions" to fields.specialInstructions)
+        if (!fields.examinerNameContact.isNullOrEmpty()) add("Examiner Contact" to fields.examinerNameContact)
     }
 
     for ((label, value) in metadataFields) {
@@ -928,38 +917,6 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-        }
-    }
-}
-
-/**
- * Post-table section showing special instructions and examiner contact info.
- * Lays fields out horizontally in a Row, matching the FooterSection pattern.
- */
-@Composable
-private fun PostTableSection(fields: ReferralFields, isMasked: Boolean) {
-    val postTableFields = buildList {
-        if (!fields.specialInstructions.isNullOrEmpty()) add("Special Instructions" to fields.specialInstructions)
-        if (!fields.examinerNameContact.isNullOrEmpty()) add("Examiner Contact" to fields.examinerNameContact)
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
-    ) {
-        for ((label, value) in postTableFields) {
-            Column {
-                Text(
-                    text = label,
-                    fontSize = 11.sp,
-                    color = SoftGray,
-                )
-                Text(
-                    text = if (isMasked) PhiMask.maskDisplay(value) else value,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
         }
     }
 }
