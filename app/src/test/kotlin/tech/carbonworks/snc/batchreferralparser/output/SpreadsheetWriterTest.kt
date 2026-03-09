@@ -195,8 +195,8 @@ class SpreadsheetWriterTest {
             val sheet = wb.getSheetAt(0)
             val headerRow = sheet.getRow(0)
 
-            // Verify column count is 22 (no Low Confidence Flag)
-            assertEquals(22, headerRow.lastCellNum.toInt())
+            // Verify column count is 24 (no Low Confidence Flag)
+            assertEquals(24, headerRow.lastCellNum.toInt())
 
             // Verify "Low Confidence Flag" is not in headings
             for (col in 0 until headerRow.lastCellNum) {

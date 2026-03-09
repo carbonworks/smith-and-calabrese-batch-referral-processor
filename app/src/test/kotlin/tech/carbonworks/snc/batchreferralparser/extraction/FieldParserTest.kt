@@ -1676,4 +1676,178 @@ class FieldParserTest {
                 "Warning stage should be 'completeness'")
         }
     }
+
+    // -------------------------------------------------------------------
+    // Post-table field extraction: Special Instructions + Examiner
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `post-table extracts examiner name after Thank you marker`() {
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-12345 RE: John Smith DOB: 01/01/2000 " +
+                "Applicant: Jane Smith Authorization #: AUTH-999 " +
+                "Thank you for your help. Dr. Jane Examiner 555-999-8888 exam@example.com"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Jane Examiner 555-999-8888 exam@example.com",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table extracts examiner info with period after help`() {
+        val input = textResult(
+            "Some table content Fee: \$250.00 Thank you for your help. " +
+                "Dr. Robert Jones Phone: 555-111-2222"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Robert Jones Phone: 555-111-2222",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table extracts special instructions with explicit label`() {
+        val input = textResult(
+            "Fee: \$250.00 Special Instructions: Please bring all medical records " +
+                "Thank you for your help. Dr. Smith 555-000-1234"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Please bring all medical records",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Smith 555-000-1234",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table extracts special instructions between fee and thank you`() {
+        val input = textResult(
+            "Code: 96130 Procedure Type Code: E Desc: Psychological testing Fee: \$200.00 " +
+                "Bring ID and insurance card " +
+                "Thank you for your help. Dr. Smith"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Bring ID and insurance card",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Smith",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table returns null when no Thank you marker found`() {
+        val input = textResult(
+            "Date: 09/15/2024 Case ID: ABC-12345 RE: John Smith DOB: 01/01/2000 " +
+                "Applicant: Jane Smith Authorization #: AUTH-999"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "No special instructions when Thank you marker is absent")
+        assertNull(result.fields.examinerNameContact,
+            "No examiner info when Thank you marker is absent")
+    }
+
+    @Test
+    fun `post-table handles Thank you without period`() {
+        val input = textResult(
+            "Eastern Daylight Time Thank you for your help Dr. Smith"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table stops examiner capture at footer boundary`() {
+        val input = textResult(
+            "Thank you for your help. Dr. Smith 555-000-1234 " +
+                "CASE-123/ Assigned 9106 null/ DCPS / REQ-456"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Smith 555-000-1234",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table stops examiner capture at RQID boundary`() {
+        val input = textResult(
+            "Thank you for your help. Dr. Smith RQID: REQ-456"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table stops examiner capture at Federal Tax ID boundary`() {
+        val input = textResult(
+            "Thank you for your help. Dr. Smith Federal Tax ID Number: 123456789"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table handles case insensitive Thank you`() {
+        val input = textResult(
+            "THANK YOU FOR YOUR HELP. Dr. Smith"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table extracts instructions between timezone and thank you`() {
+        val input = textResult(
+            "10:00 AM Eastern Daylight Time Please arrive 15 minutes early " +
+                "Thank you for your help. Dr. Jones"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Please arrive 15 minutes early",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Jones", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table with no text after thank you returns null examiner`() {
+        val input = textResult(
+            "Fee: \$200.00 Some instructions Thank you for your help."
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.examinerNameContact,
+            "No examiner info when nothing follows Thank you marker")
+    }
+
+    @Test
+    fun `post-table extracts across multiple pages`() {
+        val page1 = "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 " +
+            "Applicant: Jane Smith Authorization #: AUTH-999"
+        val page2 = "Fee: \$200.00 Bring your records Thank you for your help. Dr. Smith 555-123-4567"
+
+        val input = textResult(page1, page2)
+
+        val result = parser.parse(input)
+
+        assertEquals("Bring your records", result.fields.specialInstructions)
+        assertEquals("Dr. Smith 555-123-4567", result.fields.examinerNameContact)
+    }
 }

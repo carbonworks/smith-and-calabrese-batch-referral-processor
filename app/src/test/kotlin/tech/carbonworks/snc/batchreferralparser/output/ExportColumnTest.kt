@@ -40,6 +40,8 @@ class ExportColumnTest {
             ServiceLine(cptCode = "96130", description = "Psych eval"),
             ServiceLine(cptCode = "96131", description = "Add'l hour"),
         ),
+        specialInstructions = "Please bring medical records",
+        examinerNameContact = "Dr. Smith, 555-000-1234",
         federalTaxId = "12-3456789",
         vendorNumber = "V-1234",
         caseNumberFullFooter = "FULL-CASE-001",
@@ -52,10 +54,10 @@ class ExportColumnTest {
     // -------------------------------------------------------------------
 
     @Test
-    fun `default config produces 22 fields in expected order`() {
+    fun `default config produces 24 fields in expected order`() {
         val config = ExportColumnConfig.default()
 
-        assertEquals(22, config.columns.size, "Default config should have 22 columns")
+        assertEquals(24, config.columns.size, "Default config should have 24 columns")
 
         // Every column should be a Field, not a Spacer
         config.columns.forEach { col ->
@@ -72,11 +74,11 @@ class ExportColumnTest {
     }
 
     // -------------------------------------------------------------------
-    // Test 2: getFieldValue returns correct values for all 22 field IDs
+    // Test 2: getFieldValue returns correct values for all 24 field IDs
     // -------------------------------------------------------------------
 
     @Test
-    fun `getFieldValue returns correct values for all 22 field IDs`() {
+    fun `getFieldValue returns correct values for all 24 field IDs`() {
         val referral = sampleReferral()
 
         assertEquals("Jane", referral.getFieldValue("firstName"))
@@ -96,6 +98,8 @@ class ExportColumnTest {
         assertEquals("90210", referral.getFieldValue("zipCode"))
         assertEquals("555-123-4567", referral.getFieldValue("phone"))
         assertEquals("96130, 96131", referral.getFieldValue("services"))
+        assertEquals("Please bring medical records", referral.getFieldValue("specialInstructions"))
+        assertEquals("Dr. Smith, 555-000-1234", referral.getFieldValue("examinerNameContact"))
         assertEquals("12-3456789", referral.getFieldValue("federalTaxId"))
         assertEquals("V-1234", referral.getFieldValue("vendorNumber"))
         assertEquals("FULL-CASE-001", referral.getFieldValue("caseNumberFullFooter"))
