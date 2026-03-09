@@ -685,19 +685,6 @@ private fun ReferralCard(
                     }
                 }
 
-                // Post-table fields — special instructions, examiner contact
-                val hasPostTableFields = listOf(
-                    fields.specialInstructions,
-                    fields.examinerNameContact,
-                ).any { !it.isNullOrEmpty() }
-
-                if (hasPostTableFields) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    HorizontalDivider(color = LightGray, thickness = 1.dp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    PostTableSection(fields = fields, isMasked = isMasked)
-                }
-
                 // Footer — invoice/case fields (only if any are present)
                 val hasFooterFields = listOf(
                     fields.providerName,
@@ -803,6 +790,8 @@ private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
             add("Address" to cityStateZip)
         }
         if (!fields.phone.isNullOrEmpty()) add("Phone" to fields.phone)
+        if (!fields.specialInstructions.isNullOrEmpty()) add("Special Instructions" to fields.specialInstructions)
+        if (!fields.examinerNameContact.isNullOrEmpty()) add("Examiner Contact" to fields.examinerNameContact)
     }
 
     for ((label, value) in metadataFields) {
@@ -905,44 +894,6 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
                 overflow = TextOverflow.Ellipsis,
             )
         }
-    }
-}
-
-/**
- * Post-table section showing special instructions and examiner contact info.
- * Uses a stacked label-above-value layout since these fields can contain
- * longer text that benefits from the full card width.
- */
-@Composable
-private fun PostTableSection(fields: ReferralFields, isMasked: Boolean) {
-    if (!fields.specialInstructions.isNullOrEmpty()) {
-        Text(
-            text = "Special Instructions",
-            fontSize = 11.sp,
-            color = SoftGray,
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = if (isMasked) PhiMask.maskDisplay(fields.specialInstructions) else fields.specialInstructions,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-        )
-    }
-    if (!fields.examinerNameContact.isNullOrEmpty()) {
-        if (!fields.specialInstructions.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.height(6.dp))
-        }
-        Text(
-            text = "Examiner Contact",
-            fontSize = 11.sp,
-            color = SoftGray,
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = if (isMasked) PhiMask.maskDisplay(fields.examinerNameContact) else fields.examinerNameContact,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-        )
     }
 }
 
