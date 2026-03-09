@@ -933,7 +933,7 @@ private fun PostTableSection(fields: ReferralFields, isMasked: Boolean) {
             Spacer(modifier = Modifier.height(6.dp))
         }
         Text(
-            text = "Examiner Contact",
+            text = "Examiner Name & Contact",
             fontSize = 11.sp,
             color = SoftGray,
         )
@@ -953,7 +953,7 @@ private fun PostTableSection(fields: ReferralFields, isMasked: Boolean) {
 @Composable
 private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
     val footerFields = buildList {
-        if (!fields.providerName.isNullOrEmpty()) add("Provider Name" to fields.providerName)
+        if (!fields.providerName.isNullOrEmpty()) add("Provider/Doctor Name" to fields.providerName)
         if (!fields.federalTaxId.isNullOrEmpty()) add("Federal Tax ID" to fields.federalTaxId)
         if (!fields.vendorNumber.isNullOrEmpty()) add("Vendor Number" to fields.vendorNumber)
         if (!fields.caseNumberFullFooter.isNullOrEmpty()) add("Case Number" to fields.caseNumberFullFooter)
