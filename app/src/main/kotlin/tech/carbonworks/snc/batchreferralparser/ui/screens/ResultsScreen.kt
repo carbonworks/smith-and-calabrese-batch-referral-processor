@@ -684,8 +684,22 @@ private fun ReferralCard(
                     }
                 }
 
+                // Post-table fields — special instructions, examiner contact
+                val hasPostTableFields = listOf(
+                    fields.specialInstructions,
+                    fields.examinerNameContact,
+                ).any { !it.isNullOrEmpty() }
+
+                if (hasPostTableFields) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(color = LightGray, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PostTableSection(fields = fields, isMasked = isMasked)
+                }
+
                 // Footer — invoice/case fields (only if any are present)
                 val hasFooterFields = listOf(
+                    fields.providerName,
                     fields.federalTaxId,
                     fields.vendorNumber,
                     fields.caseNumberFullFooter,
@@ -894,12 +908,51 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
 }
 
 /**
+ * Post-table section showing special instructions and examiner contact info.
+ * Uses a stacked label-above-value layout since these fields can contain
+ * longer text that benefits from the full card width.
+ */
+@Composable
+private fun PostTableSection(fields: ReferralFields, isMasked: Boolean) {
+    if (!fields.specialInstructions.isNullOrEmpty()) {
+        Text(
+            text = "Special Instructions",
+            fontSize = 11.sp,
+            color = SoftGray,
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = if (isMasked) PhiMask.maskDisplay(fields.specialInstructions) else fields.specialInstructions,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+    if (!fields.examinerNameContact.isNullOrEmpty()) {
+        if (!fields.specialInstructions.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+        Text(
+            text = "Examiner Contact",
+            fontSize = 11.sp,
+            color = SoftGray,
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = if (isMasked) PhiMask.maskDisplay(fields.examinerNameContact) else fields.examinerNameContact,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+/**
  * Footer section showing invoice/case fields in a subtle secondary style.
  * Each value is copyable via click-to-copy, respecting PHI masking state.
  */
 @Composable
 private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
     val footerFields = buildList {
+        if (!fields.providerName.isNullOrEmpty()) add("Provider Name" to fields.providerName)
         if (!fields.federalTaxId.isNullOrEmpty()) add("Federal Tax ID" to fields.federalTaxId)
         if (!fields.vendorNumber.isNullOrEmpty()) add("Vendor Number" to fields.vendorNumber)
         if (!fields.caseNumberFullFooter.isNullOrEmpty()) add("Case Number" to fields.caseNumberFullFooter)
