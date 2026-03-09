@@ -1933,4 +1933,176 @@ class FieldParserTest {
         assertEquals("Bring your records", result.fields.specialInstructions)
         assertEquals("Dr. Smith 555-123-4567", result.fields.examinerNameContact)
     }
+
+    // -------------------------------------------------------------------
+    // Post-table boilerplate filtering
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `post-table excludes boilerplate with here is what you need to do next`() {
+        val input = textResult(
+            "Fee: \$200.00 Here is what you need to do next. Please complete the examination " +
+                "and return results within 30 days. Thank you for your help. Dr. Smith"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'Here is what you need to do next' should not be captured as special instructions")
+        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with what you need to do next`() {
+        val input = textResult(
+            "Fee: \$250.00 This is what you need to do next for the claimant evaluation. " +
+                "Thank you for your help. Dr. Jones 555-111-2222"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'what you need to do next' should not be captured as special instructions")
+        assertEquals("Dr. Jones 555-111-2222", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with submit your report`() {
+        val input = textResult(
+            "Eastern Daylight Time Please submit your report within 14 calendar days. " +
+                "Thank you for your help. Dr. Adams"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'submit your report' should not be captured as special instructions")
+        assertEquals("Dr. Adams", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with complete the enclosed`() {
+        val input = textResult(
+            "Fee: \$300.00 Please complete the enclosed forms and return them promptly. " +
+                "Thank you for your help. Dr. Brown"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'complete the enclosed' should not be captured as special instructions")
+        assertEquals("Dr. Brown", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with return the completed`() {
+        val input = textResult(
+            "Fee: \$200.00 Please return the completed report within 30 days of the examination. " +
+                "Thank you for your help. Dr. Wilson"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'return the completed' should not be captured as special instructions")
+        assertEquals("Dr. Wilson", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with within N days`() {
+        val input = textResult(
+            "Fee: \$200.00 Your report must be received within 14 days of the exam. " +
+                "Thank you for your help. Dr. Clark"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'within N days' should not be captured as special instructions")
+        assertEquals("Dr. Clark", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with following the instructions`() {
+        val input = textResult(
+            "Fee: \$200.00 Please examine the claimant following the instructions provided. " +
+                "Thank you for your help. Dr. Davis"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'following the instructions' should not be captured as special instructions")
+        assertEquals("Dr. Davis", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with here's what you need to do`() {
+        val input = textResult(
+            "Fee: \$200.00 Here's what you need to do for this appointment. " +
+                "Thank you for your help. Dr. Evans"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'Here's what you need to do' should not be captured as special instructions")
+        assertEquals("Dr. Evans", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table still captures genuine instructions when boilerplate absent`() {
+        val input = textResult(
+            "Fee: \$200.00 Bring photo ID and arrive 15 minutes early " +
+                "Thank you for your help. Dr. Smith"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Bring photo ID and arrive 15 minutes early",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table strategy 1 label overrides boilerplate filtering`() {
+        val input = textResult(
+            "Fee: \$200.00 Special Instructions: Claimant needs interpreter for Spanish " +
+                "Thank you for your help. Dr. Martinez"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Claimant needs interpreter for Spanish",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Martinez", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate case insensitive`() {
+        val input = textResult(
+            "Fee: \$200.00 HERE IS WHAT YOU NEED TO DO NEXT FOR THIS EXAM. " +
+                "THANK YOU FOR YOUR HELP. Dr. Smith"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate detection should be case-insensitive")
+        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `post-table excludes boilerplate with no later than N days`() {
+        val input = textResult(
+            "Fee: \$200.00 The report is due no later than 14 calendar days after the exam. " +
+                "Thank you for your help. Dr. Lee"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "Boilerplate 'no later than N days' should not be captured as special instructions")
+        assertEquals("Dr. Lee", result.fields.examinerNameContact)
+    }
 }
