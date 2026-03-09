@@ -4,7 +4,11 @@ All notable changes to the S&C Batch Referral Processor are documented in this f
 
 ---
 
-## [Unreleased] — targeting v1.1.0
+## [Unreleased]
+
+---
+
+## [1.1.0] — 2026-03-09
 
 ### Added
 - Extract Provider/Doctor Name from referral PDFs

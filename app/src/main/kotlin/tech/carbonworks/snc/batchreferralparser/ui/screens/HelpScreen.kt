@@ -453,8 +453,8 @@ private data class ChangelogEntry(
 /** Application changelog entries, newest first. */
 private val CHANGELOG_ENTRIES = listOf(
     ChangelogEntry(
-        version = "Unreleased",
-        date = "targeting v1.1.0",
+        version = "1.1.0",
+        date = "2026-03-09",
         categories = mapOf(
             "Added" to listOf(
                 "Extract Provider/Doctor Name from referral PDFs",
