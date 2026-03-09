@@ -2105,4 +2105,80 @@ class FieldParserTest {
             "Boilerplate 'no later than N days' should not be captured as special instructions")
         assertEquals("Dr. Lee", result.fields.examinerNameContact)
     }
+
+    // -------------------------------------------------------------------
+    // Examiner info: 2-line limit
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `examiner info captures exactly 2 lines when present`() {
+        val input = multiLineTextResult(
+            "Thank you for your help.",
+            "Dr. Jane Examiner",
+            "555-999-8888",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Jane Examiner 555-999-8888", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `examiner info with 3+ lines only captures first 2 non-blank lines`() {
+        val input = multiLineTextResult(
+            "Thank you for your help.",
+            "Dr. Jane Examiner",
+            "555-999-8888",
+            "Unrelated leaking content from a different section",
+            "More noise that should not appear",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Jane Examiner 555-999-8888", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `examiner info with single line captures that line`() {
+        val input = multiLineTextResult(
+            "Thank you for your help.",
+            "Dr. Jane Examiner",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Jane Examiner", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `examiner info 2-line limit still respects end boundaries`() {
+        val input = multiLineTextResult(
+            "Thank you for your help.",
+            "Dr. Jane Examiner",
+            "RQID: REQ-456",
+            "555-999-8888",
+        )
+
+        val result = parser.parse(input)
+
+        // The RQID boundary truncates before line 2 reaches the phone,
+        // so only the examiner name is captured.
+        assertEquals("Dr. Jane Examiner", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `examiner info skips blank lines and takes first 2 non-blank`() {
+        val input = multiLineTextResult(
+            "Thank you for your help.",
+            "",
+            "Dr. Jane Examiner",
+            "",
+            "555-999-8888",
+            "Leaking content",
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Dr. Jane Examiner 555-999-8888", result.fields.examinerNameContact)
+    }
 }
