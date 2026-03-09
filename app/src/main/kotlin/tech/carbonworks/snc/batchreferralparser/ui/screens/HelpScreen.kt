@@ -325,6 +325,9 @@ fun HelpScreen(
                     }
                 }
 
+                // What's New section
+                ChangelogCard()
+
                 // Licensing section
                 LicensingCard()
             }
@@ -426,6 +429,156 @@ private val OPEN_SOURCE_COMPONENTS = listOf(
     OpenSourceComponent("Reorderable", "Apache License 2.0"),
     OpenSourceComponent("OpenJDK", "GPL v2 with Classpath Exception"),
 )
+
+/**
+ * A single changelog entry representing one release version.
+ *
+ * @param version version string (e.g. "1.0.0") or "Unreleased"
+ * @param date release date or targeting note (e.g. "2026-03-07" or "targeting v1.1.0")
+ * @param description optional brief description for releases without categorized items
+ * @param categories map of category name (Added/Changed/Fixed) to list of change descriptions
+ */
+private data class ChangelogEntry(
+    val version: String,
+    val date: String,
+    val description: String? = null,
+    val categories: Map<String, List<String>> = emptyMap(),
+)
+
+/** Application changelog entries, newest first. */
+private val CHANGELOG_ENTRIES = listOf(
+    ChangelogEntry(
+        version = "Unreleased",
+        date = "targeting v1.1.0",
+        categories = mapOf(
+            "Added" to listOf(
+                "Extract Provider/Doctor Name from the \u201cPay to:\u201d section of referral PDFs",
+                "Extract Special Instructions from the authorization section of referral PDFs",
+                "Extract Examiner Name & Contact from after the \u201cThank you for your help\u201d marker",
+                "CSV export option \u2014 toggle on the results screen to export CSV instead of XLSX",
+                "All three new fields appear in the data preview and are included in XLSX/CSV exports",
+            ),
+            "Changed" to listOf(
+                "\u201cWhat You Need To Do Next\u201d boilerplate is no longer captured as special instructions",
+                "Examiner contact captures only the examiner\u2019s name and phone number",
+                "CSV export preference persists across sessions",
+            ),
+            "Fixed" to listOf(
+                "Date fields in exported spreadsheets no longer require the java.sql module (resolved crash on packaged installs)",
+            ),
+        ),
+    ),
+    ChangelogEntry(
+        version = "1.0.1",
+        date = "2026-03-07",
+        categories = mapOf(
+            "Fixed" to listOf(
+                "Crash on packaged installs due to missing java.sql module in jlink runtime image",
+            ),
+        ),
+    ),
+    ChangelogEntry(
+        version = "1.0.0",
+        date = "2026-03-07",
+        description = "Initial release.",
+    ),
+)
+
+/**
+ * Collapsible "What's New" card displaying the application changelog,
+ * grouped by version with categorized changes (Added/Changed/Fixed).
+ */
+@Composable
+private fun ChangelogCard() {
+    var changelogExpanded by remember { mutableStateOf(false) }
+
+    CwCard {
+        // Clickable header row — placed outside any padded Column so the
+        // clickable ripple fills the full card width, matching LicensingCard.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { changelogExpanded = !changelogExpanded }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SectionHeader(text = "What\u2019s New")
+            Text(
+                text = if (changelogExpanded) "Collapse" else "Expand",
+                fontSize = 13.sp,
+                color = DeepInk,
+            )
+        }
+        if (changelogExpanded) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                for ((index, entry) in CHANGELOG_ENTRIES.withIndex()) {
+                    // Version header
+                    val versionLabel = if (entry.version == "Unreleased") {
+                        "Unreleased \u2014 ${entry.date}"
+                    } else {
+                        "v${entry.version} \u2014 ${entry.date}"
+                    }
+                    Text(
+                        text = versionLabel,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = DeepInk,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Simple description (e.g. "Initial release.")
+                    entry.description?.let { desc ->
+                        Text(
+                            text = desc,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SoftGray,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+
+                    // Categorized changes
+                    for ((category, items) in entry.categories) {
+                        Text(
+                            text = category,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = BrandGreen,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                        for (item in items) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 2.dp, horizontal = 8.dp),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                Text(
+                                    text = "\u2022",
+                                    fontSize = 14.sp,
+                                    color = SoftGray,
+                                    modifier = Modifier.width(16.dp),
+                                )
+                                Text(
+                                    text = item,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = SoftGray,
+                                )
+                            }
+                        }
+                    }
+
+                    // Divider between versions (not after the last one)
+                    if (index < CHANGELOG_ENTRIES.lastIndex) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = LightGray)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+        }
+    }
+}
 
 /**
  * Licensing and attribution card displaying the application license,
