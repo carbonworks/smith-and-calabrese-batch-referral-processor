@@ -1933,4 +1933,175 @@ class FieldParserTest {
         assertEquals("Bring your records", result.fields.specialInstructions)
         assertEquals("Dr. Smith 555-123-4567", result.fields.examinerNameContact)
     }
+
+    // ===================================================================
+    // WP-114: Structural boundary — "What You Need To Do Next" exclusion
+    // ===================================================================
+
+    @Test
+    fun `WP114 - text before What boundary is captured as special instructions`() {
+        val input = textResult(
+            "Fee: \$200.00 Please bring photo ID and all medical records " +
+                "What You Need To Do Next some boilerplate text " +
+                "Thank you for your help. Dr. Smith 555-000-1234"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Please bring photo ID and all medical records",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Smith 555-000-1234",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - text from What onward is excluded from special instructions`() {
+        val input = textResult(
+            "Fee: \$200.00 Arrive 15 minutes early " +
+                "What you need to do next: Call to confirm your appointment. " +
+                "Thank you for your help. Dr. Jones"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Arrive 15 minutes early",
+            result.fields.specialInstructions)
+        // "What you need to do next: Call to confirm..." should NOT be in special instructions
+        assertEquals("Dr. Jones", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - when no What section exists Thank you remains the boundary`() {
+        val input = textResult(
+            "Fee: \$200.00 Please bring all records " +
+                "Thank you for your help. Dr. Brown 555-111-2222"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Please bring all records",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Brown 555-111-2222",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - labeled Special Instructions respects What boundary`() {
+        val input = textResult(
+            "Fee: \$200.00 Special Instructions: Bring ID and insurance " +
+                "What You Need To Do Next boilerplate content here " +
+                "Thank you for your help. Dr. Williams"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Bring ID and insurance",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Williams", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - labeled Special Instructions without What uses Thank you boundary`() {
+        val input = textResult(
+            "Fee: \$200.00 Special Instructions: Bring all previous test results " +
+                "Thank you for your help. Dr. Adams"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Bring all previous test results",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Adams", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - What boundary is case insensitive`() {
+        val input = textResult(
+            "Fee: \$200.00 Arrive early " +
+                "WHAT YOU NEED TO DO NEXT standard boilerplate " +
+                "Thank you for your help. Dr. Lee"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Arrive early", result.fields.specialInstructions)
+    }
+
+    @Test
+    fun `WP114 - What boundary only matches at word boundary`() {
+        // "Somewhat" contains "what" but should NOT trigger the boundary
+        // since it is not at a word boundary
+        val input = textResult(
+            "Fee: \$200.00 Somewhat important instructions here " +
+                "Thank you for your help. Dr. Green"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Somewhat important instructions here",
+            result.fields.specialInstructions)
+    }
+
+    @Test
+    fun `WP114 - no special instructions when What immediately follows table marker`() {
+        val input = textResult(
+            "Fee: \$200.00 What You Need To Do Next boilerplate " +
+                "Thank you for your help. Dr. Clark"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "No special instructions when What immediately follows the table marker")
+        assertEquals("Dr. Clark", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - examiner info still captured after Thank you regardless of What`() {
+        val input = textResult(
+            "Eastern Standard Time What You Need To Do Next " +
+                "Thank you for your help. Dr. Martinez 555-333-4444 doc@example.com"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "No special instructions when What immediately follows timezone")
+        assertEquals("Dr. Martinez 555-333-4444 doc@example.com",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - realistic full document with What boundary`() {
+        val page1 = "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 " +
+            "Applicant: Jane Smith Authorization #: AUTH-999"
+        val page2 = "Code: 96130 Procedure Type Code: P Desc: Test Fee: \$200.00 " +
+            "Please bring photo identification " +
+            "What You Need To Do Next Please arrive at your appointment on time. " +
+            "If you need to cancel, call 1-800-555-0000. " +
+            "Thank you for your help. Dr. Smith Assessment Center 555-123-4567"
+
+        val input = textResult(page1, page2)
+
+        val result = parser.parse(input)
+
+        assertEquals("Please bring photo identification",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Smith Assessment Center 555-123-4567",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `WP114 - What followed by lowercase text is still boundary`() {
+        val input = textResult(
+            "Fee: \$150.00 Bring records from last 2 years " +
+                "what you need to do next arrive on time " +
+                "Thank you for your help. Dr. Davis"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Bring records from last 2 years",
+            result.fields.specialInstructions)
+    }
 }
