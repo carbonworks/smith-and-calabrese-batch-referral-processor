@@ -17,6 +17,7 @@ import java.util.prefs.Preferences
 object ExportPreferences {
 
     private const val KEY_EXPORT_COLUMN_CONFIG = "exportColumnConfig"
+    private const val KEY_EXPORT_AS_CSV = "exportAsCsv"
 
     private val prefs: Preferences =
         Preferences.userRoot().node("tech/carbonworks/snc/batchreferralparser")
@@ -67,5 +68,20 @@ object ExportPreferences {
     fun reset() {
         println("[ExportPreferences] Reset to defaults")
         prefs.remove(KEY_EXPORT_COLUMN_CONFIG)
+    }
+
+    /**
+     * Returns whether exports should be written as CSV instead of XLSX.
+     *
+     * @return `true` if CSV export is enabled, `false` (default) for XLSX
+     */
+    fun getExportAsCsv(): Boolean = prefs.getBoolean(KEY_EXPORT_AS_CSV, false)
+
+    /**
+     * Persist the CSV export preference.
+     */
+    fun setExportAsCsv(value: Boolean) {
+        println("[ExportPreferences] Export as CSV changed to: $value")
+        prefs.putBoolean(KEY_EXPORT_AS_CSV, value)
     }
 }
