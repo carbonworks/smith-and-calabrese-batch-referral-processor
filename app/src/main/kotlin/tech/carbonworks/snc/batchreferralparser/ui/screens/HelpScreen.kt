@@ -134,7 +134,7 @@ fun HelpScreen(
                             text = "Up to 50 PDFs can be processed in a single batch.",
                         )
                         HelpBullet(
-                            text = "Output is saved as an XLSX spreadsheet compatible with Excel and Google Sheets.",
+                            text = "Output is saved as an XLSX spreadsheet compatible with Excel and Google Sheets. Optionally export as CSV instead (see Tips).",
                         )
                     }
                 }
@@ -166,6 +166,12 @@ fun HelpScreen(
                         )
                         HelpBullet(
                             text = "Click \"Open PDF\" on any result card to view the original source document.",
+                        )
+                        HelpBullet(
+                            text = "Result cards display Provider Name, Special Instructions, and Examiner Name/Contact when present in the authorization PDF.",
+                        )
+                        HelpBullet(
+                            text = "Check \"Export as CSV\" on the file selection screen to export a CSV file instead of XLSX. This preference persists across sessions.",
                         )
                         HelpBullet(
                             text = "After exporting, click the filename to open the spreadsheet or \"Open folder\" to see it in your file manager.",
