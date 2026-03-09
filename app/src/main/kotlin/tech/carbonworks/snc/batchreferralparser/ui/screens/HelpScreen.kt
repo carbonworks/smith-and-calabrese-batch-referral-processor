@@ -28,8 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tech.carbonworks.snc.batchreferralparser.logging.LoggingSetup
@@ -378,6 +381,7 @@ private fun HelpStep(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
             color = SoftGray,
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -405,6 +409,7 @@ private fun HelpBullet(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
             color = SoftGray,
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -452,19 +457,11 @@ private val CHANGELOG_ENTRIES = listOf(
         date = "targeting v1.1.0",
         categories = mapOf(
             "Added" to listOf(
-                "Extract Provider/Doctor Name from the \u201cPay to:\u201d section of referral PDFs",
-                "Extract Special Instructions from the authorization section of referral PDFs",
-                "Extract Examiner Name & Contact from after the \u201cThank you for your help\u201d marker",
+                "Extract Provider/Doctor Name from referral PDFs",
+                "Extract Special Instructions from referral PDFs",
+                "Extract Examiner Name & Contact from referral PDFs",
                 "CSV export option \u2014 toggle on the results screen to export CSV instead of XLSX",
-                "All three new fields appear in the data preview and are included in XLSX/CSV exports",
-            ),
-            "Changed" to listOf(
-                "\u201cWhat You Need To Do Next\u201d boilerplate is no longer captured as special instructions",
-                "Examiner contact captures only the examiner\u2019s name and phone number",
-                "CSV export preference persists across sessions",
-            ),
-            "Fixed" to listOf(
-                "Date fields in exported spreadsheets no longer require the java.sql module (resolved crash on packaged installs)",
+                "In-app changelog (\u201cWhat\u2019s New\u201d on Help screen)",
             ),
         ),
     ),
@@ -563,6 +560,7 @@ private fun ChangelogCard() {
                                     text = item,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = SoftGray,
+                                    modifier = Modifier.weight(1f),
                                 )
                             }
                         }
@@ -650,20 +648,15 @@ private fun LicensingCard() {
                             modifier = Modifier.width(16.dp),
                         )
                         Text(
-                            text = component.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = DeepInk,
-                        )
-                        Text(
-                            text = " \u2014 ",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = SoftGray,
-                        )
-                        Text(
-                            text = component.license,
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = DeepInk)) {
+                                    append(component.name)
+                                }
+                                append(" \u2014 ${component.license}")
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = SoftGray,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }

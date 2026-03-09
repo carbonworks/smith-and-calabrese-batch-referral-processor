@@ -2269,6 +2269,278 @@ Execute the full pre-release checklist and build per `docs/protocols/release-tag
 
 ---
 
+## WP-112: Move CSV Export Checkbox to Results Screen (U19)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-109
+
+**Scope:**
+The "Export as CSV" checkbox was placed on the main file-selection screen (WP-109) but it belongs on the results screen near the settings gear icon. Move it:
+
+1. **Remove** the "Export as CSV" checkbox and its state from `MainScreen.kt`.
+2. **Add** the checkbox to `ResultsScreen.kt`, positioned near the existing settings gear (column configuration) icon. Match the existing UI style and spacing.
+3. The checkbox should still read/write the preference via `ExportPreferences.getExportAsCsv()` / `setExportAsCsv()` — no changes to the persistence layer.
+4. The export logic in `ResultsScreen.kt` already dispatches to `CsvWriter` or `SpreadsheetWriter` based on the preference — ensure it now reads from the local composable state rather than a passed-in parameter if the wiring changed.
+
+**Acceptance:**
+- No CSV checkbox on the main/file-selection screen
+- CSV checkbox visible on the results screen near the gear icon
+- Toggling the checkbox persists the preference and controls export format
+- All existing tests pass
+
+---
+
+## WP-113: Refine Special Instructions Extraction Boundary (E48)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/spec/field-mapping.json`, `reference/python-scripts/extract_referral_fields.py`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParserTest.kt`
+**Depends on:** WP-107
+
+**Scope:**
+The post-table special instructions extraction (WP-107) currently captures too much text. Boilerplate like "Here is what you need to do next" and the paragraph that follows it is being included in the `specialInstructions` field. This boilerplate is a standard part of the referral letter — it is not a special instruction from the examiner.
+
+Fix the extraction boundary in `FieldParser.kt`:
+
+1. **Identify the boilerplate boundary.** The referral letter has a structural section between the services table and the actual special instructions. This section contains standard language like "Here is what you need to do next" (or similar phrasing). The `extractSpecialInstructions()` function must recognize this boilerplate section and exclude it from the captured text.
+
+2. **Prefer structural understanding over pattern matching.** Currently Strategy 2 in `extractSpecialInstructions()` finds the last "section-end marker" (Fee, timezone, Procedure Type Code) and takes everything after it through "Thank you." Instead of adding yet another regex pattern to strip "what you need to do next," rethink the extraction region:
+   - The boilerplate paragraph ("Here is what you need to do next…") is a **standard section** of the referral form that appears after the services table. It is not special instructions.
+   - True special instructions (if any) appear as a distinct block — either labeled "Special Instructions:" or as freeform text clearly separate from the boilerplate.
+   - Consider using "Thank you for your help" as the **end** of the boilerplate section rather than the start of examiner info. If there is a "Special Instructions:" label, Strategy 1 already handles it correctly. For Strategy 2, the extraction should recognize that text between the table and "Thank you" is predominantly boilerplate and should only capture text that is structurally distinct from it (e.g., text after a recognizable boilerplate closing pattern, or text that doesn't match the boilerplate paragraph structure).
+
+3. **Update tests.** Add test cases that include "Here is what you need to do next" boilerplate and verify it is excluded. Update any existing tests whose expected values change.
+
+4. **Run all tests.** Ensure `FieldParserTest` and all other test suites pass.
+
+**Acceptance:**
+- "What you need to do next" boilerplate is never included in `specialInstructions`
+- Legitimate special instructions (labeled or freeform) still extract correctly
+- Examiner name/contact extraction is unaffected
+- All existing tests pass (updated as needed)
+
+---
+
+## WP-114: Use "What" as Structural Boundary for Special Instructions (E49)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParserTest.kt`
+**Depends on:** WP-113
+
+**Scope:**
+WP-113 added boilerplate detection via pattern matching (`isBoilerplateText()`), but the real fix is structural: "What You Need To Do Next" is a **form section heading** in the referral document. The special instructions region should end at "What" — it is a structural boundary in the document, not a text-analysis problem.
+
+Fix `extractSpecialInstructions()` in `FieldParser.kt`:
+
+1. **Remove or replace `isBoilerplateText()`.** The pattern-matching approach is fragile and misplaced. Instead, treat `What` (case-insensitive, at a word boundary) as a **structural end boundary** for the special instructions capture region — the same way "Thank you for your help" is a structural boundary.
+
+2. **Adjust Strategy 2.** Currently Strategy 2 captures text between the last section-end marker (Fee/timezone/Procedure Type Code) and "Thank you for your help." Change the upper bound: special instructions end at whichever comes first — a line/sentence beginning with "What" or "Thank you for your help." Everything from "What..." through "Thank you for your help." is the standard boilerplate section of the form and must be excluded.
+
+3. **Strategy 1 is unaffected.** If "Special Instructions:" is explicitly labeled, capture its content up to the "What" boundary (or "Thank you" if "What" isn't present). The label takes precedence but still respects the structural boundary.
+
+4. **Update tests.** Replace or update the 12 boilerplate-pattern tests from WP-113 to reflect the new structural boundary approach. Add tests showing:
+   - Text before "What You Need To Do Next" is captured as special instructions
+   - Text from "What..." onward is excluded
+   - When no "What" section exists, "Thank you" remains the boundary
+   - Labeled "Special Instructions:" still works correctly
+
+5. **Run all tests**: `./gradlew :app:test`
+
+**Acceptance:**
+- Special instructions text is cut off before "What" (exclusive)
+- `isBoilerplateText()` removed or no longer the primary mechanism
+- Examiner name/contact extraction is unaffected
+- All tests pass
+
+---
+
+## WP-115: Limit Examiner Contact to Two Lines (E50)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParserTest.kt`
+**Depends on:** WP-113
+
+**Scope:**
+The examiner name/contact field currently captures all text after "Thank you for your help." up to a footer boundary regex. In practice the examiner info is exactly 2 lines: the examiner's name and their contact phone number. Additional lines beyond that are unrelated content leaking in.
+
+Fix `extractExaminerInfo()` in `FieldParser.kt`:
+
+1. **Limit capture to 2 lines.** After extracting text from the "Thank you" marker to the end boundary, split on newlines and take only the first 2 non-blank lines. Join them with a space (or preserve as-is per the existing `normalizeWhitespace` pattern).
+
+2. **Preserve existing end boundaries.** The footer boundary regex (Assigned, RQID, Federal Tax ID, etc.) should still act as a hard stop — but within that region, only the first 2 lines matter.
+
+3. **Update tests.** Add tests showing:
+   - Examiner info with exactly 2 lines captures both
+   - Examiner info with 3+ lines only captures the first 2
+   - Single-line examiner info still works
+   - Existing boundary tests still pass
+
+4. **Run all tests**: `./gradlew :app:test`
+
+**Acceptance:**
+- Examiner contact captures at most 2 lines (name + phone)
+- Additional lines beyond the second are excluded
+- All existing tests pass (updated as needed)
+
+---
+
+## WP-116: Lay Out Post-Table Fields Horizontally (U20)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-108
+
+**Scope:**
+The `PostTableSection` composable (around line 941 in `ResultsScreen.kt`) currently stacks Special Instructions and Examiner Contact vertically. Change it to a horizontal `Row` layout matching the `FooterSection` pattern directly below it (line 978):
+
+1. Replace the vertical stacking with a `Row` using `Arrangement.spacedBy(24.dp)`.
+2. Each field (Special Instructions, Examiner Contact) gets its own `Column` inside the row, with label above value — same as `FooterSection`.
+3. Keep the same font sizes (11.sp label, 13.sp value) and styling. Use `FontWeight.Medium` for values as currently set.
+4. If only one field is present, it should still display correctly (single column in the row).
+
+**Acceptance:**
+- Special Instructions and Examiner Contact are side-by-side horizontally
+- Layout matches the footer section style
+- Single-field display still works
+- No test changes needed (UI only)
+
+---
+
+## WP-117: Move Post-Table Fields into Patient Metadata Section (U21)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-116
+
+**Scope:**
+Special Instructions and Examiner Contact are part of the authorization document, not a separate section. Move them into the `PatientMetadataSection` composable and remove the standalone `PostTableSection`.
+
+1. In `PatientMetadataSection`, add special instructions and examiner contact to the `metadataFields` list (after phone, before the list closes). Use labels like "Special Instructions" and "Examiner Contact".
+2. Remove the `PostTableSection` composable function entirely.
+3. Remove the post-table fields block from the card layout (the `hasPostTableFields` check, divider, spacer, and `PostTableSection` call around lines 712-723).
+4. Do not add comments explaining the move.
+
+**Acceptance:**
+- Special Instructions and Examiner Contact appear as rows in the patient metadata section
+- No standalone post-table section exists
+- Layout is clean, consistent with other metadata rows
+
+---
+
+## WP-118: Add Provider Name to Patient Metadata Section (U22)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-117
+
+**Scope:**
+Provider Name currently only appears in the footer section of the data preview card. Add it to the `PatientMetadataSection` as well, as a metadata row near the other authorization fields (after Appointment, before Address). Remove it from the `FooterSection` since it's no longer needed there.
+
+1. In `PatientMetadataSection`, add `providerName` to the `metadataFields` list.
+2. Remove the `providerName` entry from `FooterSection`'s `footerFields` list.
+
+**Acceptance:**
+- Provider Name appears in the patient metadata section of the data preview
+- Provider Name no longer duplicated in the footer section
+
+---
+
+## WP-119: Align Field Labels to Client Terminology (U23)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumnTest.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriterTest.kt`
+**Depends on:** WP-118
+
+**Scope:**
+Align two field labels to the client's terminology across the entire app:
+
+1. **Provider Name → Provider/Doctor Name**
+   - `ResultsScreen.kt` `PatientMetadataSection`: change `"Provider"` to `"Provider/Doctor Name"`
+   - `ExportColumn.kt` `DEFAULT_FIELD_ORDER`: change `"Provider Name"` to `"Provider/Doctor Name"`
+   - `SpreadsheetWriter.kt` `COLUMN_HEADINGS`: update if it has its own list (or verify it derives from `DEFAULT_FIELD_ORDER`)
+   - `HelpScreen.kt`: update any mention of "Provider Name"
+
+2. **Examiner Name/Contact → Examiner Name & Contact**
+   - `ResultsScreen.kt` `PatientMetadataSection`: change `"Examiner Contact"` to `"Examiner Name & Contact"`
+   - `ExportColumn.kt` `DEFAULT_FIELD_ORDER`: change `"Examiner Name/Contact"` to `"Examiner Name & Contact"`
+   - `HelpScreen.kt`: update any mention of "Examiner Name/Contact"
+
+3. **Update tests** to match the new label strings. Check `ExportColumnTest.kt` and `SpreadsheetWriterTest.kt` for hardcoded label references. Also fix the stale comment on line 54 of `ExportColumnTest.kt` that says "23 fields" — it should say "25 fields".
+
+4. **Run all tests**: `./gradlew :app:test`
+
+**Acceptance:**
+- "Provider/Doctor Name" used consistently across preview, export columns, and help text
+- "Examiner Name & Contact" used consistently across preview, export columns, and help text
+- All tests pass
+
+---
+
+## WP-120: Add Changelog to Help Screen (U24)
+
+**Status:** done
+**Owns:** none
+**Reads:** `CHANGELOG.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-119
+
+**Scope:**
+Add a collapsible "What's New" section to the Help screen that displays the changelog. Follow the same collapsible pattern used by `LicensingCard()` (around line 435 in `HelpScreen.kt`):
+
+1. **Create a `ChangelogCard()` composable** in `HelpScreen.kt`, modeled after `LicensingCard()`. It should:
+   - Show a "What's New" section header
+   - Display the current version's changes by default (collapsed shows just the header row with Expand/Collapse toggle)
+   - When expanded, show changelog entries grouped by version, with Added/Changed/Fixed categories
+   - Use the same card styling, clickable row, and expand/collapse text pattern as `LicensingCard()`
+
+2. **Define changelog data inline** in `HelpScreen.kt` (similar to how `OPEN_SOURCE_COMPONENTS` is defined). Structure it as a list of version entries, each with a version string, date, and categorized change items. Populate from the current `CHANGELOG.md` content.
+
+3. **Place the card** on the Help screen above the Licensing card (after the Tips section, before Licensing).
+
+4. **Future maintenance**: When the release protocol's changelog step runs, the agent should update both `CHANGELOG.md` and the inline data in `HelpScreen.kt`.
+
+**Acceptance:**
+- "What's New" card appears on Help screen with collapsible changelog
+- Changelog entries match `CHANGELOG.md` content
+- Collapsed by default, expandable on click
+- Visual style matches the Licensing card pattern
+
+---
+
+## WP-121: Fix Changelog Bullet Alignment (U25)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-120
+
+**Scope:**
+Bullet characters in all Help screen sections render below their associated text instead of beside it. Add `Modifier.weight(1f)` to the text element in every bullet-style `Row` layout: `HelpStep()`, `HelpBullet()`, `ChangelogCard()` item rows, and `LicensingCard()` component rows.
+
+**Acceptance:**
+- Bullet characters appear to the left of their associated text, not below
+- Multi-line text wraps correctly beside the bullet
+- All four bullet patterns (HelpStep, HelpBullet, ChangelogCard, LicensingCard) are consistent
+
+---
+
 ## Dependency Graph
 
 ```

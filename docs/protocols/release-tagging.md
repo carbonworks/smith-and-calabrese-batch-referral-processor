@@ -91,7 +91,26 @@ Check for:
 - **Removed dependencies** — delete entries for libraries no longer in the dependency tree
 - **Help screen sync** — the open-source components list in `HelpScreen.kt` (LicensingCard) must match NOTICE.txt
 
-### 3. Version Number
+### 3. Changelog
+
+Update **both** changelog locations before tagging:
+
+1. **`CHANGELOG.md`** (project root) — move the `[Unreleased]` section to a versioned heading with the release date, and add a fresh empty `[Unreleased]` section above it.
+2. **`HelpScreen.kt`** (`CHANGELOG_ENTRIES` inline data) — update to match `CHANGELOG.md` so the in-app "What's New" card reflects the release.
+
+Each release section uses these categories:
+
+- **Added** — new features or fields
+- **Changed** — modifications to existing behavior
+- **Fixed** — bug fixes
+
+Review the git log since the last release tag to ensure all user-visible changes are captured:
+
+```bash
+git log --oneline v1.0.1..HEAD
+```
+
+### 4. Version Number
 
 The version in `app/build.gradle.kts` (`nativeDistributions.packageVersion`) must match the release version before tagging.
 
