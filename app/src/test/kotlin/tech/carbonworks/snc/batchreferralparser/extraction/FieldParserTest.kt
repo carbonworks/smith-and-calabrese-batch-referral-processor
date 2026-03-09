@@ -1934,176 +1934,174 @@ class FieldParserTest {
         assertEquals("Dr. Smith 555-123-4567", result.fields.examinerNameContact)
     }
 
-    // -------------------------------------------------------------------
-    // Post-table boilerplate filtering
-    // -------------------------------------------------------------------
+    // ===================================================================
+    // Structural boundary — "What You Need To Do Next" exclusion
+    // ===================================================================
 
     @Test
-    fun `post-table excludes boilerplate with here is what you need to do next`() {
+    fun `text before What boundary is captured as special instructions`() {
         val input = textResult(
-            "Fee: \$200.00 Here is what you need to do next. Please complete the examination " +
-                "and return results within 30 days. Thank you for your help. Dr. Smith"
+            "Fee: \$200.00 Please bring photo ID and all medical records " +
+                "What You Need To Do Next some boilerplate text " +
+                "Thank you for your help. Dr. Smith 555-000-1234"
         )
 
         val result = parser.parse(input)
 
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'Here is what you need to do next' should not be captured as special instructions")
-        assertEquals("Dr. Smith", result.fields.examinerNameContact)
+        assertEquals("Please bring photo ID and all medical records",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Smith 555-000-1234",
+            result.fields.examinerNameContact)
     }
 
     @Test
-    fun `post-table excludes boilerplate with what you need to do next`() {
+    fun `text from What onward is excluded from special instructions`() {
         val input = textResult(
-            "Fee: \$250.00 This is what you need to do next for the claimant evaluation. " +
-                "Thank you for your help. Dr. Jones 555-111-2222"
+            "Fee: \$200.00 Arrive 15 minutes early " +
+                "What you need to do next: Call to confirm your appointment. " +
+                "Thank you for your help. Dr. Jones"
         )
 
         val result = parser.parse(input)
 
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'what you need to do next' should not be captured as special instructions")
-        assertEquals("Dr. Jones 555-111-2222", result.fields.examinerNameContact)
+        assertEquals("Arrive 15 minutes early",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Jones", result.fields.examinerNameContact)
     }
 
     @Test
-    fun `post-table excludes boilerplate with submit your report`() {
+    fun `when no What section exists Thank you remains the boundary`() {
         val input = textResult(
-            "Eastern Daylight Time Please submit your report within 14 calendar days. " +
+            "Fee: \$200.00 Please bring all records " +
+                "Thank you for your help. Dr. Brown 555-111-2222"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Please bring all records",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Brown 555-111-2222",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `labeled Special Instructions respects What boundary`() {
+        val input = textResult(
+            "Fee: \$200.00 Special Instructions: Bring ID and insurance " +
+                "What You Need To Do Next boilerplate content here " +
+                "Thank you for your help. Dr. Williams"
+        )
+
+        val result = parser.parse(input)
+
+        assertEquals("Bring ID and insurance",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Williams", result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `labeled Special Instructions without What uses Thank you boundary`() {
+        val input = textResult(
+            "Fee: \$200.00 Special Instructions: Bring all previous test results " +
                 "Thank you for your help. Dr. Adams"
         )
 
         val result = parser.parse(input)
 
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'submit your report' should not be captured as special instructions")
+        assertEquals("Bring all previous test results",
+            result.fields.specialInstructions)
         assertEquals("Dr. Adams", result.fields.examinerNameContact)
     }
 
     @Test
-    fun `post-table excludes boilerplate with complete the enclosed`() {
+    fun `What boundary is case insensitive`() {
         val input = textResult(
-            "Fee: \$300.00 Please complete the enclosed forms and return them promptly. " +
-                "Thank you for your help. Dr. Brown"
+            "Fee: \$200.00 Arrive early " +
+                "WHAT YOU NEED TO DO NEXT standard boilerplate " +
+                "Thank you for your help. Dr. Lee"
         )
 
         val result = parser.parse(input)
 
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'complete the enclosed' should not be captured as special instructions")
-        assertEquals("Dr. Brown", result.fields.examinerNameContact)
+        assertEquals("Arrive early", result.fields.specialInstructions)
     }
 
     @Test
-    fun `post-table excludes boilerplate with return the completed`() {
+    fun `What boundary only matches at word boundary`() {
+        // "Somewhat" contains "what" but should NOT trigger the boundary
+        // since it is not at a word boundary
         val input = textResult(
-            "Fee: \$200.00 Please return the completed report within 30 days of the examination. " +
-                "Thank you for your help. Dr. Wilson"
+            "Fee: \$200.00 Somewhat important instructions here " +
+                "Thank you for your help. Dr. Green"
         )
 
         val result = parser.parse(input)
 
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'return the completed' should not be captured as special instructions")
-        assertEquals("Dr. Wilson", result.fields.examinerNameContact)
+        assertEquals("Somewhat important instructions here",
+            result.fields.specialInstructions)
     }
 
     @Test
-    fun `post-table excludes boilerplate with within N days`() {
+    fun `no special instructions when What immediately follows table marker`() {
         val input = textResult(
-            "Fee: \$200.00 Your report must be received within 14 days of the exam. " +
+            "Fee: \$200.00 What You Need To Do Next boilerplate " +
                 "Thank you for your help. Dr. Clark"
         )
 
         val result = parser.parse(input)
 
         assertNull(result.fields.specialInstructions,
-            "Boilerplate 'within N days' should not be captured as special instructions")
+            "No special instructions when What immediately follows the table marker")
         assertEquals("Dr. Clark", result.fields.examinerNameContact)
     }
 
     @Test
-    fun `post-table excludes boilerplate with following the instructions`() {
+    fun `examiner info still captured after Thank you regardless of What`() {
         val input = textResult(
-            "Fee: \$200.00 Please examine the claimant following the instructions provided. " +
+            "Eastern Standard Time What You Need To Do Next " +
+                "Thank you for your help. Dr. Martinez 555-333-4444 doc@example.com"
+        )
+
+        val result = parser.parse(input)
+
+        assertNull(result.fields.specialInstructions,
+            "No special instructions when What immediately follows timezone")
+        assertEquals("Dr. Martinez 555-333-4444 doc@example.com",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `realistic full document with What boundary`() {
+        val page1 = "Date: 09/15/2024 Case ID: ABC-123 RE: John Smith DOB: 01/01/2000 " +
+            "Applicant: Jane Smith Authorization #: AUTH-999"
+        val page2 = "Code: 96130 Procedure Type Code: P Desc: Test Fee: \$200.00 " +
+            "Please bring photo identification " +
+            "What You Need To Do Next Please arrive at your appointment on time. " +
+            "If you need to cancel, call 1-800-555-0000. " +
+            "Thank you for your help. Dr. Smith Assessment Center 555-123-4567"
+
+        val input = textResult(page1, page2)
+
+        val result = parser.parse(input)
+
+        assertEquals("Please bring photo identification",
+            result.fields.specialInstructions)
+        assertEquals("Dr. Smith Assessment Center 555-123-4567",
+            result.fields.examinerNameContact)
+    }
+
+    @Test
+    fun `What followed by lowercase text is still boundary`() {
+        val input = textResult(
+            "Fee: \$150.00 Bring records from last 2 years " +
+                "what you need to do next arrive on time " +
                 "Thank you for your help. Dr. Davis"
         )
 
         val result = parser.parse(input)
 
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'following the instructions' should not be captured as special instructions")
-        assertEquals("Dr. Davis", result.fields.examinerNameContact)
-    }
-
-    @Test
-    fun `post-table excludes boilerplate with here's what you need to do`() {
-        val input = textResult(
-            "Fee: \$200.00 Here's what you need to do for this appointment. " +
-                "Thank you for your help. Dr. Evans"
-        )
-
-        val result = parser.parse(input)
-
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'Here's what you need to do' should not be captured as special instructions")
-        assertEquals("Dr. Evans", result.fields.examinerNameContact)
-    }
-
-    @Test
-    fun `post-table still captures genuine instructions when boilerplate absent`() {
-        val input = textResult(
-            "Fee: \$200.00 Bring photo ID and arrive 15 minutes early " +
-                "Thank you for your help. Dr. Smith"
-        )
-
-        val result = parser.parse(input)
-
-        assertEquals("Bring photo ID and arrive 15 minutes early",
+        assertEquals("Bring records from last 2 years",
             result.fields.specialInstructions)
-        assertEquals("Dr. Smith", result.fields.examinerNameContact)
-    }
-
-    @Test
-    fun `post-table strategy 1 label overrides boilerplate filtering`() {
-        val input = textResult(
-            "Fee: \$200.00 Special Instructions: Claimant needs interpreter for Spanish " +
-                "Thank you for your help. Dr. Martinez"
-        )
-
-        val result = parser.parse(input)
-
-        assertEquals("Claimant needs interpreter for Spanish",
-            result.fields.specialInstructions)
-        assertEquals("Dr. Martinez", result.fields.examinerNameContact)
-    }
-
-    @Test
-    fun `post-table excludes boilerplate case insensitive`() {
-        val input = textResult(
-            "Fee: \$200.00 HERE IS WHAT YOU NEED TO DO NEXT FOR THIS EXAM. " +
-                "THANK YOU FOR YOUR HELP. Dr. Smith"
-        )
-
-        val result = parser.parse(input)
-
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate detection should be case-insensitive")
-        assertEquals("Dr. Smith", result.fields.examinerNameContact)
-    }
-
-    @Test
-    fun `post-table excludes boilerplate with no later than N days`() {
-        val input = textResult(
-            "Fee: \$200.00 The report is due no later than 14 calendar days after the exam. " +
-                "Thank you for your help. Dr. Lee"
-        )
-
-        val result = parser.parse(input)
-
-        assertNull(result.fields.specialInstructions,
-            "Boilerplate 'no later than N days' should not be captured as special instructions")
-        assertEquals("Dr. Lee", result.fields.examinerNameContact)
     }
 
     // -------------------------------------------------------------------

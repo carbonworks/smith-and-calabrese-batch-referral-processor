@@ -908,12 +908,17 @@ class FieldParser(
 
     /**
      * Extract fields that appear after the appointment authorization table:
-     * - **Special Instructions**: text between the table and "Thank you for your help."
+     * - **Special Instructions**: text between the table and the structural boundary
      * - **Examiner Name and Contact**: text after "Thank you for your help."
      *
-     * The "Thank you for your help" marker is used as the boundary between the two
-     * fields. If the marker is not found, no fields are extracted. The extraction
-     * is flexible about whitespace, punctuation, and line breaks around the marker.
+     * Two structural boundaries define the special instructions region:
+     * 1. "What" (word boundary, case-insensitive) — the "What You Need To Do Next"
+     *    form section heading that marks where boilerplate begins.
+     * 2. "Thank you for your help" — the traditional end marker.
+     *
+     * Special instructions end at whichever boundary comes first. Everything from
+     * "What..." through "Thank you" is standard form boilerplate and is excluded.
+     * Examiner info is always captured after the "Thank you" marker.
      *
      * @param pageTexts reconstructed page-level text strings
      * @return [PostTableFields] with any extracted values
@@ -926,16 +931,25 @@ class FieldParser(
         val thankYouRegex = Regex("""Thank\s+you\s+for\s+your\s+help\.?""", RegexOption.IGNORE_CASE)
         val thankYouMatch = thankYouRegex.find(allText) ?: return PostTableFields()
 
+        // --- Structural boundary: "What You Need To Do Next" ---
+        // This is a standard form section heading that marks the end of the special
+        // instructions region. Everything from "What..." through "Thank you" is
+        // boilerplate. The special instructions end at whichever comes first:
+        // a word-boundary "What" or "Thank you for your help."
+        val whatRegex = Regex("""\bWhat\b""", RegexOption.IGNORE_CASE)
+        val whatMatch = whatRegex.find(allText.substring(0, thankYouMatch.range.first))
+        val instructionsEndIndex = if (whatMatch != null) whatMatch.range.first else thankYouMatch.range.first
+
         // --- Special Instructions ---
-        // Text between common markers above and the "Thank you" line.
-        // Look for text between known end-of-table markers and the "Thank you" line.
+        // Text between common markers above and the structural boundary.
+        // Look for text between known end-of-table markers and the boundary.
         // Common markers that precede special instructions:
         //   - "Fee:" followed by dollar amount (end of services table)
         //   - The end of any table cell content
-        // We look for text in the region before "Thank you" that doesn't belong to the
+        // We look for text in the region before the boundary that doesn't belong to the
         // header, table, or invoice sections. Use a pragmatic approach: capture text
-        // from the line after known end-of-table patterns up to the "Thank you" line.
-        val specialInstructions = extractSpecialInstructions(allText, thankYouMatch.range.first)
+        // from the line after known end-of-table patterns up to the boundary.
+        val specialInstructions = extractSpecialInstructions(allText, instructionsEndIndex)
 
         // --- Examiner Name and Contact ---
         // Everything after "Thank you for your help." up to a reasonable end boundary.
@@ -950,14 +964,15 @@ class FieldParser(
     }
 
     /**
-     * Extract special instructions text from the region before the "Thank you" marker.
+     * Extract special instructions text from the region before the structural boundary.
      *
-     * Looks backward from the marker position for instruction-like text. The special
-     * instructions section typically appears after the services authorized table and
-     * before the "Thank you" line. We search for patterns like:
+     * The structural boundary is the earlier of "What You Need To Do Next" (a form
+     * section heading) or "Thank you for your help." Looks backward from the boundary
+     * for instruction-like text. The special instructions section typically appears
+     * after the services authorized table and before the boundary. We search for:
      * - Text after "Special Instructions:" label
-     * - Text between common end-of-table markers (e.g., last "Fee:" line) and "Thank you"
-     * - Text between "Eastern" timezone reference and "Thank you"
+     * - Text between common end-of-table markers (e.g., last "Fee:" line) and boundary
+     * - Text between "Eastern" timezone reference and boundary
      *
      * The standard referral form flow is:
      *   1. Services authorization table (Fee, CPT codes, etc.)
@@ -971,31 +986,27 @@ class FieldParser(
      * paragraph pattern).
      *
      * @param allText the concatenated text from all pages
-     * @param thankYouStart the character index where "Thank you" begins
+     * @param boundaryStart the character index where the structural boundary begins
      * @return the extracted special instructions text, or null if not found
      */
-    private fun extractSpecialInstructions(allText: String, thankYouStart: Int): String? {
-        val beforeThankYou = allText.substring(0, thankYouStart)
+    private fun extractSpecialInstructions(allText: String, boundaryStart: Int): String? {
+        val beforeBoundary = allText.substring(0, boundaryStart)
 
         // Strategy 1: Explicit "Special Instructions:" label
         val labelRegex = Regex("""Special\s+Instructions?\s*:\s*(.+)""",
             setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-        val labelMatch = labelRegex.find(beforeThankYou)
+        val labelMatch = labelRegex.find(beforeBoundary)
         if (labelMatch != null) {
             val text = labelMatch.groupValues[1].trim()
             if (text.isNotBlank()) return normalizeWhitespace(text)
         }
 
         // Strategy 2: Capture text between the last known section-end marker and
-        // "Thank you". We find the rightmost occurrence of any marker string and
-        // take everything after it as the candidate special instructions text.
+        // the structural boundary. We find the rightmost occurrence of any marker
+        // string and take everything after it as the candidate special instructions.
         //
         // Each marker regex is searched; we pick whichever match ends latest
-        // (closest to the "Thank you" marker) to minimize noise.
-        //
-        // After extracting the candidate, we check whether it is standard form
-        // boilerplate (e.g., "Here is what you need to do next..."). If so, it
-        // is not a special instruction from the examiner and is excluded.
+        // (closest to the boundary) to minimize noise.
         val sectionEndMarkers = listOf(
             Regex("""(?:Eastern\s+\w+\s+Time|E[SD]T)""", RegexOption.IGNORE_CASE),
             Regex("Fee:" + "\\s*" + "\\$" + "\\s*" + "[\\d,.]+" ),
@@ -1004,7 +1015,7 @@ class FieldParser(
 
         var latestEnd = -1
         for (marker in sectionEndMarkers) {
-            val matches = marker.findAll(beforeThankYou).toList()
+            val matches = marker.findAll(beforeBoundary).toList()
             if (matches.isNotEmpty()) {
                 val lastMatch = matches.last()
                 if (lastMatch.range.last > latestEnd) {
@@ -1015,64 +1026,15 @@ class FieldParser(
 
         if (latestEnd >= 0) {
             val candidateStart = latestEnd + 1
-            if (candidateStart < beforeThankYou.length) {
-                val candidate = beforeThankYou.substring(candidateStart).trim()
+            if (candidateStart < beforeBoundary.length) {
+                val candidate = beforeBoundary.substring(candidateStart).trim()
                 if (candidate.isNotBlank()) {
-                    val normalized = normalizeWhitespace(candidate)
-                    // Filter out standard form boilerplate that appears between
-                    // the services table and "Thank you for your help."
-                    if (isBoilerplateText(normalized)) return null
-                    return normalized
+                    return normalizeWhitespace(candidate)
                 }
             }
         }
 
         return null
-    }
-
-    /**
-     * Determine whether text is standard referral form boilerplate rather than
-     * a genuine special instruction from the examiner.
-     *
-     * The standard SSA/DDS referral letter contains a boilerplate instructional
-     * paragraph between the services authorization table and "Thank you for your
-     * help." This paragraph typically contains language like:
-     * - "Here is what you need to do next"
-     * - "what you need to do"
-     * - "need to do next"
-     * - "following the instructions"
-     * - "complete the enclosed"
-     * - "return the completed"
-     * - "submit your report"
-     * - "within ... days"
-     *
-     * This is NOT a special instruction from the examiner — it is part of the
-     * standard form template. True special instructions are either explicitly
-     * labeled ("Special Instructions:") or are short, actionable directives that
-     * do not match this boilerplate structure.
-     *
-     * @param text the normalized candidate text to check
-     * @return true if the text is standard form boilerplate, false otherwise
-     */
-    private fun isBoilerplateText(text: String): Boolean {
-        // Boilerplate indicator phrases (case-insensitive). If the candidate
-        // contains any of these, it is almost certainly boilerplate.
-        val boilerplatePatterns = listOf(
-            Regex("""(?:here\s+is|here\s*['']s)\s+what\s+you\s+need\s+to\s+do""", RegexOption.IGNORE_CASE),
-            Regex("""what\s+you\s+need\s+to\s+do\s+next""", RegexOption.IGNORE_CASE),
-            Regex("""need\s+to\s+do\s+next""", RegexOption.IGNORE_CASE),
-            Regex("""following\s+(?:the\s+)?instructions""", RegexOption.IGNORE_CASE),
-            Regex("""complete\s+the\s+enclosed""", RegexOption.IGNORE_CASE),
-            Regex("""return\s+the\s+completed""", RegexOption.IGNORE_CASE),
-            Regex("""submit\s+your\s+report""", RegexOption.IGNORE_CASE),
-            Regex("""(?:within|no\s+later\s+than)\s+\d+\s+(?:calendar\s+)?days""", RegexOption.IGNORE_CASE),
-            Regex("""report\s+must\s+be\s+(?:received|submitted|returned)""", RegexOption.IGNORE_CASE),
-            Regex("""(?:please\s+)?(?:contact|call)\s+(?:us|the\s+office|DDS)""", RegexOption.IGNORE_CASE),
-            Regex("""attached\s+(?:you\s+will\s+find|are\s+the|is\s+the)""", RegexOption.IGNORE_CASE),
-            Regex("""enclosed\s+(?:you\s+will\s+find|are\s+the|is\s+the|please)""", RegexOption.IGNORE_CASE),
-        )
-
-        return boilerplatePatterns.any { it.containsMatchIn(text) }
     }
 
     /**
