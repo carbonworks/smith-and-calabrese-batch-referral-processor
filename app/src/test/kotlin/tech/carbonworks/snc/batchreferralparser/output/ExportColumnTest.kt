@@ -51,7 +51,7 @@ class ExportColumnTest {
     )
 
     // -------------------------------------------------------------------
-    // Test 1: Default config produces 23 fields in expected order
+    // Test 1: Default config produces 25 fields in expected order
     // -------------------------------------------------------------------
 
     @Test

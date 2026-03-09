@@ -168,7 +168,7 @@ fun HelpScreen(
                             text = "Click \"Open PDF\" on any result card to view the original source document.",
                         )
                         HelpBullet(
-                            text = "Result cards display Provider Name, Special Instructions, and Examiner Name/Contact when present in the authorization PDF.",
+                            text = "Result cards display Provider/Doctor Name, Special Instructions, and Examiner Name & Contact when present in the authorization PDF.",
                         )
                         HelpBullet(
                             text = "Check \"Export as CSV\" on the results screen to export a CSV file instead of XLSX. This preference persists across sessions.",

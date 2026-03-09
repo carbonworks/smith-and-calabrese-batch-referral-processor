@@ -805,7 +805,7 @@ private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
                 append(fields.appointmentTime)
             }
         })
-        if (!fields.providerName.isNullOrEmpty()) add("Provider" to fields.providerName)
+        if (!fields.providerName.isNullOrEmpty()) add("Provider/Doctor Name" to fields.providerName)
         if (addressParts.isNotEmpty()) {
             add("Address" to addressParts.joinToString(", "))
             if (cityStateZip.isNotEmpty()) add("" to cityStateZip)
@@ -816,7 +816,7 @@ private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
         }
         if (!fields.phone.isNullOrEmpty()) add("Phone" to fields.phone)
         if (!fields.specialInstructions.isNullOrEmpty()) add("Special Instructions" to fields.specialInstructions)
-        if (!fields.examinerNameContact.isNullOrEmpty()) add("Examiner Contact" to fields.examinerNameContact)
+        if (!fields.examinerNameContact.isNullOrEmpty()) add("Examiner Name & Contact" to fields.examinerNameContact)
     }
 
     for ((label, value) in metadataFields) {
