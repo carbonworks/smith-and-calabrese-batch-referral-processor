@@ -2185,6 +2185,48 @@ Add these as new extractable fields in `ReferralFields`, include them in the def
 
 ---
 
+## WP-109: CSV Export Option (F9)
+
+**Status:** done
+**Owns:** TBD
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/SpreadsheetWriter.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `CLAUDE.md`
+**Touches:** TBD
+**Depends on:** nothing
+
+**Scope:**
+Add CSV export as an alternative to XLSX:
+
+1. Add a checkbox to the left of the "Add Files" button on the main/file selection screen — checked = export as CSV instead of XLSX
+2. Persist the preference (same pattern as other settings)
+3. Create a CSV writer (or add CSV mode to the existing SpreadsheetWriter) that produces a standard RFC 4180 CSV file with the same column layout as the XLSX export
+4. Wire the export button on the Results screen to use CSV or XLSX based on the preference
+5. Update the filename pattern to use `.csv` extension when CSV mode is active
+
+**Acceptance:** Checking the box and exporting produces a valid CSV file. Unchecked produces XLSX as before. Preference persists across sessions. All tests pass.
+
+---
+
+## WP-108: Display New Extraction Fields in Data Preview Cards (E46)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/ReferralFields.kt`, `CLAUDE.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-106, WP-107
+
+**Scope:**
+Add the three new fields from WP-106 and WP-107 to the data preview cards on the Results screen:
+
+1. **Provider Name** (`providerName`) — display in the metadata section alongside existing provider/invoice fields (Federal Tax ID, Vendor Number)
+2. **Special Instructions** (`specialInstructions`) — display below the services section or in its own row
+3. **Examiner Name/Contact** (`examinerNameContact`) — display near special instructions
+
+Follow the existing pattern used for other fields in ResultsScreen.kt (MetadataRow composable or similar). Respect PHI masking — these fields should be masked when the global or per-card mask toggle is active.
+
+**Acceptance:** All three new fields appear in the data preview cards when present. Fields are masked when masking is active. All tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
