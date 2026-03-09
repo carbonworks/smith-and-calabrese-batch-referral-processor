@@ -35,6 +35,8 @@ import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -152,6 +154,7 @@ fun ResultsScreen(
     var saveMessage by remember { mutableStateOf<String?>(null) }
     var saveError by remember { mutableStateOf<String?>(null) }
     var savedFile by remember { mutableStateOf<File?>(null) }
+    var exportAsCsv by remember { mutableStateOf(ExportPreferences.getExportAsCsv()) }
     var errorsExpanded by remember { mutableStateOf(false) }
     var warningsExpanded by remember { mutableStateOf(false) }
 
@@ -494,6 +497,27 @@ fun ResultsScreen(
                 onClick = onStartOver,
             )
             Spacer(modifier = Modifier.weight(1f))
+            // CSV export toggle
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = exportAsCsv,
+                    onCheckedChange = { checked ->
+                        exportAsCsv = checked
+                        ExportPreferences.setExportAsCsv(checked)
+                    },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = BrandGreen,
+                    ),
+                )
+                Text(
+                    text = "Export as CSV",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SoftGray,
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
             if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
                 IconButton(
                     onClick = onNavigateToExportSettings,
