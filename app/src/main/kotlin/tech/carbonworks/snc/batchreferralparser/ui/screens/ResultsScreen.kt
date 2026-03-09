@@ -910,39 +910,33 @@ private fun ServiceItem(service: ServiceLine, isMasked: Boolean) {
 
 /**
  * Post-table section showing special instructions and examiner contact info.
- * Uses a stacked label-above-value layout since these fields can contain
- * longer text that benefits from the full card width.
+ * Lays fields out horizontally in a Row, matching the FooterSection pattern.
  */
 @Composable
 private fun PostTableSection(fields: ReferralFields, isMasked: Boolean) {
-    if (!fields.specialInstructions.isNullOrEmpty()) {
-        Text(
-            text = "Special Instructions",
-            fontSize = 11.sp,
-            color = SoftGray,
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = if (isMasked) PhiMask.maskDisplay(fields.specialInstructions) else fields.specialInstructions,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-        )
+    val postTableFields = buildList {
+        if (!fields.specialInstructions.isNullOrEmpty()) add("Special Instructions" to fields.specialInstructions)
+        if (!fields.examinerNameContact.isNullOrEmpty()) add("Examiner Contact" to fields.examinerNameContact)
     }
-    if (!fields.examinerNameContact.isNullOrEmpty()) {
-        if (!fields.specialInstructions.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.height(6.dp))
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
+    ) {
+        for ((label, value) in postTableFields) {
+            Column {
+                Text(
+                    text = label,
+                    fontSize = 11.sp,
+                    color = SoftGray,
+                )
+                Text(
+                    text = if (isMasked) PhiMask.maskDisplay(value) else value,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
-        Text(
-            text = "Examiner Contact",
-            fontSize = 11.sp,
-            color = SoftGray,
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = if (isMasked) PhiMask.maskDisplay(fields.examinerNameContact) else fields.examinerNameContact,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-        )
     }
 }
 
