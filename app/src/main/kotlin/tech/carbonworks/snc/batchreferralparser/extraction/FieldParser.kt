@@ -1047,7 +1047,15 @@ class FieldParser(
             afterText
         }
 
-        val cleaned = normalizeWhitespace(examinerText.trim())
+        // Examiner info is exactly 2 lines: name and contact phone number.
+        // Split on newlines BEFORE normalizing whitespace so line structure is
+        // preserved, then take only the first 2 non-blank lines.
+        val lines = examinerText.split(Regex("\\r?\\n"))
+            .map { normalizeWhitespace(it) }
+            .filter { it.isNotBlank() }
+            .take(2)
+
+        val cleaned = lines.joinToString(" ")
         return if (cleaned.isNotBlank()) cleaned else null
     }
 
