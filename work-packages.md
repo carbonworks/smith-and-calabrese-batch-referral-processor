@@ -2250,22 +2250,16 @@ Keep additions concise — brief bullets, not paragraphs. Follow the existing He
 
 ## WP-111: Release Candidate v1.1.0-rc1 (REL)
 
-**Status:** ready
+**Status:** done
 **Owns:** none
-**Reads:** `docs/protocols/release-tagging.md`, `app/src/main/resources/NOTICE.txt`
-**Touches:** `app/build.gradle.kts`, `app/src/main/resources/NOTICE.txt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
-**Depends on:** WP-110
+**Reads:** `docs/protocols/release-tagging.md`, `CHANGELOG.md`, `app/build.gradle.kts`
+**Touches:** `CHANGELOG.md`, `app/build.gradle.kts`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`, `app/src/main/resources/NOTICE.txt`
+**Depends on:** WP-110, WP-112–WP-121
 
 **Scope:**
-Execute the full pre-release checklist and build per `docs/protocols/release-tagging.md`:
+Execute the full pre-release checklist from `docs/protocols/release-tagging.md` for v1.1.0-rc1: version bump to 1.1.0, finalize changelog (move Unreleased to 1.1.0), update HelpScreen CHANGELOG_ENTRIES, FOSS licensing review, run all tests.
 
-1. **jlink module scan**: Build the installer, run `jdeps --print-module-deps` against the app JAR, compare against the runtime image MODULES line. Fix any gaps before proceeding.
-2. **FOSS licensing review**: Run `./gradlew :app:dependencies --configuration runtimeClasspath`, compare against NOTICE.txt and HelpScreen.kt open-source components list. Update if discrepancies found.
-3. **Version bump**: Update `packageVersion` in `app/build.gradle.kts` to `1.1.0`. Commit.
-4. **Tag RC**: `git tag -a v1.1.0-rc1 -m "Release candidate 1 for v1.1.0"`, push tag.
-5. **Build installer**: `./gradlew :app:packageMsi`, open output directory.
-
-**Acceptance:** All pre-release checks pass, tagged RC exists on main, MSI installer built successfully.
+**Acceptance:** packageVersion is 1.1.0, changelog finalized, NOTICE.txt verified, all tests pass.
 
 ---
 
