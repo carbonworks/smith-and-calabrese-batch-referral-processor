@@ -111,6 +111,10 @@ class FieldParser(
         ).size
         println("[Parser] Invoice stage: $invoiceCount field(s) extracted")
 
+        val postTableFields = extractPostTableFields(pageTexts)
+        val postTableCount = listOfNotNull(postTableFields.specialInstructions, postTableFields.examinerNameContact).size
+        println("[Parser] Post-table stage: $postTableCount field(s) extracted")
+
         val phoneFromCell = extractPhone(pageTexts)
         if (phoneFromCell != null) println("[Parser] Phone fallback: found via CELL # pattern")
 
@@ -190,7 +194,7 @@ class FieldParser(
         }
 
         // Merge with priority: header > table > invoice > fallback
-        val fields = mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell, fallbackFields)
+        val fields = mergeFields(invoiceFields, tableFields, headerFields, caseFields, phoneFromCell, fallbackFields, postTableFields)
 
         // Generate missing-field completeness warnings for expected fields
         val missingWarnings = generateMissingFieldWarnings(fields)
@@ -899,6 +903,163 @@ class FieldParser(
     }
 
     // -----------------------------------------------------------------------
+    // Post-table field extraction (Special Instructions + Examiner)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Extract fields that appear after the appointment authorization table:
+     * - **Special Instructions**: text between the table and "Thank you for your help."
+     * - **Examiner Name and Contact**: text after "Thank you for your help."
+     *
+     * The "Thank you for your help" marker is used as the boundary between the two
+     * fields. If the marker is not found, no fields are extracted. The extraction
+     * is flexible about whitespace, punctuation, and line breaks around the marker.
+     *
+     * @param pageTexts reconstructed page-level text strings
+     * @return [PostTableFields] with any extracted values
+     */
+    internal fun extractPostTableFields(pageTexts: List<String>): PostTableFields {
+        // Search across all pages for the "Thank you" marker
+        val allText = pageTexts.joinToString("\n")
+
+        // Find the "Thank you for your help" marker (case-insensitive, flexible punctuation)
+        val thankYouRegex = Regex("""Thank\s+you\s+for\s+your\s+help\.?""", RegexOption.IGNORE_CASE)
+        val thankYouMatch = thankYouRegex.find(allText) ?: return PostTableFields()
+
+        // --- Special Instructions ---
+        // Text between common markers above and the "Thank you" line.
+        // Look for text between known end-of-table markers and the "Thank you" line.
+        // Common markers that precede special instructions:
+        //   - "Fee:" followed by dollar amount (end of services table)
+        //   - The end of any table cell content
+        // We look for text in the region before "Thank you" that doesn't belong to the
+        // header, table, or invoice sections. Use a pragmatic approach: capture text
+        // from the line after known end-of-table patterns up to the "Thank you" line.
+        val specialInstructions = extractSpecialInstructions(allText, thankYouMatch.range.first)
+
+        // --- Examiner Name and Contact ---
+        // Everything after "Thank you for your help." up to a reasonable end boundary.
+        val examinerNameContact = extractExaminerInfo(allText, thankYouMatch.range.last + 1)
+
+        val result = PostTableFields(
+            specialInstructions = specialInstructions?.ifBlank { null },
+            examinerNameContact = examinerNameContact?.ifBlank { null },
+        )
+
+        return result
+    }
+
+    /**
+     * Extract special instructions text from the region before the "Thank you" marker.
+     *
+     * Looks backward from the marker position for instruction-like text. The special
+     * instructions section typically appears after the services authorized table and
+     * before the "Thank you" line. We search for patterns like:
+     * - Text after "Special Instructions:" label
+     * - Text between common end-of-table markers (e.g., last "Fee:" line) and "Thank you"
+     * - Text between "Eastern" timezone reference and "Thank you"
+     *
+     * @param allText the concatenated text from all pages
+     * @param thankYouStart the character index where "Thank you" begins
+     * @return the extracted special instructions text, or null if not found
+     */
+    private fun extractSpecialInstructions(allText: String, thankYouStart: Int): String? {
+        val beforeThankYou = allText.substring(0, thankYouStart)
+
+        // Strategy 1: Explicit "Special Instructions:" label
+        val labelRegex = Regex("""Special\s+Instructions?\s*:\s*(.+)""",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+        val labelMatch = labelRegex.find(beforeThankYou)
+        if (labelMatch != null) {
+            val text = labelMatch.groupValues[1].trim()
+            if (text.isNotBlank()) return normalizeWhitespace(text)
+        }
+
+        // Strategy 2: Capture text between the last known section-end marker and
+        // "Thank you". We find the rightmost occurrence of any marker string and
+        // take everything after it as the candidate special instructions text.
+        //
+        // Each marker regex is searched; we pick whichever match ends latest
+        // (closest to the "Thank you" marker) to minimize noise.
+        val sectionEndMarkers = listOf(
+            Regex("""(?:Eastern\s+\w+\s+Time|E[SD]T)""", RegexOption.IGNORE_CASE),
+            Regex("Fee:" + "\\s*" + "\\$" + "\\s*" + "[\\d,.]+" ),
+            Regex("""Procedure\s+Type\s+Code:\s*\S+"""),
+        )
+
+        var latestEnd = -1
+        for (marker in sectionEndMarkers) {
+            val matches = marker.findAll(beforeThankYou).toList()
+            if (matches.isNotEmpty()) {
+                val lastMatch = matches.last()
+                if (lastMatch.range.last > latestEnd) {
+                    latestEnd = lastMatch.range.last
+                }
+            }
+        }
+
+        if (latestEnd >= 0) {
+            val candidateStart = latestEnd + 1
+            if (candidateStart < beforeThankYou.length) {
+                val candidate = beforeThankYou.substring(candidateStart).trim()
+                if (candidate.isNotBlank()) {
+                    return normalizeWhitespace(candidate)
+                }
+            }
+        }
+
+        return null
+    }
+
+    /**
+     * Extract examiner name and contact information from text after "Thank you for your help."
+     *
+     * Captures the text block following the marker, up to a reasonable end boundary:
+     * - The next major section header (e.g., footer case number line, "CASE-NUMBER/")
+     * - A page break or form feed
+     * - End of text
+     *
+     * The captured text typically contains:
+     * - Examiner name
+     * - Phone number and/or email
+     * - Title or organization
+     *
+     * @param allText the concatenated text from all pages
+     * @param afterThankYouStart character index immediately after "Thank you for your help."
+     * @return the extracted examiner info text, or null if nothing meaningful follows
+     */
+    private fun extractExaminerInfo(allText: String, afterThankYouStart: Int): String? {
+        if (afterThankYouStart >= allText.length) return null
+
+        val afterText = allText.substring(afterThankYouStart)
+
+        // End boundaries: footer case number pattern, "Assigned" keyword, RQID barcode,
+        // "Federal Tax ID", form feed, or page markers
+        val endBoundaryRegex = Regex(
+            """(?:\S+\s*/\s*Assigned\s+\d+|RQID\s*:|Federal\s+Tax\s+ID|Authorization\s+Number\s*:|Vendor\s+Number\s*:|Pay\s+to\s*:|\f)""",
+            RegexOption.IGNORE_CASE,
+        )
+
+        val endMatch = endBoundaryRegex.find(afterText)
+        val examinerText = if (endMatch != null) {
+            afterText.substring(0, endMatch.range.first)
+        } else {
+            afterText
+        }
+
+        val cleaned = normalizeWhitespace(examinerText.trim())
+        return if (cleaned.isNotBlank()) cleaned else null
+    }
+
+    /**
+     * Normalize internal whitespace in extracted text: collapse runs of whitespace
+     * (including newlines) to single spaces, then trim.
+     */
+    private fun normalizeWhitespace(text: String): String {
+        return text.replace(Regex("""\s+"""), " ").trim()
+    }
+
+    // -----------------------------------------------------------------------
     // Fallback individual field extraction
     // -----------------------------------------------------------------------
 
@@ -954,6 +1115,7 @@ class FieldParser(
         caseFields: CaseFields,
         phoneFromCell: String?,
         fallbackFields: FallbackFields = FallbackFields(),
+        postTableFields: PostTableFields = PostTableFields(),
     ): ReferralFields {
         // Start with all fields null (lowest priority)
         var firstName: String? = null
@@ -974,8 +1136,14 @@ class FieldParser(
         var phone: String? = null
         var services: List<ServiceLine> = emptyList()
         var providerName: String? = null
+        var specialInstructions: String? = null
+        var examinerNameContact: String? = null
         var federalTaxId: String? = null
         var vendorNumber: String? = null
+
+        // Post-table fields (special instructions and examiner info)
+        postTableFields.specialInstructions?.let { specialInstructions = it }
+        postTableFields.examinerNameContact?.let { examinerNameContact = it }
 
         // Fallback fields (lowest priority — last resort individual pattern matching)
         fallbackFields.caseId?.let { caseId = it }
@@ -1034,6 +1202,8 @@ class FieldParser(
             phone = phone,
             services = services,
             providerName = providerName,
+            specialInstructions = specialInstructions,
+            examinerNameContact = examinerNameContact,
             federalTaxId = federalTaxId,
             vendorNumber = vendorNumber,
             caseNumberFullFooter = caseFields.caseNumberFullFooter,
@@ -1112,6 +1282,11 @@ class FieldParser(
     internal data class FallbackFields(
         val caseId: String? = null,
         val requestId: String? = null,
+    )
+
+    internal data class PostTableFields(
+        val specialInstructions: String? = null,
+        val examinerNameContact: String? = null,
     )
 }
 

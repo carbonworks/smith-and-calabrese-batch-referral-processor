@@ -30,6 +30,8 @@ val DEFAULT_FIELD_ORDER: List<Pair<String, String>> = listOf(
     "phone" to "Phone",
     "services" to "Services",
     "providerName" to "Provider Name",
+    "specialInstructions" to "Special Instructions",
+    "examinerNameContact" to "Examiner Name/Contact",
     "federalTaxId" to "Federal Tax ID",
     "vendorNumber" to "Vendor Number",
     "caseNumberFullFooter" to "Case Number (Footer)",
@@ -92,7 +94,7 @@ sealed class ExportColumn {
  * The complete export column configuration: an ordered list of columns that
  * determines which fields appear in the XLSX output and in what order.
  *
- * Use [ExportColumnConfig.default] to obtain the canonical 23-field layout.
+ * Use [ExportColumnConfig.default] to obtain the canonical 25-field layout.
  */
 @Serializable
 data class ExportColumnConfig(
@@ -101,7 +103,7 @@ data class ExportColumnConfig(
 ) {
     companion object {
         /**
-         * Returns the default column configuration with all 23 fields enabled,
+         * Returns the default column configuration with all 25 fields enabled,
          * in the canonical order defined by [DEFAULT_FIELD_ORDER].
          */
         fun default(): ExportColumnConfig = ExportColumnConfig(
@@ -138,6 +140,8 @@ fun ReferralFields.getFieldValue(fieldId: String): String = when (fieldId) {
     "phone" -> phone.orEmpty()
     "services" -> services.joinToString(", ") { it.cptCode }
     "providerName" -> providerName.orEmpty()
+    "specialInstructions" -> specialInstructions.orEmpty()
+    "examinerNameContact" -> examinerNameContact.orEmpty()
     "federalTaxId" -> federalTaxId.orEmpty()
     "vendorNumber" -> vendorNumber.orEmpty()
     "caseNumberFullFooter" -> caseNumberFullFooter.orEmpty()

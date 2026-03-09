@@ -57,6 +57,10 @@ data class ReferralFields(
     val federalTaxId: String? = null,
     val vendorNumber: String? = null,
 
+    // Post-table fields
+    val specialInstructions: String? = null,
+    val examinerNameContact: String? = null,
+
     // Footer/case components
     val caseNumberFullFooter: String? = null,
     val assignedCode: String? = null,
@@ -71,7 +75,8 @@ data class ReferralFields(
             firstName, middleName, lastName, caseId, authorizationNumber,
             requestId, dateOfIssue, dob, applicantName, appointmentDate,
             appointmentTime, streetAddress, city, state, zipCode, phone,
-            providerName, federalTaxId, vendorNumber, caseNumberFullFooter, assignedCode, dccNumber,
+            providerName, specialInstructions, examinerNameContact,
+            federalTaxId, vendorNumber, caseNumberFullFooter, assignedCode, dccNumber,
         ).count { it != null } +
             if (services.isNotEmpty()) 1 else 0
     }

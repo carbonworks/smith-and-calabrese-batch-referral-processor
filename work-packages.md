@@ -2150,6 +2150,41 @@ Fix `NoClassDefFoundError: java/sql/Date` crash in packaged MSI installer. The j
 
 ---
 
+## WP-106: Extract Provider Name Field (E44)
+
+**Status:** ready
+**Owns:** TBD
+**Reads:** `docs/spec/field-mapping.json`, `reference/python-scripts/extract_referral_fields.py`
+**Touches:** TBD
+**Depends on:** nothing
+
+**Scope:**
+Extract the provider name from the referral PDF. The provider name appears as the first line of the mailing address in the box to the right of the "Pay To" box. It is also the first line of the address on the page that follows. Add this as a new extractable field in `ReferralFields`, include it in the default export column config, and surface it in the UI.
+
+**Acceptance:** Provider name is extracted and appears in results cards and XLSX export. All tests pass.
+
+---
+
+## WP-107: Extract Special Instructions and Examiner Contact (E45)
+
+**Status:** ready
+**Owns:** TBD
+**Reads:** `docs/spec/field-mapping.json`, `reference/python-scripts/extract_referral_fields.py`
+**Touches:** TBD
+**Depends on:** nothing
+
+**Scope:**
+Extract two new fields from the referral PDF:
+
+1. **Special Instructions**: Found below the appointment authorization table
+2. **Examiner Name and Contact**: Found after the "Thank you for your help." line
+
+Add these as new extractable fields in `ReferralFields`, include them in the default export column config, and surface them in the UI. Note: the examiner info may have variable formatting — research agent findings should inform the parsing approach.
+
+**Acceptance:** Special instructions and examiner contact are extracted and appear in results cards and XLSX export. All tests pass.
+
+---
+
 ## Dependency Graph
 
 ```
