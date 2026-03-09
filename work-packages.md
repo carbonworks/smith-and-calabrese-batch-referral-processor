@@ -2152,7 +2152,7 @@ Fix `NoClassDefFoundError: java/sql/Date` crash in packaged MSI installer. The j
 
 ## WP-106: Extract Provider Name Field (E44)
 
-**Status:** ready
+**Status:** done
 **Owns:** TBD
 **Reads:** `docs/spec/field-mapping.json`, `reference/python-scripts/extract_referral_fields.py`
 **Touches:** TBD
@@ -2167,7 +2167,7 @@ Extract the provider name from the referral PDF. The provider name appears as th
 
 ## WP-107: Extract Special Instructions and Examiner Contact (E45)
 
-**Status:** ready
+**Status:** done
 **Owns:** TBD
 **Reads:** `docs/spec/field-mapping.json`, `reference/python-scripts/extract_referral_fields.py`
 **Touches:** TBD
