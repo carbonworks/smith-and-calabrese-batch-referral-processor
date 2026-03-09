@@ -794,6 +794,7 @@ private fun PatientMetadataSection(fields: ReferralFields, isMasked: Boolean) {
                 append(fields.appointmentTime)
             }
         })
+        if (!fields.providerName.isNullOrEmpty()) add("Provider" to fields.providerName)
         if (addressParts.isNotEmpty()) {
             add("Address" to addressParts.joinToString(", "))
             if (cityStateZip.isNotEmpty()) add("" to cityStateZip)
@@ -953,7 +954,6 @@ private fun PostTableSection(fields: ReferralFields, isMasked: Boolean) {
 @Composable
 private fun FooterSection(fields: ReferralFields, isMasked: Boolean) {
     val footerFields = buildList {
-        if (!fields.providerName.isNullOrEmpty()) add("Provider Name" to fields.providerName)
         if (!fields.federalTaxId.isNullOrEmpty()) add("Federal Tax ID" to fields.federalTaxId)
         if (!fields.vendorNumber.isNullOrEmpty()) add("Vendor Number" to fields.vendorNumber)
         if (!fields.caseNumberFullFooter.isNullOrEmpty()) add("Case Number" to fields.caseNumberFullFooter)
