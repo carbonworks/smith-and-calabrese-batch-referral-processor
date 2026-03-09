@@ -2227,6 +2227,48 @@ Follow the existing pattern used for other fields in ResultsScreen.kt (MetadataR
 
 ---
 
+## WP-110: Update Help Screen for v1.1.0 Feature Changes (E47)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/MainScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/CsvWriter.kt`, `CLAUDE.md`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-108, WP-109
+
+**Scope:**
+Update the Help & Support screen to document features added since v1.0.0:
+
+1. **Three new extraction fields**: Provider Name, Special Instructions, and Examiner Name/Contact are now extracted and displayed in result cards. Mention these in the "How It Works" or data preview section.
+2. **CSV export**: Document the "Export as CSV" checkbox on the file selection screen. Note that checking it exports a CSV file instead of XLSX. Mention it persists across sessions.
+3. Review existing Help text to ensure nothing else is stale after these additions.
+
+Keep additions concise — brief bullets, not paragraphs. Follow the existing Help screen style (CwCard, SectionHeader, HelpBullet).
+
+**Acceptance:** Help screen accurately documents the new extraction fields and CSV export option. All tests pass.
+
+---
+
+## WP-111: Release Candidate v1.1.0-rc1 (REL)
+
+**Status:** ready
+**Owns:** none
+**Reads:** `docs/protocols/release-tagging.md`, `app/src/main/resources/NOTICE.txt`
+**Touches:** `app/build.gradle.kts`, `app/src/main/resources/NOTICE.txt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-110
+
+**Scope:**
+Execute the full pre-release checklist and build per `docs/protocols/release-tagging.md`:
+
+1. **jlink module scan**: Build the installer, run `jdeps --print-module-deps` against the app JAR, compare against the runtime image MODULES line. Fix any gaps before proceeding.
+2. **FOSS licensing review**: Run `./gradlew :app:dependencies --configuration runtimeClasspath`, compare against NOTICE.txt and HelpScreen.kt open-source components list. Update if discrepancies found.
+3. **Version bump**: Update `packageVersion` in `app/build.gradle.kts` to `1.1.0`. Commit.
+4. **Tag RC**: `git tag -a v1.1.0-rc1 -m "Release candidate 1 for v1.1.0"`, push tag.
+5. **Build installer**: `./gradlew :app:packageMsi`, open output directory.
+
+**Acceptance:** All pre-release checks pass, tagged RC exists on main, MSI installer built successfully.
+
+---
+
 ## Dependency Graph
 
 ```
