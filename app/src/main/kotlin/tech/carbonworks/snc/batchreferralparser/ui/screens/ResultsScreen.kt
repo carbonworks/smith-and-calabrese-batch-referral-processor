@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import tech.carbonworks.snc.batchreferralparser.extraction.ReferralFields
 import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import tech.carbonworks.snc.batchreferralparser.FeatureFlags
+import tech.carbonworks.snc.batchreferralparser.output.CsvWriter
 import tech.carbonworks.snc.batchreferralparser.output.ExportColumnConfig
 import tech.carbonworks.snc.batchreferralparser.output.ExportPreferences
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
@@ -958,7 +959,8 @@ private fun SummaryCard(
 
 /**
  * Open a native save dialog and write extracted referral data to the
- * user-chosen XLSX path.
+ * user-chosen file path. Exports as CSV or XLSX based on the persisted
+ * [ExportPreferences.getExportAsCsv] preference.
  *
  * Uses [java.awt.FileDialog] in save mode for a native OS dialog.
  * The last-used save directory is remembered across sessions via
@@ -970,14 +972,16 @@ private fun saveToXlsx(
     onResult: (message: String?, error: String?, file: File?) -> Unit,
 ) {
     try {
-        val defaultFilename = "patient-referrals-${SAVE_FILENAME_TIMESTAMP.format(LocalDateTime.now())}.xlsx"
+        val exportAsCsv = ExportPreferences.getExportAsCsv()
+        val extension = if (exportAsCsv) "csv" else "xlsx"
+        val defaultFilename = "patient-referrals-${SAVE_FILENAME_TIMESTAMP.format(LocalDateTime.now())}.$extension"
         val initialDir = loadLastSaveDirectory()
 
         val dialog = FileDialog(null as Frame?, "Save", FileDialog.SAVE).apply {
             directory = initialDir.absolutePath
             file = defaultFilename
             // AWT FileDialog on Windows/macOS supports setFilenameFilter but it is
-            // unreliable; setting the default filename with .xlsx extension is the
+            // unreliable; setting the default filename with the correct extension is the
             // most portable way to guide the user toward the correct file type.
         }
 
@@ -992,22 +996,22 @@ private fun saveToXlsx(
             return
         }
 
-        // Ensure .xlsx extension
-        val finalName = if (chosenFile.endsWith(".xlsx", ignoreCase = true)) {
+        // Ensure correct extension
+        val finalName = if (chosenFile.endsWith(".$extension", ignoreCase = true)) {
             chosenFile
         } else {
-            "$chosenFile.xlsx"
+            "$chosenFile.$extension"
         }
         val outputFile = File(chosenDir, finalName)
 
-        println("[Save] Writing ${referralFields.size} referral(s) to file")
+        println("[Save] Writing ${referralFields.size} referral(s) to $extension file")
 
         // Remember this directory for next time
         saveLastSaveDirectory(File(chosenDir))
 
         // Write to a temp directory, then copy to the user-chosen path.
-        // SpreadsheetWriter.write generates its own filename, so we write
-        // to a temp dir and then move the result to the chosen location.
+        // Both writers generate their own filename, so we write to a temp
+        // dir and then move the result to the chosen location.
         val tempDir = kotlin.io.path.createTempDirectory("snc-export").toFile()
         try {
             val columnConfig = if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
@@ -1015,7 +1019,12 @@ private fun saveToXlsx(
             } else {
                 ExportColumnConfig.default()
             }
-            val tempFile = SpreadsheetWriter.write(referralFields, tempDir, columnConfig = columnConfig)
+
+            val tempFile = if (exportAsCsv) {
+                CsvWriter.write(referralFields, tempDir, columnConfig = columnConfig)
+            } else {
+                SpreadsheetWriter.write(referralFields, tempDir, columnConfig = columnConfig)
+            }
 
             // Move (or copy) to user-chosen path
             outputFile.parentFile?.mkdirs()

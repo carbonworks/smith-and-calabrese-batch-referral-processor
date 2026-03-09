@@ -22,6 +22,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import tech.carbonworks.snc.batchreferralparser.output.ExportPreferences
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwCard
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwPrimaryButton
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwSecondaryButton
@@ -121,6 +124,7 @@ fun MainScreen(
 ) {
     var isDragOver by remember { mutableStateOf(false) }
     var limitMessage by remember { mutableStateOf<String?>(null) }
+    var exportAsCsv by remember { mutableStateOf(ExportPreferences.getExportAsCsv()) }
 
     // Use refs to always read the latest values inside the AWT callback
     // without re-registering the DropTarget on every recomposition.
@@ -421,6 +425,27 @@ fun MainScreen(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // CSV export toggle
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = exportAsCsv,
+                    onCheckedChange = { checked ->
+                        exportAsCsv = checked
+                        ExportPreferences.setExportAsCsv(checked)
+                    },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = BrandGreen,
+                    ),
+                )
+                Text(
+                    text = "Export as CSV",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SoftGray,
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
             CwSecondaryButton(
                 text = "Add Files",
                 onClick = { openFilePicker(files, onFilesChanged) { msg -> limitMessage = msg } },
