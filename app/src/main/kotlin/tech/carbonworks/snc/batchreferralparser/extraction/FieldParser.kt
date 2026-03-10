@@ -800,10 +800,10 @@ class FieldParser(
             }
 
             if (providerName == null) {
-                // "Pay to:" followed by the provider name (first line of mailing address).
+                // "Mailing address:" followed by the provider/doctor name (first line).
                 // The name may be on the same line or the next line.
                 val m = Regex(
-                    """Pay\s+to\s*:\s*(.+)""",
+                    """Mailing\s+address\s*:\s*(.+)""",
                     RegexOption.IGNORE_CASE,
                 ).find(text)
                 if (m != null) {
@@ -814,15 +814,15 @@ class FieldParser(
                         providerName = firstLine
                     }
                 } else {
-                    // Cross-line fallback: "Pay to:" on one line, name on the next
-                    val crossLine = extractCrossLineValue(text, "Pay to:")
+                    // Cross-line fallback: "Mailing address:" on one line, name on the next
+                    val crossLine = extractCrossLineValue(text, "Mailing address:")
                     if (crossLine != null) {
                         // extractCrossLineValue returns only the first token;
                         // for provider name we want the full line after the label
                         val lines = text.split('\n')
                         for (i in lines.indices) {
-                            if ("Pay to:" in lines[i]) {
-                                val afterLabel = lines[i].substringAfter("Pay to:").trim()
+                            if ("Mailing address:" in lines[i]) {
+                                val afterLabel = lines[i].substringAfter("Mailing address:").trim()
                                 if (afterLabel.isNotEmpty()) {
                                     providerName = afterLabel
                                 } else if (i + 1 < lines.size) {
