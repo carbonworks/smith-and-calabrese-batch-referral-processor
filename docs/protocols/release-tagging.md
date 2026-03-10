@@ -46,9 +46,9 @@ When tagging the final release, update `packageVersion` from the RC value back t
    git push origin v1.1.0-rc1
    ```
 
-3. **Build and validate** — build the installer from the tagged commit and test on target machines.
+3. **Build and validate** — run `./gradlew :app:packageMsi` (or equivalent per platform) to build the installer, then test on target machines.
 
-4. **If the RC passes** — update `packageVersion` to the final version, commit, tag, and push:
+4. **If the RC passes** — update `packageVersion` to the final version, commit, tag, push, and **build the final installer** (`./gradlew :app:packageMsi`). All of these steps (version bump, commit, tag, push, build) should be performed automatically once the user approves the RC — do not wait for separate instructions for each step.
    ```kotlin
    packageVersion = "1.1.0"
    ```
