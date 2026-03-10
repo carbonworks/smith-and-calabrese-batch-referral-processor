@@ -2686,6 +2686,30 @@ RC2 passed validation. Finalize the v1.1.0 release:
 
 ---
 
+## WP-128: Fix Provider Name Extraction to Use Mailing Address (E52)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/spec/field-mapping.json`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParser.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/extraction/FieldParserTest.kt`
+**Depends on:** WP-106
+
+**Scope:**
+The provider name extraction incorrectly uses "Pay to:" (S&C billing address) instead of "Mailing address:" (actual provider/doctor name). Fix the extraction in `extractInvoiceFields()` in FieldParser.kt:
+
+1. **Replace the "Pay to:" regex** with a "Mailing address:" regex: `Mailing\s+address\s*:\s*(.+)` (case-insensitive). Extract the first line after the label as the provider name, same as the current logic does for "Pay to:".
+2. **Update the cross-line fallback** — if "Mailing address:" appears alone on a line, take the next non-blank line as the provider name (same pattern as the existing "Pay to:" cross-line fallback).
+3. **Remove the "Pay to:" provider name extraction entirely** — it extracts the wrong data. If "Pay to:" is needed for a different field in the future, it can be re-added then.
+4. **Update tests in FieldParserTest.kt** — replace all "Pay to:" provider name tests with equivalent "Mailing address:" tests. Use realistic provider names (e.g., "Lisa Heidelmaier PhD", "John Smith MD") instead of company names.
+5. **Run all tests** — `./gradlew :app:test`
+
+**Acceptance:**
+- Provider name extracted from "Mailing address:" section, not "Pay to:"
+- Same-line and cross-line extraction both work
+- All tests pass with updated assertions
+
+---
+
 ## Dependency Graph
 
 ```
