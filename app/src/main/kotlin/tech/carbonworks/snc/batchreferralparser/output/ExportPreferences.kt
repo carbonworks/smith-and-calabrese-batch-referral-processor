@@ -17,8 +17,9 @@ import java.util.prefs.Preferences
 object ExportPreferences {
 
     private const val KEY_EXPORT_COLUMN_CONFIG = "exportColumnConfig"
-    private const val KEY_EXPORT_AS_CSV = "exportAsCsv"
     private const val KEY_EXPORT_FORMAT = "exportFormat"
+    /** Legacy key retained for backward-compat migration from older versions. */
+    private const val KEY_EXPORT_AS_CSV = "exportAsCsv"
 
     private val prefs: Preferences =
         Preferences.userRoot().node("tech/carbonworks/snc/batchreferralparser")
@@ -72,28 +73,13 @@ object ExportPreferences {
     }
 
     /**
-     * Returns whether exports should be written as CSV instead of XLSX.
-     *
-     * @return `true` if CSV export is enabled, `false` (default) for XLSX
-     */
-    fun getExportAsCsv(): Boolean = prefs.getBoolean(KEY_EXPORT_AS_CSV, false)
-
-    /**
-     * Persist the CSV export preference.
-     */
-    fun setExportAsCsv(value: Boolean) {
-        println("[ExportPreferences] Export as CSV changed to: $value")
-        prefs.putBoolean(KEY_EXPORT_AS_CSV, value)
-    }
-
-    /**
      * Returns the persisted export format.
      *
-     * Reads the `exportFormat` preference key. For backward compatibility, if
-     * the new key is absent, falls back to the legacy `exportAsCsv` boolean:
-     * `true` maps to [ExportFormat.CSV], `false` (or absent) to [ExportFormat.XLSX].
+     * For backward compatibility with pre-1.2 installs: if no format key is
+     * stored but the legacy [KEY_EXPORT_AS_CSV] boolean is `true`, returns
+     * [ExportFormat.CSV]. Otherwise defaults to [ExportFormat.XLSX].
      *
-     * @return the selected [ExportFormat]
+     * @return the user's chosen [ExportFormat]
      */
     fun getExportFormat(): ExportFormat {
         val raw = prefs.get(KEY_EXPORT_FORMAT, null)
@@ -101,11 +87,10 @@ object ExportPreferences {
             return try {
                 ExportFormat.valueOf(raw)
             } catch (_: IllegalArgumentException) {
-                println("[ExportPreferences] Unknown export format '$raw', falling back to XLSX")
                 ExportFormat.XLSX
             }
         }
-        // Backward compatibility: check the legacy boolean key
+        // Backward-compat: migrate old boolean preference
         return if (prefs.getBoolean(KEY_EXPORT_AS_CSV, false)) {
             ExportFormat.CSV
         } else {
