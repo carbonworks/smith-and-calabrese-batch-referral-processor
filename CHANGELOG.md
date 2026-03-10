@@ -6,12 +6,9 @@ All notable changes to the S&C Batch Referral Processor are documented in this f
 
 ## [Unreleased]
 
-### Added
-- TSV export option and format dropdown — choose between XLSX, CSV, or TSV on the results screen
-
 ---
 
-## [1.1.0] — 2026-03-09
+## [1.1.0] — 2026-03-10
 
 ### Added
 - Extract Provider/Doctor Name from referral PDFs
