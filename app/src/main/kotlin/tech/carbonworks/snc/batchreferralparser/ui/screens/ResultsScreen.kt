@@ -12,9 +12,11 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,15 +34,18 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -511,15 +516,24 @@ fun ResultsScreen(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Box {
-                    Text(
-                        text = exportFormat.displayName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = BrandGreen,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .clickable { formatDropdownExpanded = true }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                    )
+                    OutlinedButton(
+                        onClick = { formatDropdownExpanded = true },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandGreen),
+                        border = BorderStroke(1.dp, BrandGreen),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = exportFormat.displayName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Select format",
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                     DropdownMenu(
                         expanded = formatDropdownExpanded,
                         onDismissRequest = { formatDropdownExpanded = false },
