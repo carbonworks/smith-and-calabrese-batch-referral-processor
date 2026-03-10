@@ -2662,6 +2662,30 @@ Do NOT tag or push.
 
 ---
 
+## WP-127: Release v1.1.0 (REL)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/protocols/release-tagging.md`
+**Touches:** `app/build.gradle.kts`
+**Depends on:** WP-126
+
+**Scope:**
+RC2 passed validation. Finalize the v1.1.0 release:
+
+1. Update `packageVersion` in `app/build.gradle.kts` from `"1.0.902"` to `"1.1.0"`
+2. Commit
+3. Tag `v1.1.0`
+4. Push commit and tag
+5. Build the final MSI installer
+
+**Acceptance:**
+- `packageVersion` is `"1.1.0"`
+- Tag `v1.1.0` exists on origin
+- MSI installer built successfully
+
+---
+
 ## Dependency Graph
 
 ```
