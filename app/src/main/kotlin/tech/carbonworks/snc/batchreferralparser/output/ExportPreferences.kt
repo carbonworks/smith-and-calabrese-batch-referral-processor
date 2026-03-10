@@ -18,6 +18,7 @@ object ExportPreferences {
 
     private const val KEY_EXPORT_COLUMN_CONFIG = "exportColumnConfig"
     private const val KEY_EXPORT_AS_CSV = "exportAsCsv"
+    private const val KEY_EXPORT_FORMAT = "exportFormat"
 
     private val prefs: Preferences =
         Preferences.userRoot().node("tech/carbonworks/snc/batchreferralparser")
@@ -83,5 +84,40 @@ object ExportPreferences {
     fun setExportAsCsv(value: Boolean) {
         println("[ExportPreferences] Export as CSV changed to: $value")
         prefs.putBoolean(KEY_EXPORT_AS_CSV, value)
+    }
+
+    /**
+     * Returns the persisted export format.
+     *
+     * Reads the `exportFormat` preference key. For backward compatibility, if
+     * the new key is absent, falls back to the legacy `exportAsCsv` boolean:
+     * `true` maps to [ExportFormat.CSV], `false` (or absent) to [ExportFormat.XLSX].
+     *
+     * @return the selected [ExportFormat]
+     */
+    fun getExportFormat(): ExportFormat {
+        val raw = prefs.get(KEY_EXPORT_FORMAT, null)
+        if (raw != null) {
+            return try {
+                ExportFormat.valueOf(raw)
+            } catch (_: IllegalArgumentException) {
+                println("[ExportPreferences] Unknown export format '$raw', falling back to XLSX")
+                ExportFormat.XLSX
+            }
+        }
+        // Backward compatibility: check the legacy boolean key
+        return if (prefs.getBoolean(KEY_EXPORT_AS_CSV, false)) {
+            ExportFormat.CSV
+        } else {
+            ExportFormat.XLSX
+        }
+    }
+
+    /**
+     * Persist the export format preference.
+     */
+    fun setExportFormat(format: ExportFormat) {
+        println("[ExportPreferences] Export format changed to: ${format.name}")
+        prefs.put(KEY_EXPORT_FORMAT, format.name)
     }
 }
