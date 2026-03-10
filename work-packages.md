@@ -2760,6 +2760,39 @@ Do NOT tag or push — that will be done after merge.
 
 ---
 
+## WP-131: Migrate Saved Export Config to Include New Fields (BUG)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumn.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportColumnTest.kt`
+**Depends on:** nothing (all touched files already exist on main)
+
+**Scope:**
+When a user saves their export column configuration, subsequent app updates that add new fields to `DEFAULT_FIELD_ORDER` are invisible to that user — `ExportPreferences.load()` deserializes the saved JSON as-is without reconciling against the current `DEFAULT_FIELD_ORDER`. Only users who never customized settings (or click "Reset to Defaults") see new fields.
+
+Fix `ExportPreferences.load()` to reconcile the saved config with the current `DEFAULT_FIELD_ORDER` after deserialization:
+
+1. **Add new fields**: After deserializing the saved config, identify any field IDs present in `DEFAULT_FIELD_ORDER` that are missing from the saved `columns` list. Append those new fields (as `ExportColumn.Field`, enabled by default) to the end of the saved column list.
+2. **Remove stale fields**: Remove any `ExportColumn.Field` entries whose `fieldId` does not appear in `DEFAULT_FIELD_ORDER` (fields that were removed from the app). Spacer columns are never removed.
+3. **Log the migration**: If any fields were added or removed, log a message like `[ExportPreferences] Migrated config: added N new field(s), removed M stale field(s)`.
+4. **Auto-save after migration**: If the config was modified by migration, call `save()` with the updated config so the migration only runs once.
+5. **Add tests** in `ExportColumnTest.kt`:
+   - Test that loading a saved config missing a field from `DEFAULT_FIELD_ORDER` results in that field being appended.
+   - Test that loading a saved config with a field ID not in `DEFAULT_FIELD_ORDER` results in that field being removed.
+   - Test that spacer columns survive migration.
+   - Test that no migration occurs when saved config already matches `DEFAULT_FIELD_ORDER`.
+6. **Run all tests**: `./gradlew :app:test`
+
+**Acceptance:**
+- `load()` returns a config that always contains every field in `DEFAULT_FIELD_ORDER`, even if the saved JSON predates those fields
+- Stale fields from removed versions are pruned
+- Spacers are preserved
+- Migration is logged and auto-saved
+- All existing and new tests pass
+
+---
+
 ## Dependency Graph
 
 ```

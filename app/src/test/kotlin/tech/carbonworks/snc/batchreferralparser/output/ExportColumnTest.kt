@@ -187,12 +187,14 @@ class ExportColumnTest {
 
     @Test
     fun `ExportPreferences round-trips config through save and load`() {
+        // Use a full config with all DEFAULT_FIELD_ORDER fields so migration
+        // does not alter it, allowing an exact round-trip assertion.
         val config = ExportColumnConfig(
-            columns = listOf(
-                ExportColumn.Field("lastName", "Last Name", enabled = true),
-                ExportColumn.Spacer(id = "sp-1"),
-                ExportColumn.Field("firstName", "First Name", enabled = false),
-            )
+            columns = DEFAULT_FIELD_ORDER.mapIndexed { index, (fieldId, displayName) ->
+                // Disable every other field to verify enabled state persists
+                ExportColumn.Field(fieldId = fieldId, displayName = displayName, enabled = index % 2 == 0)
+            },
+            expandServices = true,
         )
 
         try {
@@ -304,5 +306,125 @@ class ExportColumnTest {
             defaultNames,
             "DEFAULT_FIELD_ORDER display names should match COLUMN_HEADINGS exactly",
         )
+    }
+
+    // -------------------------------------------------------------------
+    // Test 14: Migration appends fields missing from saved config
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `load appends fields missing from saved config`() {
+        // Save a config with only the first 3 fields (simulating an older version)
+        val partial = ExportColumnConfig(
+            columns = DEFAULT_FIELD_ORDER.take(3).map { (id, name) ->
+                ExportColumn.Field(fieldId = id, displayName = name)
+            },
+        )
+
+        try {
+            ExportPreferences.save(partial)
+            val loaded = ExportPreferences.load()
+
+            // All DEFAULT_FIELD_ORDER fields should be present
+            val loadedFieldIds = loaded.columns
+                .filterIsInstance<ExportColumn.Field>()
+                .map { it.fieldId }
+                .toSet()
+            val expectedIds = DEFAULT_FIELD_ORDER.map { it.first }.toSet()
+            assertEquals(expectedIds, loadedFieldIds,
+                "Loaded config should contain every field from DEFAULT_FIELD_ORDER")
+
+            // First 3 should be in original order
+            val firstThree = loaded.columns.take(3).map { (it as ExportColumn.Field).fieldId }
+            assertEquals(DEFAULT_FIELD_ORDER.take(3).map { it.first }, firstThree,
+                "Original fields should retain their order")
+        } finally {
+            ExportPreferences.reset()
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 15: Migration removes stale fields not in DEFAULT_FIELD_ORDER
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `load removes stale fields not in DEFAULT_FIELD_ORDER`() {
+        // Save a config that includes a field ID that doesn't exist in DEFAULT_FIELD_ORDER
+        val configWithStale = ExportColumnConfig(
+            columns = DEFAULT_FIELD_ORDER.map { (id, name) ->
+                ExportColumn.Field(fieldId = id, displayName = name)
+            } + ExportColumn.Field(fieldId = "obsoleteField", displayName = "Gone"),
+        )
+
+        try {
+            ExportPreferences.save(configWithStale)
+            val loaded = ExportPreferences.load()
+
+            val loadedFieldIds = loaded.columns
+                .filterIsInstance<ExportColumn.Field>()
+                .map { it.fieldId }
+            assertTrue("obsoleteField" !in loadedFieldIds,
+                "Stale field should be removed after migration")
+            assertEquals(DEFAULT_FIELD_ORDER.size, loadedFieldIds.size,
+                "Should have exactly the fields from DEFAULT_FIELD_ORDER")
+        } finally {
+            ExportPreferences.reset()
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 16: Spacer columns survive migration
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `spacer columns survive migration`() {
+        // Save a partial config with spacers interspersed
+        val configWithSpacers = ExportColumnConfig(
+            columns = listOf(
+                ExportColumn.Field("firstName", "First Name"),
+                ExportColumn.Spacer(id = "sp-1", label = "Separator A"),
+                ExportColumn.Field("lastName", "Last Name"),
+                ExportColumn.Spacer(id = "sp-2", label = "Separator B"),
+            ),
+        )
+
+        try {
+            ExportPreferences.save(configWithSpacers)
+            val loaded = ExportPreferences.load()
+
+            val spacers = loaded.columns.filterIsInstance<ExportColumn.Spacer>()
+            assertEquals(2, spacers.size, "Both spacers should survive migration")
+            assertEquals("sp-1", spacers[0].id)
+            assertEquals("sp-2", spacers[1].id)
+
+            // All DEFAULT_FIELD_ORDER fields should also be present
+            val fieldIds = loaded.columns
+                .filterIsInstance<ExportColumn.Field>()
+                .map { it.fieldId }
+                .toSet()
+            assertEquals(DEFAULT_FIELD_ORDER.map { it.first }.toSet(), fieldIds,
+                "All default fields should be present alongside spacers")
+        } finally {
+            ExportPreferences.reset()
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Test 17: No migration when config already matches DEFAULT_FIELD_ORDER
+    // -------------------------------------------------------------------
+
+    @Test
+    fun `no migration when config already has all default fields`() {
+        val fullConfig = ExportColumnConfig.default()
+
+        try {
+            ExportPreferences.save(fullConfig)
+            val loaded = ExportPreferences.load()
+
+            assertEquals(fullConfig, loaded,
+                "Config with all default fields should load unchanged")
+        } finally {
+            ExportPreferences.reset()
+        }
     }
 }
