@@ -505,60 +505,6 @@ fun ResultsScreen(
                 onClick = onStartOver,
             )
             Spacer(modifier = Modifier.weight(1f))
-            // Export format dropdown
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Format:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SoftGray,
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Box {
-                    OutlinedButton(
-                        onClick = { formatDropdownExpanded = true },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandGreen),
-                        border = BorderStroke(1.dp, BrandGreen),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                    ) {
-                        Text(
-                            text = exportFormat.displayName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Select format",
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = formatDropdownExpanded,
-                        onDismissRequest = { formatDropdownExpanded = false },
-                    ) {
-                        ExportFormat.entries.forEach { format ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = format.displayName,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = if (format == exportFormat) BrandGreen else DeepInk,
-                                        fontWeight = if (format == exportFormat) FontWeight.SemiBold else FontWeight.Normal,
-                                    )
-                                },
-                                onClick = {
-                                    exportFormat = format
-                                    ExportPreferences.setExportFormat(format)
-                                    formatDropdownExpanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.width(8.dp))
             if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
                 IconButton(
                     onClick = onNavigateToExportSettings,
@@ -573,6 +519,50 @@ fun ResultsScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
             }
+            // Export format dropdown
+            Box {
+                OutlinedButton(
+                    onClick = { formatDropdownExpanded = true },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandGreen),
+                    border = BorderStroke(1.dp, BrandGreen),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                ) {
+                    Text(
+                        text = exportFormat.displayName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Select format",
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                DropdownMenu(
+                    expanded = formatDropdownExpanded,
+                    onDismissRequest = { formatDropdownExpanded = false },
+                ) {
+                    ExportFormat.entries.forEach { format ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = format.displayName,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (format == exportFormat) BrandGreen else DeepInk,
+                                    fontWeight = if (format == exportFormat) FontWeight.SemiBold else FontWeight.Normal,
+                                )
+                            },
+                            onClick = {
+                                exportFormat = format
+                                ExportPreferences.setExportFormat(format)
+                                formatDropdownExpanded = false
+                            },
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
             CwPrimaryButton(
                 text = "Export",
                 onClick = {
