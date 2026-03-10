@@ -35,8 +35,8 @@ import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,8 +64,10 @@ import tech.carbonworks.snc.batchreferralparser.extraction.ServiceLine
 import tech.carbonworks.snc.batchreferralparser.FeatureFlags
 import tech.carbonworks.snc.batchreferralparser.output.CsvWriter
 import tech.carbonworks.snc.batchreferralparser.output.ExportColumnConfig
+import tech.carbonworks.snc.batchreferralparser.output.ExportFormat
 import tech.carbonworks.snc.batchreferralparser.output.ExportPreferences
 import tech.carbonworks.snc.batchreferralparser.output.SpreadsheetWriter
+import tech.carbonworks.snc.batchreferralparser.output.TsvWriter
 import tech.carbonworks.snc.batchreferralparser.util.PhiMask
 import tech.carbonworks.snc.batchreferralparser.util.PhiPreferences
 import tech.carbonworks.snc.batchreferralparser.ui.components.CwCard
@@ -154,7 +156,8 @@ fun ResultsScreen(
     var saveMessage by remember { mutableStateOf<String?>(null) }
     var saveError by remember { mutableStateOf<String?>(null) }
     var savedFile by remember { mutableStateOf<File?>(null) }
-    var exportAsCsv by remember { mutableStateOf(ExportPreferences.getExportAsCsv()) }
+    var exportFormat by remember { mutableStateOf(ExportPreferences.getExportFormat()) }
+    var formatDropdownExpanded by remember { mutableStateOf(false) }
     var errorsExpanded by remember { mutableStateOf(false) }
     var warningsExpanded by remember { mutableStateOf(false) }
 
@@ -497,25 +500,49 @@ fun ResultsScreen(
                 onClick = onStartOver,
             )
             Spacer(modifier = Modifier.weight(1f))
-            // CSV export toggle
+            // Export format dropdown
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Checkbox(
-                    checked = exportAsCsv,
-                    onCheckedChange = { checked ->
-                        exportAsCsv = checked
-                        ExportPreferences.setExportAsCsv(checked)
-                    },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = BrandGreen,
-                    ),
-                )
                 Text(
-                    text = "Export as CSV",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "Format:",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = SoftGray,
                 )
+                Spacer(modifier = Modifier.width(4.dp))
+                Box {
+                    Text(
+                        text = exportFormat.displayName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = BrandGreen,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .clickable { formatDropdownExpanded = true }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    )
+                    DropdownMenu(
+                        expanded = formatDropdownExpanded,
+                        onDismissRequest = { formatDropdownExpanded = false },
+                    ) {
+                        ExportFormat.entries.forEach { format ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = format.displayName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (format == exportFormat) BrandGreen else DeepInk,
+                                        fontWeight = if (format == exportFormat) FontWeight.SemiBold else FontWeight.Normal,
+                                    )
+                                },
+                                onClick = {
+                                    exportFormat = format
+                                    ExportPreferences.setExportFormat(format)
+                                    formatDropdownExpanded = false
+                                },
+                            )
+                        }
+                    }
+                }
             }
             Spacer(modifier = Modifier.width(8.dp))
             if (FeatureFlags.EXPORT_COLUMN_CONFIG) {
@@ -987,8 +1014,8 @@ private fun SummaryCard(
 
 /**
  * Open a native save dialog and write extracted referral data to the
- * user-chosen file path. Exports as CSV or XLSX based on the persisted
- * [ExportPreferences.getExportAsCsv] preference.
+ * user-chosen file path. Exports in the format selected by the user
+ * via [ExportPreferences.getExportFormat].
  *
  * Uses [java.awt.FileDialog] in save mode for a native OS dialog.
  * The last-used save directory is remembered across sessions via
@@ -1000,8 +1027,8 @@ private fun saveToXlsx(
     onResult: (message: String?, error: String?, file: File?) -> Unit,
 ) {
     try {
-        val exportAsCsv = ExportPreferences.getExportAsCsv()
-        val extension = if (exportAsCsv) "csv" else "xlsx"
+        val exportFormat = ExportPreferences.getExportFormat()
+        val extension = exportFormat.extension
         val defaultFilename = "patient-referrals-${SAVE_FILENAME_TIMESTAMP.format(LocalDateTime.now())}.$extension"
         val initialDir = loadLastSaveDirectory()
 
@@ -1048,10 +1075,10 @@ private fun saveToXlsx(
                 ExportColumnConfig.default()
             }
 
-            val tempFile = if (exportAsCsv) {
-                CsvWriter.write(referralFields, tempDir, columnConfig = columnConfig)
-            } else {
-                SpreadsheetWriter.write(referralFields, tempDir, columnConfig = columnConfig)
+            val tempFile = when (exportFormat) {
+                ExportFormat.CSV -> CsvWriter.write(referralFields, tempDir, columnConfig = columnConfig)
+                ExportFormat.TSV -> TsvWriter.write(referralFields, tempDir, columnConfig = columnConfig)
+                ExportFormat.XLSX -> SpreadsheetWriter.write(referralFields, tempDir, columnConfig = columnConfig)
             }
 
             // Move (or copy) to user-chosen path

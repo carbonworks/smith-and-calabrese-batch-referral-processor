@@ -17,6 +17,8 @@ import java.util.prefs.Preferences
 object ExportPreferences {
 
     private const val KEY_EXPORT_COLUMN_CONFIG = "exportColumnConfig"
+    private const val KEY_EXPORT_FORMAT = "exportFormat"
+    /** Legacy key retained for backward-compat migration from older versions. */
     private const val KEY_EXPORT_AS_CSV = "exportAsCsv"
 
     private val prefs: Preferences =
@@ -71,17 +73,36 @@ object ExportPreferences {
     }
 
     /**
-     * Returns whether exports should be written as CSV instead of XLSX.
+     * Returns the persisted export format.
      *
-     * @return `true` if CSV export is enabled, `false` (default) for XLSX
+     * For backward compatibility with pre-1.2 installs: if no format key is
+     * stored but the legacy [KEY_EXPORT_AS_CSV] boolean is `true`, returns
+     * [ExportFormat.CSV]. Otherwise defaults to [ExportFormat.XLSX].
+     *
+     * @return the user's chosen [ExportFormat]
      */
-    fun getExportAsCsv(): Boolean = prefs.getBoolean(KEY_EXPORT_AS_CSV, false)
+    fun getExportFormat(): ExportFormat {
+        val raw = prefs.get(KEY_EXPORT_FORMAT, null)
+        if (raw != null) {
+            return try {
+                ExportFormat.valueOf(raw)
+            } catch (_: IllegalArgumentException) {
+                ExportFormat.XLSX
+            }
+        }
+        // Backward-compat: migrate old boolean preference
+        return if (prefs.getBoolean(KEY_EXPORT_AS_CSV, false)) {
+            ExportFormat.CSV
+        } else {
+            ExportFormat.XLSX
+        }
+    }
 
     /**
-     * Persist the CSV export preference.
+     * Persist the export format preference.
      */
-    fun setExportAsCsv(value: Boolean) {
-        println("[ExportPreferences] Export as CSV changed to: $value")
-        prefs.putBoolean(KEY_EXPORT_AS_CSV, value)
+    fun setExportFormat(format: ExportFormat) {
+        println("[ExportPreferences] Export format changed to: ${format.name}")
+        prefs.put(KEY_EXPORT_FORMAT, format.name)
     }
 }

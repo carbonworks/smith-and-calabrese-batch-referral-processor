@@ -137,7 +137,7 @@ fun HelpScreen(
                             text = "Up to 50 PDFs can be processed in a single batch.",
                         )
                         HelpBullet(
-                            text = "Output is saved as an XLSX spreadsheet compatible with Excel and Google Sheets. Optionally export as CSV instead (see Tips).",
+                            text = "Output is saved as an XLSX spreadsheet compatible with Excel and Google Sheets. Optionally export as CSV or TSV instead (see Tips).",
                         )
                     }
                 }
@@ -174,7 +174,7 @@ fun HelpScreen(
                             text = "Result cards display Provider/Doctor Name, Special Instructions, and Examiner Name & Contact when present in the authorization PDF.",
                         )
                         HelpBullet(
-                            text = "Check \"Export as CSV\" on the results screen to export a CSV file instead of XLSX. This preference persists across sessions.",
+                            text = "Use the format dropdown on the results screen to choose XLSX, CSV, or TSV export. This preference persists across sessions.",
                         )
                         HelpBullet(
                             text = "After exporting, click the filename to open the spreadsheet or \"Open folder\" to see it in your file manager.",
@@ -460,7 +460,7 @@ private val CHANGELOG_ENTRIES = listOf(
                 "Extract Provider/Doctor Name from referral PDFs",
                 "Extract Special Instructions from referral PDFs",
                 "Extract Examiner Name & Contact from referral PDFs",
-                "CSV export option \u2014 toggle on the results screen to export CSV instead of XLSX",
+                "Export format dropdown \u2014 choose XLSX, CSV, or TSV on the results screen",
                 "In-app changelog (\u201cWhat\u2019s New\u201d on Help screen)",
             ),
         ),
