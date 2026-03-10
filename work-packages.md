@@ -2535,6 +2535,89 @@ Bullet characters in all Help screen sections render below their associated text
 
 ---
 
+## WP-122: Add ExportFormat Enum and TSV Writer (E51)
+
+**Status:** done
+**Owns:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportFormat.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/TsvWriter.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/output/TsvWriterTest.kt`
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/CsvWriter.kt`, `app/src/test/kotlin/tech/carbonworks/snc/batchreferralparser/output/CsvWriterTest.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`
+**Depends on:** nothing
+
+**Scope:**
+
+1. **Create `ExportFormat.kt`** — an enum with three values:
+   ```kotlin
+   enum class ExportFormat(val displayName: String, val extension: String) {
+       XLSX("Excel (.xlsx)", "xlsx"),
+       CSV("CSV (.csv)", "csv"),
+       TSV("TSV (.tsv)", "tsv"),
+   }
+   ```
+
+2. **Create `TsvWriter.kt`** — mirrors `CsvWriter` but uses tab delimiter. Key differences from CSV:
+   - Delimiter is `\t` instead of `,`
+   - Escaping: strip tabs and newlines from field values (no quoting needed for TSV)
+   - File extension `.tsv`
+   - Otherwise identical structure: same header/data row logic, same column config support, same `expandServices` handling
+
+3. **Update `ExportPreferences.kt`**:
+   - Add `getExportFormat(): ExportFormat` — reads a string preference key `"exportFormat"`, returns `ExportFormat.valueOf()` with fallback to `XLSX`. For backward compatibility: if the new key is absent, check the old `exportAsCsv` boolean key — if true return `CSV`, otherwise `XLSX`.
+   - Add `setExportFormat(format: ExportFormat)` — stores the enum name as a string.
+   - Keep the old `getExportAsCsv()`/`setExportAsCsv()` methods for now (WP-123 will remove them when it rewires the UI).
+
+4. **Create `TsvWriterTest.kt`** — mirror `CsvWriterTest` structure: test tab-delimited output, field escaping (tabs/newlines stripped), column config, expand services.
+
+5. **Run all tests** — existing and new must pass.
+
+**Acceptance:**
+- `ExportFormat` enum exists with XLSX, CSV, TSV
+- `TsvWriter` produces tab-delimited `.tsv` files
+- `ExportPreferences` has format-aware getter/setter with backward compat
+- All tests pass (existing + new TSV tests)
+
+---
+
+## WP-123: Replace CSV Checkbox with Format Dropdown (U26)
+
+**Status:** done
+**Owns:** none
+**Reads:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportFormat.kt`
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/output/ExportPreferences.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`, `CHANGELOG.md`
+**Depends on:** WP-122
+
+**Scope:**
+
+1. **ResultsScreen.kt** — Replace the "Export as CSV" checkbox with a compact dropdown:
+   - Replace `exportAsCsv: Boolean` state with `exportFormat: ExportFormat` initialized from `ExportPreferences.getExportFormat()`.
+   - Replace the Checkbox + "Export as CSV" text with a small dropdown (use `ExposedDropdownMenuBox` or a `TextButton` + `DropdownMenu` pattern) showing the three format options from `ExportFormat.entries`. Display `format.displayName` for each item.
+   - On selection change, call `ExportPreferences.setExportFormat(format)`.
+   - In the `saveToXlsx()` function (rename or keep), update the dispatch logic:
+     - `XLSX` → `SpreadsheetWriter.write(...)`
+     - `CSV` → `CsvWriter.write(...)`
+     - `TSV` → `TsvWriter.write(...)`
+   - Update `extension` and `defaultFilename` to use `exportFormat.extension`.
+
+2. **ExportPreferences.kt** — Remove the old `getExportAsCsv()`/`setExportAsCsv()` methods and the old `KEY_EXPORT_AS_CSV` constant now that the UI is fully migrated.
+
+3. **HelpScreen.kt** — Update existing help text in-place (do not add new lines):
+   - The "Supported Formats" bullet about output: change to mention XLSX, CSV, or TSV.
+   - The "Tips" bullet about CSV export: reword to describe the format dropdown and all three options.
+   - CHANGELOG_ENTRIES: update the CSV export entry to mention the format dropdown and TSV.
+
+4. **CHANGELOG.md** — Under `[Unreleased]`, add: "TSV export option — use the format dropdown on the results screen to choose between XLSX, CSV, or TSV". Remove or update the existing CSV-only entry.
+
+5. **Run all tests.**
+
+**Acceptance:**
+- No checkbox on results screen; format dropdown with XLSX/CSV/TSV visible instead
+- Selecting a format persists and controls export output
+- Old boolean preference methods removed from ExportPreferences
+- Help text updated in-place (no net new lines added)
+- CHANGELOG.md updated
+- All tests pass
+
+---
+
 ## Dependency Graph
 
 ```
