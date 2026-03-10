@@ -453,6 +453,15 @@ private data class ChangelogEntry(
 /** Application changelog entries, newest first. */
 private val CHANGELOG_ENTRIES = listOf(
     ChangelogEntry(
+        version = "1.1.2",
+        date = "2026-03-10",
+        categories = mapOf(
+            "Fixed" to listOf(
+                "Export column settings now automatically pick up new fields added in app updates (previously, users who had saved custom export settings would not see fields introduced in later versions)",
+            ),
+        ),
+    ),
+    ChangelogEntry(
         version = "1.1.1",
         date = "2026-03-10",
         categories = mapOf(

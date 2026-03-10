@@ -2793,6 +2793,56 @@ Fix `ExportPreferences.load()` to reconcile the saved config with the current `D
 
 ---
 
+## WP-132: Release Candidate v1.1.2-rc1 (REL)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/protocols/release-tagging.md`
+**Touches:** `app/build.gradle.kts`, `CHANGELOG.md`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-131
+
+**Scope:**
+Hotfix release for the export config migration bug (WP-131). Execute pre-release checklist:
+
+1. **Version number**: Set `packageVersion` to `"1.1.902"` in `app/build.gradle.kts` (rc1 for v1.1.2, using pre-release offset convention — `1.1.901` was already used for the v1.1.1 RC cycle, so start at `902`).
+2. **Changelog**: In `CHANGELOG.md`, add a `[1.1.2]` section dated 2026-03-10 under `## [Unreleased]`. Category is **Fixed** with the entry: "Export column settings now automatically pick up new fields added in app updates (previously, users who had saved custom export settings would not see fields introduced in later versions)". Add a fresh empty `[Unreleased]` section above it. Update `HelpScreen.kt` `CHANGELOG_ENTRIES` to match — add a new `ChangelogEntry` for 1.1.2 at the top of the list.
+3. **Run all tests**: `./gradlew :app:test`
+
+Do NOT tag or push.
+
+**Acceptance:**
+- `packageVersion` is `"1.1.902"`
+- `CHANGELOG.md` has `[1.1.2]` section with the fix noted
+- `HelpScreen.kt` `CHANGELOG_ENTRIES` has matching 1.1.2 entry at top
+- All tests pass
+- Single commit
+
+---
+
+## WP-133: Finalize v1.1.2 Release (REL)
+
+**Status:** blocked
+**Owns:** none
+**Reads:** `docs/protocols/release-tagging.md`
+**Touches:** `app/build.gradle.kts`
+**Depends on:** WP-132
+
+**Scope:**
+RC1 passed testing. Finalize the v1.1.2 release:
+
+1. **Version number**: Set `packageVersion` to `"1.1.2"` in `app/build.gradle.kts`.
+2. **Verify**: `CHANGELOG.md` already has `[1.1.2]` section dated 2026-03-10. `HelpScreen.kt` `CHANGELOG_ENTRIES` already has 1.1.2 entry. No changes needed to either.
+3. **Run all tests**: `./gradlew :app:test`
+
+Do NOT tag or push — that will be done after merge.
+
+**Acceptance:**
+- `packageVersion` is `"1.1.2"`
+- All tests pass
+- Single commit
+
+---
+
 ## Dependency Graph
 
 ```

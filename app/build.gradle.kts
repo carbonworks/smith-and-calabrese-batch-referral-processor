@@ -90,7 +90,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "PDF Authorization Processor"
-            packageVersion = "1.1.1"
+            packageVersion = "1.1.902"
             vendor = "Carbon Works"
             description = "Turns referral PDFs into organized spreadsheets, quickly and accurately."
             copyright = "Copyright 2026 Carbon Works"

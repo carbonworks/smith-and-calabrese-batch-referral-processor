@@ -8,6 +8,13 @@ All notable changes to the S&C Batch Referral Processor are documented in this f
 
 ---
 
+## [1.1.2] — 2026-03-10
+
+### Fixed
+- Export column settings now automatically pick up new fields added in app updates (previously, users who had saved custom export settings would not see fields introduced in later versions)
+
+---
+
 ## [1.1.1] — 2026-03-10
 
 ### Fixed
