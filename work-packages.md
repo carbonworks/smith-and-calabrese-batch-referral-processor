@@ -2736,6 +2736,30 @@ Do NOT tag or push.
 
 ---
 
+## WP-130: Finalize v1.1.1 Release (REL)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/protocols/release-tagging.md`
+**Touches:** `app/build.gradle.kts`
+**Depends on:** WP-129
+
+**Scope:**
+RC1 passed testing. Finalize the v1.1.1 release:
+
+1. **Version number**: Set `packageVersion` to `"1.1.1"` in `app/build.gradle.kts`.
+2. **Verify**: CHANGELOG.md already has [1.1.1] section dated 2026-03-10. HelpScreen.kt CHANGELOG_ENTRIES already has 1.1.1 entry. No changes needed to either.
+3. **Run all tests**: `./gradlew :app:test`
+
+Do NOT tag or push — that will be done after merge.
+
+**Acceptance:**
+- `packageVersion` is `"1.1.1"`
+- All tests pass
+- Single commit
+
+---
+
 ## Dependency Graph
 
 ```
