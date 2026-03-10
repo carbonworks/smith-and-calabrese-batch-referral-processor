@@ -8,6 +8,13 @@ All notable changes to the S&C Batch Referral Processor are documented in this f
 
 ---
 
+## [1.1.1] — 2026-03-10
+
+### Fixed
+- Provider/Doctor Name now extracts from the correct field (Mailing address) instead of the billing address (Pay to)
+
+---
+
 ## [1.1.0] — 2026-03-10
 
 ### Added

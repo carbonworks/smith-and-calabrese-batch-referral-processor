@@ -453,6 +453,15 @@ private data class ChangelogEntry(
 /** Application changelog entries, newest first. */
 private val CHANGELOG_ENTRIES = listOf(
     ChangelogEntry(
+        version = "1.1.1",
+        date = "2026-03-10",
+        categories = mapOf(
+            "Fixed" to listOf(
+                "Provider/Doctor Name now extracts from the correct field (Mailing address) instead of the billing address (Pay to)",
+            ),
+        ),
+    ),
+    ChangelogEntry(
         version = "1.1.0",
         date = "2026-03-10",
         categories = mapOf(
