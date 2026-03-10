@@ -17,26 +17,53 @@ Release candidates are tagged on `main` with a `-rcN` suffix:
 1.0.0-rc2    Second release candidate (if rc1 needs changes)
 ```
 
+### MSI Version Numbering (Pre-Release Offset)
+
+Windows MSI only compares the first 3 fields of a version number for upgrade logic. To allow RC-to-RC upgrades without uninstalling, RCs use a **pre-release offset** convention:
+
+```
+Target release: 1.1.0
+  rc1 packageVersion: 1.0.901
+  rc2 packageVersion: 1.0.902
+  rc3 packageVersion: 1.0.903
+Final packageVersion: 1.1.0
+```
+
+The `9xx` patch values are chosen to be well above any realistic hotfix number, making them clearly identifiable as pre-release. Each RC is strictly greater than the previous, and the final release version is strictly greater than all RCs.
+
+When tagging the final release, update `packageVersion` from the RC value back to the target version (e.g., `1.0.902` → `1.1.0`).
+
 ### Workflow
 
-1. **Tag the RC** on `main` when the codebase is ready for validation:
-   ```
-   git tag -a v1.0.0-rc1 -m "Release candidate 1 for v1.0.0"
-   git push origin v1.0.0-rc1
-   ```
-
-2. **Validate** — build the installer from the tagged commit and test on target machines.
-
-3. **If the RC passes** — tag the same commit (or a later commit if minor metadata changed) as the release:
-   ```
-   git tag -a v1.0.0 -m "Release v1.0.0"
-   git push origin v1.0.0
+1. **Set the RC version** in `app/build.gradle.kts`:
+   ```kotlin
+   packageVersion = "1.0.901"  // rc1 for v1.1.0
    ```
 
-4. **If the RC needs changes** — commit fixes to `main`, then tag a new RC:
+2. **Tag the RC** on `main` when the codebase is ready for validation:
    ```
-   git tag -a v1.0.0-rc2 -m "Release candidate 2 for v1.0.0"
-   git push origin v1.0.0-rc2
+   git tag -a v1.1.0-rc1 -m "Release candidate 1 for v1.1.0"
+   git push origin v1.1.0-rc1
+   ```
+
+3. **Build and validate** — build the installer from the tagged commit and test on target machines.
+
+4. **If the RC passes** — update `packageVersion` to the final version, commit, tag, and push:
+   ```kotlin
+   packageVersion = "1.1.0"
+   ```
+   ```
+   git tag -a v1.1.0 -m "Release v1.1.0"
+   git push origin v1.1.0
+   ```
+
+5. **If the RC needs changes** — commit fixes, bump to next RC version, tag:
+   ```kotlin
+   packageVersion = "1.0.902"  // rc2 for v1.1.0
+   ```
+   ```
+   git tag -a v1.1.0-rc2 -m "Release candidate 2 for v1.1.0"
+   git push origin v1.1.0-rc2
    ```
 
 ## Post-Release Hotfixes
