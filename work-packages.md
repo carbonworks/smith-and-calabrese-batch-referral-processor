@@ -2618,6 +2618,24 @@ Bullet characters in all Help screen sections render below their associated text
 
 ---
 
+## WP-125: Reposition Format Dropdown and Remove Label (U27)
+
+**Status:** done
+**Owns:** none
+**Reads:** none
+**Touches:** `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/ResultsScreen.kt`
+**Depends on:** WP-124
+
+**Scope:**
+On the results screen action bar, move the export format OutlinedButton dropdown so it sits between the gear icon and the Export button. Remove the "Format:" label text and its spacer.
+
+**Acceptance:**
+- Format dropdown is positioned between gear icon and Export button
+- No "Format:" label visible
+- Dropdown still functions correctly (opens menu, persists selection)
+
+---
+
 ## Dependency Graph
 
 ```
