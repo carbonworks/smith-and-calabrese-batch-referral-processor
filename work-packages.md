@@ -2710,6 +2710,32 @@ The provider name extraction incorrectly uses "Pay to:" (S&C billing address) in
 
 ---
 
+## WP-129: Release Candidate v1.1.1-rc1 (REL)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/protocols/release-tagging.md`
+**Touches:** `app/build.gradle.kts`, `CHANGELOG.md`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-128
+
+**Scope:**
+Hotfix release for the provider name extraction bug. Execute pre-release checklist:
+
+1. **Version number**: Set `packageVersion` to `"1.1.901"` (rc1 for v1.1.1, using pre-release offset convention).
+2. **Changelog**: In CHANGELOG.md, add a `[1.1.1]` section with today's date under Fixed: "Provider/Doctor Name now extracts from the correct field (Mailing address) instead of the billing address (Pay to)". Move any Unreleased items into it. Add fresh empty Unreleased. Update HelpScreen.kt CHANGELOG_ENTRIES to match (add a new 1.1.1 entry at top of list).
+3. **Run all tests**: `./gradlew :app:test`
+
+Do NOT tag or push.
+
+**Acceptance:**
+- `packageVersion` is `"1.1.901"`
+- CHANGELOG.md has [1.1.1] section with the fix noted
+- HelpScreen.kt CHANGELOG_ENTRIES matches
+- All tests pass
+- Single commit
+
+---
+
 ## Dependency Graph
 
 ```
