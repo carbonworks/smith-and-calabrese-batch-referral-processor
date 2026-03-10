@@ -2636,6 +2636,32 @@ On the results screen action bar, move the export format OutlinedButton dropdown
 
 ---
 
+## WP-126: Release Candidate v1.1.0-rc2 (REL)
+
+**Status:** done
+**Owns:** none
+**Reads:** `docs/protocols/release-tagging.md`, `CHANGELOG.md`, `app/build.gradle.kts`
+**Touches:** `CHANGELOG.md`, `app/src/main/kotlin/tech/carbonworks/snc/batchreferralparser/ui/screens/HelpScreen.kt`
+**Depends on:** WP-122, WP-123, WP-124, WP-125
+
+**Scope:**
+Execute pre-release checklist for v1.1.0-rc2:
+
+1. **Changelog**: Move `[Unreleased]` items in CHANGELOG.md into the `[1.1.0]` section (since this is still the same minor release, just a new RC). Add a fresh empty `[Unreleased]` section. Update HelpScreen.kt `CHANGELOG_ENTRIES` to match.
+2. **FOSS licensing review**: Verify NOTICE.txt and OPEN_SOURCE_COMPONENTS match current dependencies.
+3. **Run all tests**: `./gradlew :app:test`
+4. **Version number**: Confirm `packageVersion` is already `1.1.0` (no change needed).
+
+Do NOT tag or push.
+
+**Acceptance:**
+- CHANGELOG.md [1.1.0] section includes TSV/format dropdown entry, fresh empty [Unreleased] above
+- HelpScreen.kt CHANGELOG_ENTRIES matches
+- All tests pass
+- Single commit
+
+---
+
 ## Dependency Graph
 
 ```
