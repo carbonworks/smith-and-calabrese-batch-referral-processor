@@ -2821,7 +2821,7 @@ Do NOT tag or push.
 
 ## WP-133: Finalize v1.1.2 Release (REL)
 
-**Status:** blocked
+**Status:** done
 **Owns:** none
 **Reads:** `docs/protocols/release-tagging.md`
 **Touches:** `app/build.gradle.kts`

@@ -42,6 +42,10 @@ These logs will be analyzed later for:
 - Understanding usage patterns
 - Training data for workflow optimization
 
+## Rules
+
+- **Never shorten or remove user prompts.** Log each user prompt verbatim (or as close to verbatim as possible). Do not paraphrase, truncate, or omit any part of what the user said. The full prompt text is essential for later analysis.
+
 ## Process
 
 1. Build the log incrementally — append each user prompt and your response summary as work happens, rather than reconstructing the session at commit time
